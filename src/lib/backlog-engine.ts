@@ -192,6 +192,23 @@ export function saveLectureHomework(
     // 5. Update OKF Google Drive registry
     const okfLectureId = `iiitd-${lecture.courseId.toLowerCase()}-lec02`;
     OKFRegistry.updateLectureHomework(okfLectureId, rawInput);
+
+    // 6. Sync to Server Ledger API
+    try {
+      fetch("/api/homework/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          lectureId: lecture.id,
+          courseCode: lecture.courseCode,
+          courseName: lecture.courseName,
+          rawInput,
+          summary: payload.summary,
+          problems: payload.problems,
+          dueDate: payload.dueDate,
+        }),
+      }).catch((e) => console.warn("Background server sync non-blocking error", e));
+    } catch {}
   }
 }
 

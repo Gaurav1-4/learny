@@ -86,6 +86,23 @@ export function HomeworkLoggerModal({
     const lectureId = `iiitd-${classItem.courseId.toLowerCase()}-lec02`;
     OKFRegistry.updateLectureHomework(lectureId, inputText);
 
+    // 5. Sync to server ledger
+    try {
+      fetch('/api/homework/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          lectureId: classItem.id,
+          courseCode: classItem.courseCode,
+          courseName: classItem.courseName,
+          rawInput: inputText,
+          summary,
+          problems,
+          dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+        }),
+      }).catch((e) => console.warn('Server sync error', e));
+    } catch {}
+
     setSavedSuccess(true);
     setTimeout(() => {
       onSaved(summary);

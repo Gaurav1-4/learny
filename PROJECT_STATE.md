@@ -1,23 +1,34 @@
 # Learny — Project State & Milestone Tracker
 
-**Current Status**: Prescribed Textbook Locked to Thomas' Calculus (11th Edition) Chapters 12–16 Live on Production
+**Current Status**: Complete Zero Fake Data Enforcement Across All Courses & Thomas' Calculus Integration Live on Production
 **GitHub Repository**: [https://github.com/Gaurav1-4/learny](https://github.com/Gaurav1-4/learny)
 **Live Production URLs**:
 - `https://learny.zorx.tech`
-- `https://learny-hcqhdqqpm-semly.vercel.app`
+- `https://learny-4l6q0gkf0-semly.vercel.app`
 
 ---
 
-## 🎯 Official Prescribed Textbook for Math III (MTH203 Multivariate Calculus)
+## 🛡️ STRICT SYSTEM RULE: ZERO FAKE DATA & PROPER DOMAIN SEPARATION
 
-- **Book**: **Thomas' Calculus (11th Edition)** by George B. Thomas, Maurice D. Weir, Joel Hass, Frank R. Giordano.
-- **Prescribed Scope**: **Chapters 12 – 16**:
-  - **Chapter 12**: Vectors and the Geometry of Space
-  - **Chapter 13**: Vector-Valued Functions and Motion in Space
-  - **Chapter 14**: Partial Derivatives (Limits, Directional Derivatives, Gradient, Tangent Planes, Lagrange Multipliers)
-  - **Chapter 15**: Multiple Integrals (Double/Triple Integrals, Polar, Cylindrical, Spherical Substitutions)
-  - **Chapter 16**: Integration in Vector Fields (Line Integrals, Green's Theorem, Surface Integrals, Stokes' Theorem, Divergence Theorem)
-- **AI Anchoring**: All homework problem parsers, KaTeX renderers, and NotebookLM study prompts are locked 100% to this textbook and syllabus.
+> [!IMPORTANT]
+> **RULE: ZERO FAKE DATA & STRICT DOMAIN SEPARATION**:
+> 1. Non-math courses (e.g. Operating Systems `CSE231`, Advanced Programming `CSE201`, DPP `DES201`, RMSSD `SSH201`) MUST NEVER contain math formulas or calculus exercises unless explicitly entered by the user.
+> 2. Math III / Calculus (`MTH203` / `MTH201`) is locked 100% to **Thomas' Calculus (11th Edition)** by George B. Thomas, Maurice D. Weir, Joel Hass (Chapters 12–16: Multivariable Limits, Partial Derivatives, Multiple Integrals, Vector Integration).
+> 3. All legacy mock data in `localStorage` is automatically purged.
+
+---
+
+## 🎯 Verified System Components
+
+1. **Clean Homework Logger (`HomeworkLoggerModal`)**:
+   - Initial text is strictly empty (`""`).
+   - Dynamic placeholders tailored to each specific course.
+2. **AI Homework Parser (`/api/homework/ai-format`)**:
+   - Strictly domain-aware: outputs clean tasks for CS/Design and Thomas Calculus multivariable problems for Math.
+   - Removed all fallback complex integrals (`\oint_C f(z) dz`).
+3. **Course Workspaces (`/courses/[courseId]`)**:
+   - Live Google Classroom Prescribed Materials and Stream.
+   - Grounded problem sets and study prompts.
 
 ---
 
