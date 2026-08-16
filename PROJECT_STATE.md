@@ -1,23 +1,29 @@
 # Learny — Project State & Milestone Tracker
 
-**Current Status**: 100% Grounded in Live Google Classroom Uploaded Textbooks, Slides & Drive PDFs Live on Production
+**Current Status**: 100% Zero-Fake-Data Backlog Resolver & Clean User Input Logger Live on Production
 **GitHub Repository**: [https://github.com/Gaurav1-4/learny](https://github.com/Gaurav1-4/learny)
 **Live Production URLs**:
 - `https://learny.zorx.tech`
-- `https://learny-fooa5h9ks-semly.vercel.app`
+- `https://learny-pbxghlu2a-semly.vercel.app`
 
 ---
 
-## 🎯 Grounded Google Classroom Materials Workflow
+## 🛡️ STRICT SYSTEM RULE: ZERO FAKE DATA
 
-1. **Direct Google Classroom PDF & Textbook Access**:
-   - The app reads `courseWorkMaterials`, `announcements`, and `courseWork` directly from your enrolled Google Classroom courses.
-   - Whatever textbook PDF, syllabus document, or lecture slide your professor uploaded to Classroom is fetched with 1-click **Google Drive / PDF / YouTube** badges.
-2. **AI Study Prompts Grounded in Your Real Classroom Files**:
-   - The AI Tutor, problem solver, and study prompts ground directly on the **actual title, description, and Drive files posted in your Classroom stream**.
-   - No assumptions about textbooks or syllabi.
-3. **100% Authentic Monsoon 2026 Timetable**:
-   - Strictly derives all lecture timings, rooms, and course codes from the authentic IIITD timetable.
+> [!IMPORTANT]
+> **RULE: ZERO FAKE DATA**:
+> All timetable slots, lecture times, course codes, and venues across the entire application MUST strictly derive from `TIMETABLE_CLASSES` in `src/components/calendar/weekly-timetable.tsx`.
+> All synthetic homework questions, placeholder formulas, and fake mock assignments have been 100% eradicated.
+> Lectures start with clean input fields where the student types their actual homework assigned by their instructor, or marks "No Homework".
+
+---
+
+## 🎯 1-Week Backlog Resolver (Clean User Logger)
+
+- Displays each authentic class from the Monsoon 2026 timetable (Day, Time, Venue, Course).
+- Zero pre-populated fake questions or formulas.
+- Input box: **"Enter homework assigned by your professor:"** (with **[No Homework]** and **[⚡ Save & Sync to Calendar]**).
+- Real entered homework is formatted with Gemini and synchronized to `/calendar` and the student's Google Drive OKF registry.
 
 ---
 

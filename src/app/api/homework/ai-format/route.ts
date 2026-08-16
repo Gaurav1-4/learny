@@ -12,24 +12,25 @@ export async function POST(request: Request) {
     }
 
     const systemPrompt = `You are an expert university STEM professor and mathematical formatting engine for IIIT Delhi.
-Given a student's raw typed or spoken homework input (e.g. "14.2 3 5, 14.3 2, 14.4 1" or "Problems 3 and 5 from section 14.2 on Cauchy's theorem"), you must parse and structure it into a complete list of homework problems with authentic LaTeX statements and step-by-step methods of work.
+Given a student's raw typed or spoken homework input (e.g. "14.2 3 5, 14.3 2, 14.4 1" or "Problems 3 and 5 from section 14.2 on Limits and Continuity in Higher Dimensions"), you must parse and structure it into a complete list of homework problems with authentic LaTeX statements and step-by-step methods of work.
 
-Course Context: ${courseName || "Applied Mathematics III"} (${courseCode || "MTH201"})
+Course Context: ${courseName || "Multivariate Calculus"} (${courseCode || "MTH203"})
+Prescribed Textbook for Calculus / Math: Thomas' Calculus - 11th Edition (George B. Thomas, Maurice D. Weir, Joel Hass). Scope: Chapters 12–16 (Vectors, Vector Functions, Partial Derivatives, Multiple Integrals, Vector Integration / Green's & Stokes' Theorems).
 
 Return ONLY a valid JSON object with the following schema:
 {
-  "summary": "Short readable summary of assigned homework",
+  "summary": "Short readable summary of assigned homework from Thomas' Calculus 11th Ed",
   "problems": [
     {
       "id": "exercise-qNum (e.g. 14.2-3)",
       "exercise": "Ex 14.2",
       "qNum": 3,
       "isMandatory": true,
-      "title": "Clear descriptive title of problem",
-      "latex": "Authentic mathematical LaTeX string for KaTeX (e.g. \\\\oint_C \\\\frac{z^2+1}{z-3} \\\\, dz = 0, \\\\quad C: |z|=1)",
-      "topic": "Topic name (e.g. Cauchy's Integral Theorem & Path Independence)",
+      "title": "Clear descriptive title of problem from Thomas' Calculus 11th Ed",
+      "latex": "Authentic mathematical LaTeX string for KaTeX (e.g. \\\\lim_{(x,y) \\\\to (0,0)} \\\\frac{x^2 - y^2}{x^2 + y^2})",
+      "topic": "Topic name (e.g. Multivariable Limits & Path Tests)",
       "difficulty": "Easy" | "Medium" | "Hard",
-      "methodOfWork": "Clear 2-sentence step-by-step mathematical proof / method explaining how to solve it."
+      "methodOfWork": "Clear 2-sentence step-by-step mathematical method explaining how to solve it."
     }
   ],
   "similarPractice": [
