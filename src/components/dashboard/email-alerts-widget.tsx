@@ -98,29 +98,29 @@ export function EmailAlertsWidget() {
 
   return (
     <Card className="border-indigo-500/30 bg-zinc-950/80 shadow-xl overflow-hidden backdrop-blur-xl">
-      <CardHeader className="p-5 border-b border-zinc-800/80 bg-zinc-900/40">
-        <div className="flex items-center justify-between">
+      <CardHeader className="p-4 sm:p-5 border-b border-zinc-800/80 bg-zinc-900/40">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-400">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 shrink-0">
               <Mail className="h-4 w-4" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <CardTitle className="text-base font-extrabold text-white">
+              <div className="flex items-center gap-2 flex-wrap">
+                <CardTitle className="text-sm sm:text-base font-extrabold text-white">
                   College Email Radar (@iiitd.ac.in)
                 </CardTitle>
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 text-[10px] font-bold text-emerald-400">
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 text-[9px] sm:text-[10px] font-bold text-emerald-400">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
                   AI Filtered
                 </span>
               </div>
-              <div className="flex items-center gap-2 mt-0.5 text-xs text-zinc-400">
-                <span className="flex items-center gap-1 text-indigo-300 font-medium">
+              <div className="flex items-center gap-1.5 flex-wrap mt-0.5 text-[11px] sm:text-xs text-zinc-400">
+                <span className="flex items-center gap-1 text-indigo-300 font-medium truncate">
                   <UserCheck className="h-3 w-3" /> Filtered for Gaurav (3rd Sem CSD)
                 </span>
                 {stats.filteredOut > 0 && (
                   <span className="text-[10px] text-zinc-500">
-                    ({stats.filteredOut} irrelevant emails blocked)
+                    ({stats.filteredOut} spam blocked)
                   </span>
                 )}
               </div>
@@ -131,7 +131,7 @@ export function EmailAlertsWidget() {
             size="sm"
             variant="outline"
             onClick={fetchNotices}
-            className="h-8 border-zinc-800 text-zinc-400 hover:text-white text-xs gap-1"
+            className="self-end sm:self-auto h-7 sm:h-8 border-zinc-800 text-zinc-400 hover:text-white text-[11px] sm:text-xs gap-1"
           >
             <RefreshCw className={`h-3 w-3 ${loading ? "animate-spin" : ""}`} />
             <span>Scan</span>

@@ -81,7 +81,7 @@ export function Sidebar({ user }: SidebarProps) {
   ]
 
   return (
-    <div className="fixed inset-y-0 left-0 z-30 flex h-full w-64 flex-col border-r border-white/5 bg-zinc-950/95 text-zinc-100 backdrop-blur-2xl">
+    <div className="fixed inset-y-0 left-0 z-30 hidden md:flex h-full w-64 flex-col border-r border-white/5 bg-zinc-950/95 text-zinc-100 backdrop-blur-2xl">
       {/* Brand Header */}
       <div className="flex h-20 items-center border-b border-white/5 px-6">
         <Link href="/dashboard" className="group flex items-center gap-3 font-bold tracking-tight">

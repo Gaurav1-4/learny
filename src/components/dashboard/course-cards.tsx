@@ -117,10 +117,10 @@ export function CourseCards({ courses }: CourseCardsProps) {
             >
               <Link
                 href={`/courses/${course.id}`}
-                className={`group relative flex flex-col justify-between overflow-hidden rounded-3xl border bg-gradient-to-br p-6 shadow-lg backdrop-blur-xl transition-all duration-300 ${gradientClass}`}
+                className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl sm:rounded-3xl border bg-gradient-to-br p-4 sm:p-6 shadow-lg backdrop-blur-xl transition-all duration-300 ${gradientClass}`}
               >
                 {/* Header */}
-                <div className="space-y-3">
+                <div className="space-y-2.5 sm:space-y-3">
                   <div className="flex items-center justify-between gap-2">
                     <span
                       className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[10px] font-bold ${trackInfo.color}`}
@@ -128,12 +128,12 @@ export function CourseCards({ courses }: CourseCardsProps) {
                       <Tag className="h-3 w-3" />
                       {trackInfo.track}
                     </span>
-                    <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/5 text-zinc-400 transition-transform group-hover:translate-x-1 group-hover:text-white">
-                      <ArrowRight className="h-4 w-4" />
+                    <div className="flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-xl bg-white/5 text-zinc-400 transition-transform group-hover:translate-x-1 group-hover:text-white">
+                      <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </div>
                   </div>
 
-                  <h3 className="text-xl font-extrabold tracking-tight text-white group-hover:text-indigo-200 transition-colors line-clamp-2 leading-snug">
+                  <h3 className="text-base sm:text-xl font-extrabold tracking-tight text-white group-hover:text-indigo-200 transition-colors line-clamp-2 leading-snug">
                     {course.name}
                   </h3>
                 </div>

@@ -370,7 +370,7 @@ export function SubjectWorkflowSuite({ courseId, courseName, courseSection }: Su
 
           <CardContent className="p-6 space-y-6">
             {/* OKF Semantic Manifest Banner (NotebookLM Topic + User Homework) */}
-            <div className="p-4 rounded-2xl bg-zinc-900/90 border border-indigo-500/40 space-y-2">
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-zinc-900/90 border border-indigo-500/40 space-y-2">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-2">
                   <Badge className="bg-indigo-600 text-white font-mono text-[10px] font-bold">
@@ -385,20 +385,20 @@ export function SubjectWorkflowSuite({ courseId, courseName, courseSection }: Su
                 </Badge>
               </div>
 
-              <div className="text-xs text-zinc-200 font-medium">
+              <div className="text-xs text-zinc-200 font-medium leading-relaxed">
                 <span className="text-zinc-400">NotebookLM Extracted Topic: </span>
                 <span className="text-indigo-300 font-bold">
                   Lecture 2: Cauchy&apos;s Integral Theorem, Path Independence &amp; Cauchy Formulas (Sections 14.2, 14.3, 14.4)
                 </span>
               </div>
-              <div className="text-[11px] text-zinc-400">
+              <div className="text-[11px] text-zinc-400 truncate">
                 Storage: <span className="font-mono text-zinc-300">Learny Vault / Sem 3 / Math III / Notes / Lecture2_ComplexLineIntegrals.pdf</span>
               </div>
             </div>
 
             {/* Textbook 'Method of Work' Recipe Card (Erwin Kreyszig Chapter 14) */}
-            <div className="p-4 rounded-2xl bg-indigo-950/30 border border-indigo-500/30 space-y-3">
-              <div className="flex items-center justify-between">
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-indigo-950/30 border border-indigo-500/30 space-y-3">
+              <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-2 text-xs font-bold text-indigo-300">
                   <BookMarked className="h-4 w-4 text-indigo-400" />
                   <span>Textbook Bible Method of Work (Chapter 14: Cauchy&apos;s Theorem &amp; Formula)</span>
@@ -408,12 +408,12 @@ export function SubjectWorkflowSuite({ courseId, courseName, courseSection }: Su
                 </Badge>
               </div>
 
-              <div className="p-3 rounded-xl bg-zinc-950/80 border border-zinc-800 font-mono text-xs text-indigo-300 space-y-1">
-                <div>{"\\oint_C f(z) \\, dz = 0 \\quad (\\text{Cauchy's Theorem for Analytic } f(z))"}</div>
-                <div className="text-[11px] text-zinc-400">{"f(z_0) = \\frac{1}{2\\pi i} \\oint_C \\frac{f(z)}{z - z_0} \\, dz \\quad (\\text{Cauchy's Integral Formula})"}</div>
+              <div className="p-3 rounded-xl bg-zinc-950/80 border border-zinc-800 font-mono text-xs text-indigo-300 space-y-1 overflow-x-auto scrollbar-none">
+                <div className="whitespace-nowrap">{"\\oint_C f(z) \\, dz = 0 \\quad (\\text{Cauchy's Theorem for Analytic } f(z))"}</div>
+                <div className="text-[11px] text-zinc-400 whitespace-nowrap">{"f(z_0) = \\frac{1}{2\\pi i} \\oint_C \\frac{f(z)}{z - z_0} \\, dz \\quad (\\text{Cauchy's Integral Formula})"}</div>
               </div>
 
-              <div className="grid gap-2 sm:grid-cols-4 text-xs text-zinc-300">
+              <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 text-xs text-zinc-300">
                 <div className="p-2.5 rounded-lg bg-zinc-900/80 border border-zinc-800">
                   <span className="font-bold text-white block mb-0.5">Step 1: Check Domain</span>
                   <span className="text-[11px] text-zinc-400">Verify if contour C is simple, closed, and simply connected.</span>
@@ -434,13 +434,13 @@ export function SubjectWorkflowSuite({ courseId, courseName, courseSection }: Su
             </div>
 
             {/* Input Options: Voice Input + Shorthand Form */}
-            <form onSubmit={handleParseShorthand} className="p-4 rounded-2xl bg-zinc-900/80 border border-zinc-800 space-y-3">
-              <div className="flex items-center justify-between">
+            <form onSubmit={handleParseShorthand} className="p-3.5 sm:p-4 rounded-2xl bg-zinc-900/80 border border-zinc-800 space-y-3">
+              <div className="flex items-center justify-between flex-wrap gap-1">
                 <span className="text-xs font-bold text-zinc-200">
                   Homework Entry (Type Shorthand or Click Mic to Speak)
                 </span>
                 <span className="text-[10px] text-zinc-500 font-mono">
-                  Example: <code>14.1 1</code> or <code>4.1 3 4 5 6 7 8</code>
+                  Example: <code>14.1 1</code> or <code>4.1 3 4 5</code>
                 </span>
               </div>
 
@@ -448,11 +448,10 @@ export function SubjectWorkflowSuite({ courseId, courseName, courseSection }: Su
                 <Input
                   value={shorthandInput}
                   onChange={(e) => setShorthandInput(e.target.value)}
-                  placeholder="e.g. 14.1 1 or 4.1 3 4 5 6 7 8"
+                  placeholder="e.g. 14.2 3 5, 14.3 2, 14.4 1"
                   className="bg-zinc-950 border-zinc-800 text-xs font-mono flex-1"
                 />
 
-                {/* Voice Input Button */}
                 <Button
                   type="button"
                   onClick={handleToggleVoiceInput}
@@ -465,18 +464,21 @@ export function SubjectWorkflowSuite({ courseId, courseName, courseSection }: Su
                   {isListening ? (
                     <>
                       <MicOff className="h-3.5 w-3.5" />
-                      <span>Listening...</span>
+                      <span className="hidden sm:inline">Listening...</span>
                     </>
                   ) : (
                     <>
                       <Mic className="h-3.5 w-3.5 text-indigo-400" />
-                      <span>Voice Input</span>
+                      <span className="hidden sm:inline">Voice</span>
                     </>
                   )}
                 </Button>
 
-                <Button type="submit" size="sm" className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs shrink-0 font-bold">
-                  Extract & Generate Similar
+                <Button
+                  type="submit"
+                  className="h-9 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-3 sm:px-4"
+                >
+                  Update
                 </Button>
               </div>
 
@@ -488,37 +490,37 @@ export function SubjectWorkflowSuite({ courseId, courseName, courseSection }: Su
             </form>
 
             {/* Filter Tabs: All vs Mandatory vs Similar Practice */}
-            <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-zinc-800 pb-2 gap-2">
+              <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none flex-nowrap -mx-3.5 px-3.5 sm:mx-0 sm:px-0">
                 <button
                   onClick={() => setFilterMode("all")}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                  className={`shrink-0 px-2.5 sm:px-3 py-1 rounded-lg text-xs font-bold transition-all ${
                     filterMode === "all" ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-zinc-200"
                   }`}
                 >
-                  All Questions ({parsedProblems.length})
+                  All ({parsedProblems.length})
                 </button>
                 <button
                   onClick={() => setFilterMode("mandatory")}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  className={`shrink-0 px-2.5 sm:px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                     filterMode === "mandatory" ? "bg-rose-950/60 text-rose-300 border border-rose-500/30" : "text-zinc-400 hover:text-zinc-200"
                   }`}
                 >
                   <Flame className="h-3 w-3 text-rose-400" />
-                  <span>Mandatory Homework ({mandatoryCount})</span>
+                  <span>Mandatory ({mandatoryCount})</span>
                 </button>
                 <button
                   onClick={() => setFilterMode("similar")}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  className={`shrink-0 px-2.5 sm:px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
                     filterMode === "similar" ? "bg-emerald-950/60 text-emerald-300 border border-emerald-500/30" : "text-zinc-400 hover:text-zinc-200"
                   }`}
                 >
                   <Sparkles className="h-3 w-3 text-emerald-400" />
-                  <span>Similar Practice ({parsedProblems.length - mandatoryCount})</span>
+                  <span>Similar ({parsedProblems.length - mandatoryCount})</span>
                 </button>
               </div>
 
-              <span className="text-[11px] text-zinc-500">
+              <span className="text-[10px] sm:text-[11px] text-zinc-500">
                 Professor rule: &quot;Solve homework + try similar questions in spare time&quot;
               </span>
             </div>
@@ -531,7 +533,7 @@ export function SubjectWorkflowSuite({ courseId, courseName, courseSection }: Su
                   <motion.div
                     key={prob.id}
                     whileHover={{ y: -1 }}
-                    className={`p-4 rounded-xl border transition-all ${
+                    className={`p-3.5 sm:p-4 rounded-xl border transition-all ${
                       isSolved
                         ? "border-emerald-500/30 bg-emerald-950/10"
                         : prob.isMandatory
@@ -539,11 +541,11 @@ export function SubjectWorkflowSuite({ courseId, courseName, courseSection }: Su
                         : "border-zinc-800 bg-zinc-900/60"
                     }`}
                   >
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="space-y-1.5 flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex items-start justify-between gap-3 sm:gap-4">
+                      <div className="space-y-1.5 flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
                           <Badge
-                            className={`font-mono text-xs font-bold ${
+                            className={`font-mono text-[11px] sm:text-xs font-bold ${
                               prob.isMandatory
                                 ? "bg-rose-600 text-white"
                                 : "bg-emerald-600/30 text-emerald-300 border border-emerald-500/40"
@@ -554,24 +556,24 @@ export function SubjectWorkflowSuite({ courseId, courseName, courseSection }: Su
 
                           <Badge
                             variant="outline"
-                            className={`text-[9px] font-bold uppercase tracking-wider ${
+                            className={`text-[9px] sm:text-[10px] font-bold uppercase tracking-wider ${
                               prob.isMandatory
                                 ? "border-rose-500/40 text-rose-300 bg-rose-950/30"
                                 : "border-emerald-500/40 text-emerald-300 bg-emerald-950/30"
                             }`}
                           >
-                            {prob.isMandatory ? "🔴 Mandatory Homework" : "🟢 Spare Time Practice"}
+                            {prob.isMandatory ? "🔴 Mandatory" : "🟢 Similar"}
                           </Badge>
 
-                          <Badge variant="outline" className="text-[10px] border-zinc-700 text-zinc-300">
+                          <Badge variant="outline" className="text-[9px] sm:text-[10px] border-zinc-700 text-zinc-300 truncate max-w-[150px] sm:max-w-none">
                             {prob.topic}
                           </Badge>
                         </div>
 
                         <h4 className="text-xs font-bold text-zinc-100">{prob.title}</h4>
 
-                        <div className="p-2.5 rounded-lg bg-zinc-950 border border-zinc-800/80 font-mono text-xs text-indigo-300">
-                          {prob.latex}
+                        <div className="p-2.5 rounded-lg bg-zinc-950 border border-zinc-800/80 font-mono text-xs text-indigo-300 overflow-x-auto scrollbar-none">
+                          <div className="whitespace-nowrap">{prob.latex}</div>
                         </div>
 
                         <div className="text-[11px] text-zinc-400 leading-relaxed pt-1">

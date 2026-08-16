@@ -175,11 +175,11 @@ export default function DashboardPage() {
               3rd Semester (Monsoon)
             </span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
+          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white">
             Welcome back, {session?.user?.name?.split(' ')[0] || 'Gaurav'} 👋
           </h1>
-          <p className="text-sm text-zinc-400">
-            Here is your active coursework, continuous evaluation breakdown, and AI study tools.
+          <p className="text-xs sm:text-sm text-zinc-400">
+            Here is your active coursework, continuous assessment breakdown, and AI tools.
           </p>
         </div>
 
