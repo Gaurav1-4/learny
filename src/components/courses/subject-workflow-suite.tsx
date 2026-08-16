@@ -57,6 +57,7 @@ export interface MathProblem {
   similarTo?: number
   dueDate?: string
   isDone?: boolean
+  rawInput?: string
 }
 
 export function SubjectWorkflowSuite({
@@ -81,6 +82,7 @@ export function SubjectWorkflowSuite({
   const [showHomeworkModal, setShowHomeworkModal] = useState(false)
   const [showMethodModal, setShowMethodModal] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isReprocessing, setIsReprocessing] = useState(false)
   const [expandedMethodMap, setExpandedMethodMap] = useState<Record<string, boolean>>({})
   const [toastMessage, setToastMessage] = useState<string | null>(null)
 
@@ -503,6 +505,104 @@ export function SubjectWorkflowSuite({
     setTimeout(() => setCopiedPrompt(""), 3000)
   }
 
+  // Reprocess all saved raw homework for this course with Gemini LLM
+  const handleReprocessWithAI = async () => {
+    if (typeof window === "undefined") return
+    setIsReprocessing(true)
+    try {
+      const rawInputsToProcess: string[] = []
+
+      // 1. From existing parsedProblems
+      parsedProblems.forEach((p) => {
+        if (p.rawInput && p.rawInput.trim() && !rawInputsToProcess.includes(p.rawInput.trim())) {
+          rawInputsToProcess.push(p.rawInput.trim())
+        }
+      })
+
+      // 2. From localStorage backlog homework keys
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i)
+        if (key && key.startsWith("learny-backlog-hw-")) {
+          try {
+            const raw = localStorage.getItem(key)
+            if (raw) {
+              const item = JSON.parse(raw)
+              if (item && item.rawInput && item.rawInput.trim()) {
+                const itemCode = item.courseCode || key.split("-").slice(3).join("-")
+                const itemName = item.courseName || ""
+                if (isMatchingCourse(itemCode, itemName, courseId, courseName)) {
+                  if (!rawInputsToProcess.includes(item.rawInput.trim())) {
+                    rawInputsToProcess.push(item.rawInput.trim())
+                  }
+                }
+              }
+            }
+          } catch {}
+        }
+      }
+
+      // 3. From shorthand input state if any
+      if (shorthandInput.trim() && !rawInputsToProcess.includes(shorthandInput.trim())) {
+        rawInputsToProcess.push(shorthandInput.trim())
+      }
+
+      if (rawInputsToProcess.length === 0) {
+        showToast("No saved homework text found. Click '+ Homework' to log your assignment!")
+        setIsReprocessing(false)
+        return
+      }
+
+      const allNewProblems: MathProblem[] = []
+
+      for (const rawText of rawInputsToProcess) {
+        const res = await fetch("/api/homework/ai-format", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            rawInput: rawText,
+            courseName,
+            courseCode: courseName.split(" ")[0] || "COURSE",
+            topic: `${courseName} Homework`,
+          }),
+        })
+
+        if (res.ok) {
+          const json = await res.json()
+          if (json.data && Array.isArray(json.data.problems) && json.data.problems.length > 0) {
+            const llmDueDate = json.data.smartSchedule?.dueDate || new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+            const problems = json.data.problems.map((p: any, idx: number) => ({
+              id: p.id || `llm-${Date.now()}-${idx}`,
+              exercise: p.exercise || "HW",
+              qNum: p.qNum || idx + 1,
+              isMandatory: p.isMandatory !== undefined ? p.isMandatory : true,
+              title: p.title || p.exercise || "Homework Problem",
+              latex: p.latex || "\\text{" + (p.title || "Problem") + "}",
+              topic: p.topic || `${courseName} Practice`,
+              difficulty: p.difficulty || "Medium",
+              methodOfWork: p.methodOfWork || "Follow lecture steps and textbook guidelines.",
+              dueDate: llmDueDate,
+              rawInput: rawText,
+            }))
+            allNewProblems.push(...problems)
+          }
+        }
+      }
+
+      if (allNewProblems.length > 0) {
+        setParsedProblems(allNewProblems)
+        localStorage.setItem(`learny-problems-${courseId}`, JSON.stringify(allNewProblems))
+        showToast("✨ Re-processed all saved homework with Gemini LLM!")
+      } else {
+        showToast("AI re-processing complete.")
+      }
+    } catch (err) {
+      console.error("Failed to re-process with AI", err)
+      showToast("Error during AI re-processing. Check internet connection.")
+    } finally {
+      setIsReprocessing(false)
+    }
+  }
+
   // Filter problems by Pending vs Done
   const pendingProblems = parsedProblems.filter((p) => !solvedQuestions[p.id])
   const doneProblems = parsedProblems.filter((p) => solvedQuestions[p.id])
@@ -577,7 +677,28 @@ export function SubjectWorkflowSuite({
               </button>
             </div>
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {/* 1-Click Re-run with AI Button */}
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleReprocessWithAI}
+                disabled={isReprocessing}
+                className="h-7 text-[11px] font-medium border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 gap-1.5 px-2.5"
+              >
+                {isReprocessing ? (
+                  <>
+                    <Loader2 className="h-3 w-3 animate-spin text-amber-400" />
+                    <span>Processing with AI...</span>
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-3 w-3 text-amber-400" />
+                    <span>Re-run with AI</span>
+                  </>
+                )}
+              </Button>
+
               <Button
                 size="sm"
                 variant="outline"
