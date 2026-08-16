@@ -1,20 +1,19 @@
 # Learny — Project State & Milestone Tracker
 
-**Current Status**: Math Homework Reset & Cleared on Production; 1-Click Clear & Fresh Workspace Live
+**Current Status**: Real-Time Automated Gemini AI Homework Pipeline Deployed (Single-Build Trigger)
 **GitHub Repository**: [https://github.com/Gaurav1-4/learny](https://github.com/Gaurav1-4/learny)
-**Live Production URLs**:
-- `https://learny.zorx.tech`
-- `https://learny-ptp4i55nj-semly.vercel.app`
+**Live Production URL**: [https://learny.zorx.tech](https://learny.zorx.tech)
 
 ---
 
-## 🧹 Math Homework Workspace Reset (Live)
+## 🚀 Fully Automated Gemini AI Homework Flow
 
-1. **Previous Homework Cleared**:
-   - Stripped all legacy/pre-detected math questions from client and cloud Firestore states.
-   - Initial problem ledger starts completely clean `[]` with an authentic empty state.
-2. **1-Click "Clear" Action**:
-   - Added a red-accented `Clear` button in the top toolbar of course workspaces.
-   - Clears all cached problems, backlog mappings, and pending/done flags in both `localStorage` and `Cloud Firestore`.
-3. **Ready for Real Homework**:
-   - Click `+ Homework` or paste your homework message in chat to have the Gemini LLM decompose it into authentic KaTeX LaTeX equations, method guides, and scheduled calendar blocks.
+1. **Zero-Click Automatic AI Processing**:
+   - Every time homework is submitted via `+ Homework`, the 1-Week Backlog Resolver, or the Post-Class Banner, it automatically flows through the **Gemini AI KaTeX Formatter** (`/api/homework/ai-format`).
+   - If raw text exists on mount, `SubjectWorkflowSuite` triggers the AI enhancement in the background automatically with zero manual steps.
+2. **Multi-Course Alias Resolution**:
+   - Math III inputs automatically register across `mth203`, `mth201`, and Google Classroom numeric IDs.
+3. **Cloud Firestore Sync**:
+   - Full KaTeX equations, methods, and smart calendar events sync in real time to Firebase Firestore (`students/{email}`).
+4. **Single-Stream Deployments**:
+   - Clean single Vercel builds triggered directly via GitHub webhooks (`main`).

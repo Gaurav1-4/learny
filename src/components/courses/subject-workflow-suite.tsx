@@ -178,6 +178,7 @@ export function SubjectWorkflowSuite({
     }
 
     // 2. Scan specific backlog lecture keys: `learny-backlog-hw-*`
+    // ONLY load AI-formatted problems. Raw text without AI problems will be auto-processed.
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i)
       if (key && key.startsWith("learny-backlog-hw-")) {
@@ -189,49 +190,12 @@ export function SubjectWorkflowSuite({
               const itemCode = item.courseCode || key.split("-").slice(3).join("-")
               const itemName = item.courseName || ""
               if (isMatchingCourse(itemCode, itemName, courseId, courseName)) {
+                // Only load problems that were AI-formatted (have proper methodOfWork, not generic regex output)
                 if (Array.isArray(item.problems) && item.problems.length > 0) {
                   collectedProblems.push(...item.problems)
-                } else {
-                  const rawText = item.rawInput || item.summary || "Homework"
-                  const segments = rawText.split(/[,;\n]+/).map((s: string) => s.trim()).filter(Boolean)
-                  segments.forEach((seg: string, sIdx: number) => {
-                    const tokens = seg.split(/\s+/)
-                    const exercise = tokens[0]
-                    const questionNums = tokens.slice(1).map((n: string) => parseInt(n, 10)).filter((n: number) => !isNaN(n))
-
-                    if (questionNums.length === 0) {
-                      collectedProblems.push({
-                        id: `hw-${key}-${sIdx}`,
-                        exercise: itemCode || "HW",
-                        qNum: sIdx + 1,
-                        isMandatory: true,
-                        title: seg,
-                        latex: "\\text{" + seg.replace(/[^a-zA-Z0-9\s+=()/-]/g, "") + "}",
-                        topic: `${courseName} Assignment`,
-                        difficulty: "Medium",
-                        methodOfWork: item.summary || "Solve assignment problems according to lecture notes.",
-                        dueDate: item.dueDate || "2026-08-18",
-                        rawInput: item.rawInput,
-                      })
-                    } else {
-                      questionNums.forEach((qNum: number) => {
-                        collectedProblems.push({
-                          id: `${exercise}-${qNum}-${sIdx}`,
-                          exercise: `Ex ${exercise}`,
-                          qNum,
-                          isMandatory: true,
-                          title: `Exercise ${exercise} — Question ${qNum}`,
-                          latex: `\\text{Solve Exercise } ${exercise} \\text{ Question } ${qNum}`,
-                          topic: `Chapter ${exercise.split(".")[0]} Homework`,
-                          difficulty: "Medium",
-                          methodOfWork: `Solve using Chapter ${exercise.split(".")[0]} standard formula and check limit conditions.`,
-                          dueDate: item.dueDate || "2026-08-18",
-                          rawInput: item.rawInput,
-                        })
-                      })
-                    }
-                  })
                 }
+                // If no AI problems exist yet, don't create regex garbage.
+                // The auto-trigger useEffect will handle AI processing.
               }
             }
           }
@@ -270,39 +234,78 @@ export function SubjectWorkflowSuite({
     setSolvedQuestions(solvedMap)
   }, [courseId, courseName, coursework])
 
-  // Automatically trigger Gemini AI if raw homework text exists but problem suite is empty
+  // Helper: detect if problems were created by the dumb regex fallback (not LLM)
+  const hasGarbageProblems = (problems: MathProblem[]): boolean => {
+    if (problems.length === 0) return false
+    // Regex-generated problems have generic patterns like "Solve using Chapter X formula."
+    // or latex that's just "\text{Solve Exercise X Question Y}" or "\text{...}" with no real math
+    const garbageSignals = problems.filter((p) => {
+      const isGenericMethod = p.methodOfWork?.match(/^Solve using Chapter .+ formula\.?$/) ||
+        p.methodOfWork === "Complete assignment according to lecture notes." ||
+        p.methodOfWork === "Complete problem set." ||
+        p.methodOfWork?.match(/^Solve assignment problems according to lecture notes\.?$/)
+      const isGenericLatex = p.latex?.match(/^\\text\{Solve Exercise .+ Question .+\}$/) ||
+        p.latex?.match(/^\\text\{.+\}$/) && !p.latex?.includes("\\int") && !p.latex?.includes("\\frac") && !p.latex?.includes("\\sum")
+      return isGenericMethod || isGenericLatex
+    })
+    return garbageSignals.length > problems.length * 0.5
+  }
+
+  // Automatically trigger Gemini AI if:
+  // 1. No problems exist but raw homework text does, OR
+  // 2. Problems exist but they are garbage from regex fallback
   useEffect(() => {
     if (typeof window === "undefined") return
-    if (parsedProblems.length === 0 && !isReprocessing) {
-      let foundRawText = ""
-      const directKey = localStorage.getItem(`learny-hw-input-${courseId}`)
-      if (directKey && directKey.trim()) {
-        foundRawText = directKey.trim()
-      } else {
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i)
-          if (key && key.startsWith("learny-backlog-hw-")) {
-            try {
-              const raw = localStorage.getItem(key)
-              if (raw) {
-                const item = JSON.parse(raw)
-                if (item && item.rawInput && item.rawInput.trim()) {
-                  const itemCode = item.courseCode || key.split("-").slice(3).join("-")
-                  const itemName = item.courseName || ""
-                  if (isMatchingCourse(itemCode, itemName, courseId, courseName)) {
-                    foundRawText = item.rawInput.trim()
-                    break
-                  }
+    if (isReprocessing) return
+
+    const needsAI = parsedProblems.length === 0 || hasGarbageProblems(parsedProblems)
+    if (!needsAI) return
+
+    let foundRawText = ""
+    const directKey = localStorage.getItem(`learny-hw-input-${courseId}`)
+    if (directKey && directKey.trim()) {
+      foundRawText = directKey.trim()
+    } else {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i)
+        if (key && key.startsWith("learny-backlog-hw-")) {
+          try {
+            const raw = localStorage.getItem(key)
+            if (raw) {
+              const item = JSON.parse(raw)
+              if (item && item.rawInput && item.rawInput.trim()) {
+                const itemCode = item.courseCode || key.split("-").slice(3).join("-")
+                const itemName = item.courseName || ""
+                if (isMatchingCourse(itemCode, itemName, courseId, courseName)) {
+                  foundRawText = item.rawInput.trim()
+                  break
                 }
               }
-            } catch {}
+            }
+          } catch {}
+        }
+      }
+    }
+
+    // Also check learny-hw-input-* alias keys
+    if (!foundRawText) {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i)
+        if (key && key.startsWith("learny-hw-input-")) {
+          const storedCourseId = key.replace("learny-hw-input-", "")
+          if (isMatchingCourse(storedCourseId, storedCourseId, courseId, courseName)) {
+            const rawVal = localStorage.getItem(key)
+            if (rawVal && rawVal.trim()) {
+              foundRawText = rawVal.trim()
+              break
+            }
           }
         }
       }
+    }
 
-      if (foundRawText) {
-        handleReprocessWithAI()
-      }
+    if (foundRawText) {
+      handleReprocessWithAI()
     }
   }, [parsedProblems.length, courseId, courseName])
 
@@ -432,82 +435,61 @@ export function SubjectWorkflowSuite({
 
         showToast("✨ Gemini AI formatted your homework with KaTeX equations!")
       } else {
-        // Fallback parser
-        const segments = shorthandInput.split(/[,;\n]+/).map((s) => s.trim()).filter(Boolean)
-        const newProblems: MathProblem[] = []
-
-        segments.forEach((seg, sIdx) => {
-          const tokens = seg.split(/\s+/)
-          const exercise = tokens[0]
-          const questionNums = tokens.slice(1).map((n) => parseInt(n, 10)).filter((n) => !isNaN(n))
-
-          if (questionNums.length === 0) {
-            newProblems.push({
-              id: `hw-${Date.now()}-${sIdx}`,
-              exercise: "HW",
-              qNum: sIdx + 1,
-              isMandatory: true,
-              title: seg,
-              latex: "\\text{" + seg.replace(/[^a-zA-Z0-9\s+=()/-]/g, "") + "}",
-              topic: `${courseName} Assignment`,
-              difficulty: "Medium",
-              methodOfWork: "Complete assignment according to lecture notes.",
-              dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-              rawInput: shorthandInput,
-            })
-          } else {
-            questionNums.forEach((qNum) => {
-              newProblems.push({
-                id: `${exercise}-${qNum}-${Date.now()}`,
-                exercise: `Ex ${exercise}`,
-                qNum,
-                isMandatory: true,
-                title: `Exercise ${exercise} — Question ${qNum}`,
-                latex: `\\text{Solve Exercise } ${exercise} \\text{ Question } ${qNum}`,
-                topic: `Chapter ${exercise.split(".")[0]} Homework`,
-                difficulty: "Medium",
-                methodOfWork: `Solve using Chapter ${exercise.split(".")[0]} formula.`,
-                dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-                rawInput: shorthandInput,
-              })
-            })
-          }
+        // LLM returned no problems — save raw text and retry once
+        localStorage.setItem(`learny-hw-input-${courseId}`, shorthandInput)
+        showToast("AI processing... retrying with enhanced prompt.")
+        
+        // Retry with explicit retry flag
+        const retryRes = await fetch("/api/homework/ai-format", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            rawInput: shorthandInput,
+            courseName,
+            courseCode: courseName.split(" ")[0] || "COURSE",
+            topic: `${courseName} Homework`,
+          }),
         })
-
-        if (newProblems.length > 0) {
-          const updated = [...newProblems, ...parsedProblems]
+        const retryJson = await retryRes.json()
+        if (retryJson.data && Array.isArray(retryJson.data.problems) && retryJson.data.problems.length > 0) {
+          const retryDueDate = retryJson.data.smartSchedule?.dueDate || new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+          const retryProblems: MathProblem[] = retryJson.data.problems.map((p: any, idx: number) => ({
+            id: p.id || `llm-retry-${Date.now()}-${idx}`,
+            exercise: p.exercise || "HW",
+            qNum: p.qNum || idx + 1,
+            isMandatory: true,
+            title: p.title || "Homework Problem",
+            latex: p.latex || "\\text{" + (p.title || "Problem") + "}",
+            topic: p.topic || `${courseName} Practice`,
+            difficulty: p.difficulty || "Medium",
+            methodOfWork: p.methodOfWork || "Follow lecture steps and textbook guidelines.",
+            dueDate: retryDueDate,
+            rawInput: shorthandInput,
+          }))
+          const updated = [...retryProblems, ...parsedProblems]
           setParsedProblems(updated)
-          localStorage.setItem(`learny-problems-${courseId}`, JSON.stringify(updated))
-          localStorage.setItem(`learny-hw-input-${courseId}`, shorthandInput)
+          const targetKeys = [`learny-problems-${courseId}`]
+          if (isMath3 || courseName.toLowerCase().includes("math")) {
+            targetKeys.push("learny-problems-mth203", "learny-problems-mth201", "learny-problems-math")
+          }
+          targetKeys.forEach((k) => localStorage.setItem(k, JSON.stringify(updated)))
           pushToFirestore({ problemsMap: { [courseId]: updated } })
-          showToast("Homework added and synced!")
+          showToast("✨ Gemini AI formatted your homework!")
+        } else {
+          // Still no result — save raw text only, will auto-retry on next page load
+          showToast("Homework text saved. AI will auto-format on next load.")
         }
       }
 
       setShorthandInput("")
       setShowHomeworkModal(false)
-    } catch {
-      const newProb: MathProblem = {
-        id: `hw-${Date.now()}`,
-        exercise: "HW",
-        qNum: 1,
-        isMandatory: true,
-        title: shorthandInput,
-        latex: "\\text{" + shorthandInput.replace(/[^a-zA-Z0-9\s+=()/-]/g, "") + "}",
-        topic: `${courseName} Homework`,
-        difficulty: "Medium",
-        methodOfWork: "Complete problem set.",
-        dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-        rawInput: shorthandInput,
-      }
-      const updated = [newProb, ...parsedProblems]
-      setParsedProblems(updated)
-      localStorage.setItem(`learny-problems-${courseId}`, JSON.stringify(updated))
+    } catch (err) {
+      console.error("AI homework formatting failed", err)
+      // Save raw text so auto-trigger can retry on next load — NO regex garbage
       localStorage.setItem(`learny-hw-input-${courseId}`, shorthandInput)
-      pushToFirestore({ problemsMap: { [courseId]: updated } })
       setShorthandInput("")
       setShowHomeworkModal(false)
-      showToast("Homework saved locally!")
+      showToast("Homework text saved. AI will auto-format when connection restores.")
     } finally {
       setIsSubmitting(false)
     }
