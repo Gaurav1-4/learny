@@ -77,86 +77,187 @@ export function SubjectWorkflowSuite({
   const [selectedMaterialId, setSelectedMaterialId] = useState<string>("")
   const [copiedPrompt, setCopiedPrompt] = useState("")
 
+  // Comprehensive Course Matcher for IIIT Delhi Monsoon 2026 courses
+  const isMatchingCourse = (
+    itemCode: string = "",
+    itemName: string = "",
+    targetId: string = "",
+    targetName: string = ""
+  ) => {
+    const norm = (s: string) => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "")
+    const tName = norm(targetName)
+    const tId = norm(targetId)
+    const iCode = norm(itemCode)
+    const iName = norm(itemName)
+
+    if (iCode && (tName.includes(iCode) || tId.includes(iCode))) return true
+    if (iName && (tName.includes(iName) || iName.includes(tName))) return true
+
+    // Math / Calculus (MTH201, MTH203, Math III, Multivariate Calculus)
+    const isTargetMath = tName.includes("math") || tName.includes("mth") || tName.includes("calculus") || tId.includes("mth") || tId.includes("math")
+    const isItemMath = iName.includes("math") || iName.includes("mth") || iName.includes("calculus") || iCode.includes("mth") || iCode.includes("math")
+    if (isTargetMath && isItemMath) return true
+
+    // Operating Systems (CSE231, OS)
+    const isTargetOS = tName.includes("os") || tName.includes("operating") || tId.includes("231") || tId.includes("os")
+    const isItemOS = iName.includes("os") || iName.includes("operating") || iCode.includes("231") || iCode.includes("os")
+    if (isTargetOS && isItemOS) return true
+
+    // Advanced Programming (CSE201, AP)
+    const isTargetAP = tName.includes("ap") || tName.includes("programming") || tId.includes("201") || tId.includes("ap")
+    const isItemAP = iName.includes("ap") || iName.includes("programming") || iCode.includes("201") || iCode.includes("ap")
+    if (isTargetAP && isItemAP) return true
+
+    // DPP (DES201)
+    const isTargetDPP = tName.includes("dpp") || tName.includes("design") || tId.includes("des") || tId.includes("dpp")
+    const isItemDPP = iName.includes("dpp") || iName.includes("design") || iCode.includes("des") || iCode.includes("dpp")
+    if (isTargetDPP && isItemDPP) return true
+
+    // RMSSD (SSH201)
+    const isTargetRMSSD = tName.includes("rmssd") || tName.includes("research") || tId.includes("ssh") || tId.includes("rmssd")
+    const isItemRMSSD = iName.includes("rmssd") || iName.includes("research") || iCode.includes("ssh") || iCode.includes("rmssd")
+    if (isTargetRMSSD && isItemRMSSD) return true
+
+    return false
+  }
+
   // Load authentic problems from student's local and cloud state
   useEffect(() => {
     if (typeof window === "undefined") return
 
-    // 1. Check direct course problem ledger
-    const savedProbs = localStorage.getItem(`learny-problems-${courseId}`)
-    if (savedProbs) {
-      try {
-        const parsed = JSON.parse(savedProbs)
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setParsedProblems(parsed)
-          return
+    const collectedProblems: MathProblem[] = []
+
+    // 1. Scan direct course problem ledgers in localStorage
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)
+      if (key && key.startsWith("learny-problems-")) {
+        const storedKeySuffix = key.replace("learny-problems-", "")
+        if (isMatchingCourse(storedKeySuffix, storedKeySuffix, courseId, courseName)) {
+          try {
+            const raw = localStorage.getItem(key)
+            if (raw) {
+              const parsed = JSON.parse(raw)
+              if (Array.isArray(parsed)) {
+                collectedProblems.push(...parsed)
+              }
+            }
+          } catch {}
         }
-      } catch {}
+      }
     }
 
-    // 2. Check 1-Week Backlog Homework Map for this course
+    // 2. Scan specific backlog lecture keys: `learny-backlog-hw-*`
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)
+      if (key && key.startsWith("learny-backlog-hw-")) {
+        try {
+          const raw = localStorage.getItem(key)
+          if (raw) {
+            const item = JSON.parse(raw)
+            if (item && item.rawInput && item.rawInput.trim()) {
+              const itemCode = item.courseCode || key.split("-").slice(3).join("-")
+              const itemName = item.courseName || ""
+              if (isMatchingCourse(itemCode, itemName, courseId, courseName)) {
+                if (Array.isArray(item.problems) && item.problems.length > 0) {
+                  collectedProblems.push(...item.problems)
+                } else {
+                  const rawText = item.rawInput || item.summary || "Homework"
+                  const segments = rawText.split(/[,;\n]+/).map((s: string) => s.trim()).filter(Boolean)
+                  segments.forEach((seg: string, sIdx: number) => {
+                    const tokens = seg.split(/\s+/)
+                    const exercise = tokens[0]
+                    const questionNums = tokens.slice(1).map((n: string) => parseInt(n, 10)).filter((n: number) => !isNaN(n))
+
+                    if (questionNums.length === 0) {
+                      collectedProblems.push({
+                        id: `hw-${key}-${sIdx}`,
+                        exercise: itemCode || "HW",
+                        qNum: sIdx + 1,
+                        isMandatory: true,
+                        title: seg,
+                        latex: "\\text{" + seg.replace(/[^a-zA-Z0-9\s+=()/-]/g, "") + "}",
+                        topic: `${courseName} Assignment`,
+                        difficulty: "Medium",
+                        methodOfWork: item.summary || "Solve assignment problems.",
+                      })
+                    } else {
+                      questionNums.forEach((qNum: number) => {
+                        collectedProblems.push({
+                          id: `${exercise}-${qNum}-${sIdx}`,
+                          exercise: `Ex ${exercise}`,
+                          qNum,
+                          isMandatory: true,
+                          title: `Exercise ${exercise} — Question ${qNum}`,
+                          latex: `\\text{Solve Exercise } ${exercise} \\text{ Question } ${qNum}`,
+                          topic: `Chapter ${exercise.split(".")[0]} Homework`,
+                          difficulty: "Medium",
+                          methodOfWork: `Solve using Chapter ${exercise.split(".")[0]} formula and evaluate limits.`,
+                        })
+                      })
+                    }
+                  })
+                }
+              }
+            }
+          }
+        } catch {}
+      }
+    }
+
+    // 3. Scan 1-Week Backlog Homework Map
     const backlogMapRaw = localStorage.getItem("learny-backlog-homework-map")
     if (backlogMapRaw) {
       try {
         const backlogMap = JSON.parse(backlogMapRaw)
-        const relevantEntries = Object.values(backlogMap).filter((item: any) => {
-          if (!item || !item.rawInput || !item.rawInput.trim()) return false
-          const codeMatch = item.courseCode && courseName.toLowerCase().includes(item.courseCode.toLowerCase())
-          const idMatch = item.courseId === courseId
-          const nameMatch = item.courseName && courseName.toLowerCase().includes(item.courseName.toLowerCase())
-          return codeMatch || idMatch || nameMatch
-        })
+        Object.values(backlogMap).forEach((item: any, eIdx: number) => {
+          if (!item || !item.rawInput || !item.rawInput.trim()) return
+          if (isMatchingCourse(item.courseCode, item.courseName, courseId, courseName)) {
+            if (Array.isArray(item.problems) && item.problems.length > 0) {
+              collectedProblems.push(...item.problems)
+            } else {
+              const rawText = item.rawInput || item.homeworkSummary || "Homework"
+              const segments = rawText.split(/[,;\n]+/).map((s: string) => s.trim()).filter(Boolean)
+              segments.forEach((seg: string, sIdx: number) => {
+                const tokens = seg.split(/\s+/)
+                const exercise = tokens[0]
+                const questionNums = tokens.slice(1).map((n: string) => parseInt(n, 10)).filter((n: number) => !isNaN(n))
 
-        if (relevantEntries.length > 0) {
-          const generatedProblems: MathProblem[] = []
-          relevantEntries.forEach((entry: any, eIdx: number) => {
-            const rawText = entry.rawInput || entry.homeworkSummary || "Homework Assignment"
-            const segments = rawText.split(/[,;\n]+/).map((s: string) => s.trim()).filter(Boolean)
-
-            segments.forEach((seg: string, sIdx: number) => {
-              const tokens = seg.split(/\s+/)
-              const exercise = tokens[0] || `Ex ${eIdx + 1}`
-              const questionNums = tokens.slice(1).map((n: string) => parseInt(n, 10)).filter((n: number) => !isNaN(n))
-
-              if (questionNums.length === 0) {
-                generatedProblems.push({
-                  id: `hw-${eIdx}-${sIdx}`,
-                  exercise: entry.courseCode || "Homework",
-                  qNum: sIdx + 1,
-                  isMandatory: true,
-                  title: `${entry.topic || "Assignment"}: ${seg}`,
-                  latex: "\\text{" + seg.replace(/[^a-zA-Z0-9\s+=()/-]/g, "") + "}",
-                  topic: entry.topic || `${courseName} Practice`,
-                  difficulty: "Medium",
-                  methodOfWork: `Complete assignment: "${seg}". Focus on standard methodology and check solutions.`,
-                })
-              } else {
-                questionNums.forEach((qNum: number) => {
-                  generatedProblems.push({
-                    id: `${exercise}-${qNum}`,
-                    exercise: `Ex ${exercise}`,
-                    qNum,
+                if (questionNums.length === 0) {
+                  collectedProblems.push({
+                    id: `hw-map-${eIdx}-${sIdx}`,
+                    exercise: item.courseCode || "HW",
+                    qNum: sIdx + 1,
                     isMandatory: true,
-                    title: `Exercise ${exercise} — Question ${qNum}`,
-                    latex: `\\text{Solve Exercise } ${exercise} \\text{ Question } ${qNum}`,
-                    topic: entry.topic || `${exercise} Problem Set`,
+                    title: seg,
+                    latex: "\\text{" + seg.replace(/[^a-zA-Z0-9\s+=()/-]/g, "") + "}",
+                    topic: item.topic || `${courseName} Practice`,
                     difficulty: "Medium",
-                    methodOfWork: `Apply standard techniques for Section ${exercise} to evaluate Question ${qNum}.`,
+                    methodOfWork: item.homeworkSummary || "Complete assignment problems.",
                   })
-                })
-              }
-            })
-          })
-
-          if (generatedProblems.length > 0) {
-            setParsedProblems(generatedProblems)
-            return
+                } else {
+                  questionNums.forEach((qNum: number) => {
+                    collectedProblems.push({
+                      id: `${exercise}-${qNum}-${eIdx}`,
+                      exercise: `Ex ${exercise}`,
+                      qNum,
+                      isMandatory: true,
+                      title: `Exercise ${exercise} — Question ${qNum}`,
+                      latex: `\\text{Solve Exercise } ${exercise} \\text{ Question } ${qNum}`,
+                      topic: item.topic || `${exercise} Problem Set`,
+                      difficulty: "Medium",
+                      methodOfWork: `Apply standard techniques for Section ${exercise} to evaluate Question ${qNum}.`,
+                    })
+                  })
+                }
+              })
+            }
           }
-        }
+        })
       } catch {}
     }
 
-    // 3. Check Google Classroom Coursework for this course
-    if (coursework.length > 0) {
+    // 4. Fallback to Google Classroom Coursework
+    if (collectedProblems.length === 0 && coursework.length > 0) {
       const cwProblems: MathProblem[] = coursework.map((cw, idx) => ({
         id: cw.id,
         exercise: "Assignment",
@@ -168,8 +269,19 @@ export function SubjectWorkflowSuite({
         difficulty: "Medium",
         methodOfWork: cw.description || "Refer to instructions provided on Google Classroom.",
       }))
-      setParsedProblems(cwProblems)
+      collectedProblems.push(...cwProblems)
     }
+
+    // Deduplicate problems by title / id
+    const uniqueMap = new Map<string, MathProblem>()
+    collectedProblems.forEach((p) => {
+      const key = `${p.exercise}-${p.qNum}-${p.title}`
+      if (!uniqueMap.has(key)) {
+        uniqueMap.set(key, p)
+      }
+    })
+
+    setParsedProblems(Array.from(uniqueMap.values()))
   }, [courseId, courseName, coursework])
 
   useEffect(() => {
