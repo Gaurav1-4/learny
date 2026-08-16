@@ -39,7 +39,7 @@ export function Sidebar({ user }: SidebarProps) {
       href: "/dashboard",
     },
     {
-      label: "Courses & Archive",
+      label: "Courses",
       icon: BookOpen,
       href: "/courses",
     },
@@ -54,7 +54,7 @@ export function Sidebar({ user }: SidebarProps) {
       href: "/gpa",
     },
     {
-      label: "Academic Calendar",
+      label: "Calendar & Timetable",
       icon: Calendar,
       href: "/calendar",
     },
@@ -74,40 +74,37 @@ export function Sidebar({ user }: SidebarProps) {
       href: "/search",
     },
     {
-      label: "Settings & Backup",
+      label: "Settings",
       icon: Settings,
       href: "/settings",
     },
   ]
 
   return (
-    <div className="fixed inset-y-0 left-0 z-30 hidden md:flex h-full w-64 flex-col border-r border-white/5 bg-zinc-950/95 text-zinc-100 backdrop-blur-2xl">
+    <div className="fixed inset-y-0 left-0 z-30 hidden md:flex h-full w-64 flex-col border-r border-zinc-800 bg-zinc-950 text-zinc-300">
       {/* Brand Header */}
-      <div className="flex h-20 items-center border-b border-white/5 px-6">
-        <Link href="/dashboard" className="group flex items-center gap-3 font-bold tracking-tight">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-600/30 transition-transform group-hover:scale-105">
-            <GraduationCap className="h-5 w-5" />
+      <div className="flex h-16 items-center border-b border-zinc-800 px-6">
+        <Link href="/dashboard" className="flex items-center gap-2.5 font-bold tracking-tight">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-100 text-zinc-950">
+            <GraduationCap className="h-4.5 w-4.5" />
           </div>
           <div className="flex flex-col">
-            <span className="text-lg font-black tracking-tight text-white flex items-center gap-1.5">
+            <span className="text-sm font-bold tracking-tight text-white">
               Learny
-              <span className="rounded-md bg-indigo-500/20 px-1.5 py-0.2 text-[10px] font-bold text-indigo-400 border border-indigo-500/30">
-                PRO
-              </span>
             </span>
             <span className="text-[10px] text-zinc-500 font-medium tracking-wide">
-              Classroom Workspace
+              IIIT Delhi
             </span>
           </div>
         </Link>
       </div>
 
       {/* Nav List */}
-      <div className="flex-1 overflow-y-auto px-4 py-6">
-        <div className="px-3 mb-3 text-[10px] font-extrabold uppercase tracking-widest text-zinc-500">
-          Academic Tools
+      <div className="flex-1 overflow-y-auto px-3 py-5">
+        <div className="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
+          Navigation
         </div>
-        <nav className="space-y-1.5">
+        <nav className="space-y-0.5">
           {routes.map((route) => {
             const isActive =
               pathname === route.href ||
@@ -118,23 +115,16 @@ export function Sidebar({ user }: SidebarProps) {
                 key={route.href}
                 href={route.href}
                 className={cn(
-                  "relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-colors",
+                  "relative flex items-center gap-3 rounded-lg px-3 py-2 text-xs font-medium transition-colors",
                   isActive
-                    ? "text-white"
-                    : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/60"
+                    ? "bg-zinc-900 text-white font-semibold"
+                    : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/50"
                 )}
               >
-                {isActive && (
-                  <motion.div
-                    layoutId="activeSidebarPill"
-                    className="absolute inset-0 rounded-xl bg-gradient-to-r from-indigo-950/80 to-purple-950/40 border border-indigo-500/30 shadow-inner -z-10"
-                    transition={{ type: "spring", stiffness: 450, damping: 35 }}
-                  />
-                )}
                 <route.icon
                   className={cn(
-                    "h-4 w-4 shrink-0 transition-transform",
-                    isActive ? "text-indigo-400 scale-110" : "text-zinc-400"
+                    "h-4 w-4 shrink-0 transition-colors",
+                    isActive ? "text-white" : "text-zinc-400"
                   )}
                 />
                 <span className="truncate">{route.label}</span>
@@ -145,21 +135,21 @@ export function Sidebar({ user }: SidebarProps) {
       </div>
 
       {/* User Footer Profile */}
-      <div className="border-t border-white/5 p-4 bg-zinc-950/60 backdrop-blur-md">
+      <div className="border-t border-zinc-800 p-3.5 bg-zinc-950">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3 overflow-hidden">
-            <Avatar className="h-9 w-9 border border-indigo-500/30 shrink-0 ring-2 ring-indigo-500/10">
+          <div className="flex items-center gap-2.5 overflow-hidden">
+            <Avatar className="h-7 w-7 border border-zinc-800 shrink-0">
               <AvatarImage src={user?.image || ""} alt={user?.name || ""} />
-              <AvatarFallback className="bg-gradient-to-br from-indigo-700 to-purple-700 text-white font-bold text-xs">
-                {user?.name?.[0]?.toUpperCase() || "S"}
+              <AvatarFallback className="bg-zinc-800 text-zinc-200 font-semibold text-xs">
+                {user?.name?.[0]?.toUpperCase() || "G"}
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col overflow-hidden">
-              <span className="truncate text-xs font-bold text-zinc-200">
+              <span className="truncate text-xs font-semibold text-zinc-200">
                 {user?.name || "Student"}
               </span>
               <span className="truncate text-[10px] text-zinc-500">
-                {user?.email || "student@college.edu"}
+                {user?.email || "student@iiitd.ac.in"}
               </span>
             </div>
           </div>
@@ -168,9 +158,9 @@ export function Sidebar({ user }: SidebarProps) {
             size="icon"
             onClick={() => signOut({ callbackUrl: "/" })}
             title="Sign out"
-            className="shrink-0 text-zinc-500 hover:text-red-400 hover:bg-zinc-900/80 h-8 w-8 rounded-lg"
+            className="shrink-0 text-zinc-500 hover:text-white hover:bg-zinc-900 h-7 w-7 rounded-md"
           >
-            <LogOut className="h-4 w-4" />
+            <LogOut className="h-3.5 w-3.5" />
           </Button>
         </div>
       </div>

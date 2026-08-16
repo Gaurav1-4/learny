@@ -1,26 +1,15 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
 import {
   Mail,
-  AlertTriangle,
-  Flame,
-  Clock,
-  Sparkles,
   RefreshCw,
-  ExternalLink,
-  ChevronRight,
-  ShieldAlert,
-  Calendar,
   CheckCircle2,
   ThumbsUp,
   ThumbsDown,
-  Filter,
-  UserCheck,
-  Zap,
+  ExternalLink,
 } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { FilteredAcademicNotice } from "@/lib/email-filter-agent"
@@ -52,7 +41,6 @@ export function EmailAlertsWidget() {
   }
 
   useEffect(() => {
-    // Load local feedback memory
     const savedFeedback = localStorage.getItem("learny_email_feedback_map")
     if (savedFeedback) {
       try {
@@ -74,7 +62,6 @@ export function EmailAlertsWidget() {
         body: JSON.stringify({ subject, feedback }),
       })
       if (feedback === "spam") {
-        // Remove from current view
         setNotices((prev) => prev.filter((n) => n.id !== noticeId))
       }
     } catch (e) {
@@ -84,7 +71,6 @@ export function EmailAlertsWidget() {
 
   const handleApplyToSchedule = (notice: FilteredAcademicNotice) => {
     setAppliedNotices((prev) => ({ ...prev, [notice.id]: true }))
-    // Save timetable shift into localStorage
     const savedShifts = localStorage.getItem("learny_timetable_email_shifts")
     const shifts = savedShifts ? JSON.parse(savedShifts) : []
     shifts.push({
@@ -97,124 +83,79 @@ export function EmailAlertsWidget() {
   }
 
   return (
-    <Card className="border-indigo-500/30 bg-zinc-950/80 shadow-xl overflow-hidden backdrop-blur-xl">
-      <CardHeader className="p-4 sm:p-5 border-b border-zinc-800/80 bg-zinc-900/40">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 shrink-0">
-              <Mail className="h-4 w-4" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <CardTitle className="text-sm sm:text-base font-extrabold text-white">
-                  College Email Radar (@iiitd.ac.in)
-                </CardTitle>
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 text-[9px] sm:text-[10px] font-bold text-emerald-400">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
-                  AI Filtered
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5 flex-wrap mt-0.5 text-[11px] sm:text-xs text-zinc-400">
-                <span className="flex items-center gap-1 text-indigo-300 font-medium truncate">
-                  <UserCheck className="h-3 w-3" /> Filtered for Gaurav (3rd Sem CSD)
-                </span>
-                {stats.filteredOut > 0 && (
-                  <span className="text-[10px] text-zinc-500">
-                    ({stats.filteredOut} spam blocked)
-                  </span>
-                )}
-              </div>
-            </div>
+    <Card className="border-zinc-800 bg-zinc-900/30 overflow-hidden">
+      <CardHeader className="p-4 border-b border-zinc-800 bg-zinc-900/40">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Mail className="h-4 w-4 text-zinc-400" />
+            <CardTitle className="text-xs font-semibold text-zinc-200">
+              Academic Email Notice Filter
+            </CardTitle>
+            <span className="text-[10px] text-zinc-500 font-mono">
+              (@iiitd.ac.in)
+            </span>
           </div>
 
           <Button
             size="sm"
-            variant="outline"
+            variant="ghost"
             onClick={fetchNotices}
-            className="self-end sm:self-auto h-7 sm:h-8 border-zinc-800 text-zinc-400 hover:text-white text-[11px] sm:text-xs gap-1"
+            className="h-7 px-2 text-zinc-400 hover:text-white text-[11px] gap-1"
           >
             <RefreshCw className={`h-3 w-3 ${loading ? "animate-spin" : ""}`} />
-            <span>Scan</span>
+            <span>Refresh</span>
           </Button>
         </div>
       </CardHeader>
 
-      <CardContent className="p-4 space-y-3">
+      <CardContent className="p-3.5 space-y-2.5">
         {loading ? (
-          <div className="space-y-2.5">
+          <div className="space-y-2">
             {[1, 2].map((i) => (
               <div
                 key={i}
-                className="h-24 animate-pulse rounded-2xl bg-zinc-900 border border-zinc-800"
+                className="h-16 animate-pulse rounded-lg bg-zinc-900 border border-zinc-800"
               />
             ))}
           </div>
         ) : notices.length === 0 ? (
-          <div className="py-6 text-center text-xs text-zinc-500">
-            No active academic notices matching your 3rd Sem CSD schedule.
+          <div className="py-4 text-center text-xs text-zinc-500">
+            No active notices requiring schedule changes.
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {notices.map((notice) => {
               const isApplied = appliedNotices[notice.id]
               const userFeedback = feedbackMap[notice.id]
 
               return (
-                <motion.div
+                <div
                   key={notice.id}
-                  whileHover={{ y: -1 }}
-                  className={`rounded-2xl border p-3.5 transition-all shadow-sm ${
-                    notice.urgency === "Urgent"
-                      ? "border-rose-500/40 bg-rose-950/15 hover:bg-rose-950/25"
-                      : "border-zinc-800 bg-zinc-900/60 hover:bg-zinc-900"
-                  }`}
+                  className="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3 transition-colors hover:border-zinc-700"
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="space-y-1.5 flex-1">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-1 flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <Badge
-                          variant="outline"
-                          className={`text-[9px] font-bold uppercase tracking-wider ${
-                            notice.category === "Surprise Quiz Alert"
-                              ? "bg-rose-600 text-white border-rose-500"
-                              : notice.category === "Room Change"
-                              ? "bg-amber-600 text-white border-amber-500"
-                              : "border-indigo-500/30 text-indigo-300"
-                          }`}
-                        >
+                        <span className="text-[11px] font-semibold text-zinc-200">
+                          {notice.subjectCode || "Notice"}
+                        </span>
+                        <span className="text-[10px] text-zinc-500">
                           {notice.category}
-                        </Badge>
-                        <Badge className="bg-zinc-800 text-zinc-300 text-[9px] font-bold">
-                          {notice.subjectCode}
-                        </Badge>
-                        <span className="text-[10px] text-zinc-400 truncate max-w-[140px]">
-                          {notice.senderName}
                         </span>
                       </div>
 
-                      <h4 className="text-xs font-bold text-white leading-snug">
-                        {notice.subject}
-                      </h4>
-
-                      <p className="text-[11px] text-zinc-300 line-clamp-2 leading-relaxed">
+                      <p className="text-xs text-zinc-300 font-medium leading-snug">
                         {notice.actionableSummary}
                       </p>
-
-                      {/* AI Relevance Explanation */}
-                      <div className="flex items-center gap-1.5 text-[10px] text-indigo-400/90 pt-0.5">
-                        <Sparkles className="h-3 w-3 shrink-0" />
-                        <span className="truncate">{notice.relevanceReason}</span>
-                      </div>
                     </div>
 
-                    <div className="shrink-0 flex flex-col items-end gap-2">
-                      {/* Schedule Apply Button */}
+                    <div className="shrink-0 flex items-center gap-2">
                       <button
                         onClick={() => handleApplyToSchedule(notice)}
-                        className={`rounded-lg px-2.5 py-1 text-[10px] font-bold transition-all ${
+                        className={`rounded-md px-2 py-1 text-[10px] font-medium transition-colors ${
                           isApplied
-                            ? "bg-emerald-600/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1"
-                            : "bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm"
+                            ? "bg-zinc-800 text-zinc-300 flex items-center gap-1"
+                            : "bg-white text-zinc-950 hover:bg-zinc-200"
                         }`}
                       >
                         {isApplied ? (
@@ -226,26 +167,25 @@ export function EmailAlertsWidget() {
                         )}
                       </button>
 
-                      {/* User Feedback Buttons */}
-                      <div className="flex items-center gap-1 pt-1">
+                      <div className="flex items-center gap-0.5">
                         <button
-                          title="Mark as Relevant & Important"
+                          title="Relevant"
                           onClick={() => handleFeedback(notice.id, notice.subject, "relevant")}
-                          className={`p-1 rounded-md transition-colors ${
+                          className={`p-1 rounded transition-colors ${
                             userFeedback === "relevant"
-                              ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                              : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800"
+                              ? "text-white bg-zinc-800"
+                              : "text-zinc-500 hover:text-zinc-300"
                           }`}
                         >
                           <ThumbsUp className="h-3 w-3" />
                         </button>
                         <button
-                          title="Not for me / Irrelevant Spam"
+                          title="Irrelevant"
                           onClick={() => handleFeedback(notice.id, notice.subject, "spam")}
-                          className={`p-1 rounded-md transition-colors ${
+                          className={`p-1 rounded transition-colors ${
                             userFeedback === "spam"
-                              ? "bg-rose-500/20 text-rose-400 border border-rose-500/30"
-                              : "text-zinc-500 hover:text-rose-400 hover:bg-zinc-800"
+                              ? "text-zinc-300 bg-zinc-800"
+                              : "text-zinc-500 hover:text-zinc-300"
                           }`}
                         >
                           <ThumbsDown className="h-3 w-3" />
@@ -253,7 +193,7 @@ export function EmailAlertsWidget() {
                       </div>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               )
             })}
           </div>

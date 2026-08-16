@@ -44,143 +44,86 @@ export default function LandingPage() {
   if (status === 'loading') {
     return (
       <div className="flex min-h-screen items-center justify-center bg-zinc-950">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-zinc-800 border-t-indigo-500" />
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-zinc-800 border-t-zinc-200" />
       </div>
     );
   }
 
-  const features = [
-    {
-      icon: BookOpen,
-      title: 'Classroom & Archive Sync',
-      desc: 'Seamless live sync with Google Classroom courses, active coursework, submissions, and past semester vaults.',
-      glow: 'from-indigo-500/20 to-transparent',
-    },
-    {
-      icon: Brain,
-      title: 'NotebookLM Dual-Hub',
-      desc: 'Connect your personal Google AI subscription to college courses. 1-click syllabus & notes knowledge packaging.',
-      glow: 'from-purple-500/20 to-transparent',
-    },
-    {
-      icon: Calculator,
-      title: 'Continuous Evaluation & CGPA',
-      desc: 'Per-subject weighted component breakdown (Quizzes, Midsems, Labs) with target exam score planner.',
-      glow: 'from-emerald-500/20 to-transparent',
-    },
-    {
-      icon: Sparkles,
-      title: 'SM-2 Spaced Repetition',
-      desc: 'SuperMemo scientific retention algorithm for long-term memory mastery with 1-click flashcard conversion.',
-      glow: 'from-cyan-500/20 to-transparent',
-    },
-    {
-      icon: Calendar,
-      title: 'Academic Deadline Radar',
-      desc: 'Automated coursework timeline with due date countdowns, priority color coding, and submission tracking.',
-      glow: 'from-amber-500/20 to-transparent',
-    },
-    {
-      icon: Timer,
-      title: 'Focus Pomodoro Chamber',
-      desc: 'Synthesized Web Audio API deep-work timer with ambient ticking and custom interval cycles.',
-      glow: 'from-rose-500/20 to-transparent',
-    },
-  ];
-
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center bg-zinc-950 p-4 sm:p-6 text-center overflow-hidden">
-      {/* Background Animated Lights */}
-      <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[700px] h-[450px] bg-gradient-to-tr from-indigo-600/20 via-purple-600/20 to-pink-600/10 blur-[140px] rounded-full pointer-events-none" />
-      <div className="absolute -bottom-20 left-1/4 w-[500px] h-[300px] bg-cyan-600/10 blur-[130px] rounded-full pointer-events-none" />
-
-      {/* Grid Overlay */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
-
+    <div className="relative min-h-screen flex flex-col items-center justify-center bg-zinc-950 p-4 sm:p-6 text-center">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="relative z-10 flex max-w-5xl flex-col items-center gap-6 sm:gap-8 py-10 sm:py-16 w-full"
+        transition={{ duration: 0.3 }}
+        className="flex max-w-4xl flex-col items-center gap-6 sm:gap-8 py-12 sm:py-20 w-full"
       >
-        {/* Badge */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.1, duration: 0.4 }}
-          className="inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-950/40 px-3.5 py-1 sm:px-4 sm:py-1.5 text-[11px] sm:text-xs font-bold text-indigo-300 backdrop-blur-md shadow-inner"
-        >
-          <Sparkles className="h-3.5 w-3.5 text-indigo-400 animate-pulse" />
-          <span>Next-Gen Google Classroom Workspace</span>
-        </motion.div>
-
-        {/* Hero Title */}
-        <div className="space-y-3 sm:space-y-4 max-w-3xl">
-          <div className="flex items-center justify-center gap-3 sm:gap-4">
-            <div className="flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-2xl sm:rounded-3xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-pink-500 text-white shadow-2xl shadow-indigo-500/40 shrink-0">
-              <GraduationCap className="h-7 w-7 sm:h-9 sm:w-9" />
-            </div>
-            <h1 className="text-4xl sm:text-7xl font-black tracking-tight text-white bg-clip-text text-transparent bg-gradient-to-r from-white via-zinc-100 to-zinc-400">
-              Learny
-            </h1>
+        {/* Brand */}
+        <div className="flex items-center justify-center gap-3">
+          <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-zinc-100 text-zinc-950 shadow-md">
+            <GraduationCap className="h-6 w-6 sm:h-7 sm:w-7" />
           </div>
+          <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-white">
+            Learny
+          </h1>
+        </div>
 
-          <p className="text-sm sm:text-lg text-zinc-400 max-w-2xl mx-auto leading-relaxed px-2">
-            The high-performance study companion designed for Google Classroom. Sync courses, track continuous evaluations, master notes in NotebookLM, and optimize learning with SM-2 spaced repetition.
+        {/* Tagline */}
+        <div className="space-y-2 max-w-2xl">
+          <p className="text-base sm:text-xl text-zinc-300 font-medium">
+            Academic companion for IIIT Delhi students
+          </p>
+          <p className="text-xs sm:text-sm text-zinc-500 leading-relaxed">
+            Directly connect your Google Classroom to automated continuous assessment tracking, NotebookLM knowledge packaging, and structured study ledgers.
           </p>
         </div>
 
-        {/* Action CTA */}
-        <motion.div
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-          className="pt-2 w-full sm:w-auto"
-        >
+        {/* Action Button */}
+        <div className="pt-2 w-full sm:w-auto">
           <button
             onClick={handleSignIn}
             disabled={isSigningIn}
-            className="group relative flex w-full sm:w-auto items-center justify-center gap-3 overflow-hidden rounded-2xl bg-white px-6 sm:px-10 py-3.5 sm:py-4.5 text-sm sm:text-base font-extrabold text-zinc-950 shadow-2xl shadow-white/20 transition-all hover:bg-zinc-100 hover:shadow-indigo-500/20"
+            className="flex w-full sm:w-auto items-center justify-center gap-2.5 rounded-xl bg-white px-8 py-3.5 text-sm font-semibold text-zinc-950 transition-colors hover:bg-zinc-200"
           >
-            <svg className="h-5 w-5 shrink-0" viewBox="0 0 24 24">
-              <path
-                fill="#4285F4"
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-              />
-              <path
-                fill="#34A853"
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-              />
-              <path
-                fill="#FBBC05"
-                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-              />
-              <path
-                fill="#EA4335"
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-              />
-            </svg>
-            <span className="truncate">{isSigningIn ? 'Connecting...' : 'Sign in with Google Classroom'}</span>
-            <ArrowRight className="h-4 w-4 shrink-0 transition-transform group-hover:translate-x-1" />
+            <span>{isSigningIn ? 'Connecting...' : 'Sign in with Google Classroom'}</span>
+            <ArrowRight className="h-4 w-4" />
           </button>
-        </motion.div>
+        </div>
 
         {/* Feature Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 pt-4 sm:pt-8 text-left w-full">
-          {features.map((feature, idx) => (
-            <motion.div
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-6 text-left w-full">
+          {[
+            {
+              title: "Classroom Sync",
+              desc: "Active courses, assignments, student submissions, and announcements in real-time.",
+            },
+            {
+              title: "NotebookLM Dual-Hub",
+              desc: "Package course PDFs directly into studyonly.co@gmail.com for zero-bloat synthesis.",
+            },
+            {
+              title: "Continuous Evaluation",
+              desc: "Track midsems, quizzes, and labs with weighted target score planning.",
+            },
+            {
+              title: "OKF Knowledge Ledger",
+              desc: "Deterministic tagging of lecture notes, homework questions, and practice problem sets.",
+            },
+            {
+              title: "Academic Radar",
+              desc: "Filter college emails strictly relevant to 3rd Sem B.Tech CSD.",
+            },
+            {
+              title: "Study Decks & Timer",
+              desc: "SM-2 spaced repetition flashcards and focused deep-work pomodoro chamber.",
+            },
+          ].map((feature) => (
+            <div
               key={feature.title}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 + idx * 0.05, duration: 0.3 }}
-              whileHover={{ y: -4, transition: { duration: 0.2 } }}
-              className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-white/5 bg-zinc-900/60 p-4.5 sm:p-6 backdrop-blur-xl shadow-lg transition-colors hover:border-white/15"
+              className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 transition-colors hover:border-zinc-700"
             >
-              <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl sm:rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 mb-3 sm:mb-4">
-                <feature.icon className="h-4 w-4 sm:h-5 sm:w-5" />
-              </div>
-              <h3 className="font-bold text-white text-base mb-1.5">{feature.title}</h3>
-              <p className="text-xs text-zinc-400 leading-relaxed">{feature.desc}</p>
-            </motion.div>
+              <h3 className="font-semibold text-white text-xs mb-1">{feature.title}</h3>
+              <p className="text-[11px] text-zinc-400 leading-relaxed">{feature.desc}</p>
+            </div>
           ))}
         </div>
 

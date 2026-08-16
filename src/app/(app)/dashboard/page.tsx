@@ -13,9 +13,7 @@ import {
   AlertCircle,
   RefreshCw,
   LogIn,
-  ExternalLink,
   BookOpen,
-  Sparkles,
   Brain,
   Timer,
   Calculator,
@@ -60,55 +58,57 @@ export default function DashboardPage() {
       const courseworkData = courseworkRes.ok ? await courseworkRes.json() : { coursework: [] };
       const rawCoursework: ClassroomCourseWork[] = courseworkData.coursework || [];
 
-      // Map courses with assignment counts
-      const mappedCourses: Course[] = coursesList.map((c) => {
-        const assignmentsForCourse = rawCoursework.filter((w) => w.courseId === c.id);
-        return {
-          id: c.id,
-          name: c.name,
-          section: c.section || 'General',
-          teacherName: c.descriptionHeading || 'Instructor',
-          assignmentsCount: assignmentsForCourse.length,
-        };
-      });
-      setCourses(mappedCourses);
+      // Map courses with coursework counts
+      const mappedCourses: Course[] = coursesList.map((c) => ({
+        id: c.id,
+        name: c.name,
+        section: c.section || '',
+        teacherName: c.teacherGroupEmail ? c.teacherGroupEmail.split('@')[0] : 'Instructor',
+        assignmentsCount: rawCoursework.filter((cw) => cw.courseId === c.id).length,
+      }));
 
-      // Process upcoming deadlines
-      const now = new Date();
-      const upcomingDeadlines: Deadline[] = [];
+      // Parse deadlines
+      const allDeadlines: Deadline[] = [];
       let pending = 0;
 
-      rawCoursework.forEach((work) => {
-        if (work.dueDate) {
-          const dueYear = work.dueDate.year || now.getFullYear();
-          const dueMonth = (work.dueDate.month || 1) - 1;
-          const dueDay = work.dueDate.day || 1;
-          const dueHour = work.dueTime?.hours || 23;
-          const dueMinute = work.dueTime?.minutes || 59;
-          const dueDate = new Date(dueYear, dueMonth, dueDay, dueHour, dueMinute);
+      for (const cw of rawCoursework) {
+        const matchingCourse = coursesList.find((c) => c.id === cw.courseId);
+        const courseName = matchingCourse ? matchingCourse.name : 'Unknown Course';
 
-          const course = coursesList.find((c) => c.id === work.courseId);
-          const isPastDue = dueDate < now;
+        let dueDateString: string | null = null;
+        let isPast = false;
 
-          if (!isPastDue) {
-            pending++;
-          }
+        if (cw.dueDate) {
+          const year = cw.dueDate.year || new Date().getFullYear();
+          const month = (cw.dueDate.month || 1) - 1;
+          const day = cw.dueDate.day || 1;
+          const hours = cw.dueTime?.hours || 23;
+          const minutes = cw.dueTime?.minutes || 59;
+          const dDate = new Date(year, month, day, hours, minutes);
+          const isPast = dDate < new Date();
+          const status: "due" | "overdue" = isPast ? 'overdue' : 'due';
 
-          upcomingDeadlines.push({
-            id: work.id,
-            courseName: course?.name || 'Course',
-            title: work.title,
-            dueDate,
-            status: isPastDue ? 'overdue' : 'due',
+          pending++;
+
+          allDeadlines.push({
+            id: cw.id,
+            title: cw.title,
+            courseName,
+            dueDate: dDate,
+            status,
           });
         }
-      });
+      }
 
-      setDeadlines(upcomingDeadlines);
+      // Sort deadlines by date ascending
+      allDeadlines.sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
+
+      setCourses(mappedCourses);
+      setDeadlines(allDeadlines);
       setPendingCount(pending);
     } catch (err: any) {
       console.error('Error fetching dashboard data:', err);
-      setError(err?.message || 'Failed to connect to Google Classroom.');
+      setError(err.message || 'Failed to connect to Google Classroom.');
     } finally {
       setLoading(false);
     }
@@ -118,101 +118,77 @@ export default function DashboardPage() {
     fetchData();
   }, []);
 
-  const isAuthIssue =
-    errorStatus === 401 ||
-    error?.toLowerCase().includes('authentication') ||
-    error?.toLowerCase().includes('token') ||
-    error?.toLowerCase().includes('unauthorized') ||
-    error?.toLowerCase().includes('credential');
+  const isAuthIssue = errorStatus === 401 || (error && error.includes('401'));
 
   const quickShortcuts = [
     {
-      title: 'NotebookLM Compiler',
-      desc: 'Export syllabus & notes',
-      icon: Brain,
-      href: '/notebooklm',
-      color: 'text-purple-400 border-purple-500/30 bg-purple-500/10',
+      title: 'Timetable & Schedule',
+      desc: 'Monsoon 2026 calendar',
+      icon: CalendarIcon,
+      href: '/calendar',
     },
     {
-      title: 'Subject Evals & CGPA',
-      desc: 'Calculate target exam marks',
+      title: 'Continuous Evaluation',
+      desc: 'Midsems & target planner',
       icon: Calculator,
       href: '/gpa',
-      color: 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10',
     },
     {
-      title: 'Deep Focus Timer',
-      desc: 'Pomodoro study chamber',
+      title: 'NotebookLM Dual-Hub',
+      desc: 'Study decks & 5 TB vault',
+      icon: Brain,
+      href: '/notebooklm',
+    },
+    {
+      title: 'Focus Chamber',
+      desc: 'Pomodoro timer',
       icon: Timer,
       href: '/timer',
-      color: 'text-amber-400 border-amber-500/30 bg-amber-500/10',
-    },
-    {
-      title: 'SM-2 AI Decks',
-      desc: 'Active recall spaced review',
-      icon: Sparkles,
-      href: '/study',
-      color: 'text-indigo-400 border-indigo-500/30 bg-indigo-500/10',
     },
   ];
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 15 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className="space-y-8 max-w-7xl"
+      transition={{ duration: 0.25 }}
+      className="space-y-6 max-w-6xl"
     >
-      {/* Header with Ambient Badge */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="space-y-1.5">
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/30 px-3 py-0.5 text-[11px] font-bold text-indigo-300">
-              <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-ping" />
-              IIIT Delhi • B.Tech CSD
-            </div>
-            <span className="rounded-full bg-zinc-800/80 border border-zinc-700/60 px-2.5 py-0.5 text-[11px] font-semibold text-zinc-300">
-              3rd Semester (Monsoon)
-            </span>
+      {/* Quiet Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-800 pb-4">
+        <div>
+          <div className="text-[11px] font-medium text-zinc-500">
+            IIIT Delhi • 3rd Semester B.Tech CSD
           </div>
-          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white">
-            Welcome back, {session?.user?.name?.split(' ')[0] || 'Gaurav'} 👋
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white mt-0.5">
+            Dashboard
           </h1>
-          <p className="text-xs sm:text-sm text-zinc-400">
-            Here is your active coursework, continuous assessment breakdown, and AI tools.
-          </p>
         </div>
 
         <Button
           variant="outline"
           size="sm"
           onClick={() => fetchData()}
-          className="self-start md:self-auto h-9 gap-2 rounded-xl border-zinc-800 bg-zinc-900/80 text-xs font-semibold text-zinc-300 hover:text-white"
+          className="self-start sm:self-auto h-8 gap-1.5 rounded-lg border-zinc-800 bg-zinc-900 text-xs font-medium text-zinc-300 hover:text-white"
         >
-          <RefreshCw className="h-3.5 w-3.5" />
-          <span>Sync Classroom</span>
+          <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
+          <span>Sync</span>
         </Button>
       </div>
 
-      {/* Error Banner if any */}
+      {/* Error Banner */}
       {error && (
-        <div className="rounded-3xl border border-red-500/30 bg-red-950/30 p-6 backdrop-blur-md space-y-4 shadow-xl">
-          <div className="flex items-start gap-3 text-red-400">
-            <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
-            <div className="space-y-1.5 flex-1">
-              <h3 className="font-bold text-sm text-red-200">Google Classroom Connection</h3>
-              <p className="text-xs text-red-300/90 leading-relaxed">{error}</p>
-
-              {isAuthIssue && (
-                <p className="text-xs text-zinc-300 pt-1">
-                  Your Google Classroom session needs to be refreshed. Click below to grant permissions and reload courses.
-                </p>
-              )}
+        <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-4 space-y-3">
+          <div className="flex items-start gap-2.5 text-zinc-300">
+            <AlertCircle className="h-4 w-4 shrink-0 text-zinc-400 mt-0.5" />
+            <div className="space-y-1 flex-1">
+              <h3 className="font-semibold text-xs text-white">Classroom Connection</h3>
+              <p className="text-xs text-zinc-400">{error}</p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 pt-1 border-t border-red-500/20">
-            {isAuthIssue ? (
+          {isAuthIssue && (
+            <div className="pt-2 border-t border-zinc-800">
               <Button
                 size="sm"
                 onClick={() => {
@@ -220,43 +196,35 @@ export default function DashboardPage() {
                     signIn('google', { callbackUrl: '/dashboard' });
                   });
                 }}
-                className="h-9 bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white shadow-lg shadow-indigo-600/30 rounded-xl"
+                className="h-8 bg-white text-zinc-950 hover:bg-zinc-200 text-xs font-medium"
               >
-                <LogIn className="h-3.5 w-3.5 mr-1.5" /> Sign in Again with Google Classroom
+                <LogIn className="h-3.5 w-3.5 mr-1" />
+                Reconnect Google Classroom
               </Button>
-            ) : null}
-
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => fetchData()}
-              className="h-9 border-zinc-800 bg-zinc-900 hover:bg-zinc-800 text-xs font-semibold text-zinc-300 rounded-xl"
-            >
-              <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Try Again
-            </Button>
-          </div>
+            </div>
+          )}
         </div>
       )}
 
       {/* Loading Skeletons */}
       {loading ? (
-        <div className="space-y-8">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {[1, 2, 3, 4].map((i) => (
               <div
                 key={i}
-                className="h-28 animate-pulse rounded-3xl bg-zinc-900 border border-zinc-800"
+                className="h-24 animate-pulse rounded-xl bg-zinc-900 border border-zinc-800"
               />
             ))}
           </div>
-          <div className="grid gap-8 md:grid-cols-3">
-            <div className="md:col-span-2 h-72 animate-pulse rounded-3xl bg-zinc-900 border border-zinc-800" />
-            <div className="h-72 animate-pulse rounded-3xl bg-zinc-900 border border-zinc-800" />
+          <div className="grid gap-6 md:grid-cols-3">
+            <div className="md:col-span-2 h-64 animate-pulse rounded-xl bg-zinc-900 border border-zinc-800" />
+            <div className="h-64 animate-pulse rounded-xl bg-zinc-900 border border-zinc-800" />
           </div>
         </div>
       ) : !error ? (
         <>
-          {/* Live Class End & Homework Mock Simulator */}
+          {/* Post-Class Simulator */}
           <LiveClassMockSimulator onSuccess={() => fetchData()} />
 
           {/* Stats Overview */}
@@ -268,105 +236,33 @@ export default function DashboardPage() {
           />
 
           {/* Quick Shortcuts Bar */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
             {quickShortcuts.map((sc) => (
               <Link
                 key={sc.title}
                 href={sc.href}
-                className="group flex items-center gap-3 rounded-2xl border border-white/5 bg-zinc-900/60 p-3.5 backdrop-blur-xl transition-all hover:border-white/15 hover:bg-zinc-800/40"
+                className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-3.5 transition-colors hover:border-zinc-700 hover:bg-zinc-900/70 block"
               >
-                <div
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${sc.color} transition-transform group-hover:scale-105`}
-                >
-                  <sc.icon className="h-5 w-5" />
+                <div className="flex items-center gap-2">
+                  <sc.icon className="h-4 w-4 text-zinc-400 shrink-0" />
+                  <div className="text-xs font-semibold text-zinc-200 truncate">{sc.title}</div>
                 </div>
-                <div className="truncate">
-                  <h4 className="text-xs font-bold text-zinc-100 group-hover:text-indigo-300 transition-colors">
-                    {sc.title}
-                  </h4>
-                  <p className="text-[10px] text-zinc-500 truncate">{sc.desc}</p>
-                </div>
+                <div className="text-[10px] text-zinc-500 mt-1 truncate">{sc.desc}</div>
               </Link>
             ))}
           </div>
 
-          {/* Today's Classes & AI Prep Quick Strip */}
-          <div className="rounded-3xl border border-indigo-500/30 bg-gradient-to-r from-indigo-950/40 via-zinc-900/80 to-purple-950/40 p-5 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center gap-3.5">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-300">
-                <CalendarIcon className="h-5 w-5" />
-              </div>
-              <div className="space-y-0.5">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-white">Weekly Class Timetable & AI Prep</span>
-                  <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-400">
-                    Math III Tuesday Test Prep Active
-                  </span>
-                </div>
-                <p className="text-xs text-zinc-400">
-                  Room coordinates, lecture times & automated revision slots mapped for all 5 CSD subjects.
-                </p>
-              </div>
+          {/* College Email Notice Radar */}
+          <EmailAlertsWidget />
+
+          {/* Main Grid: Active Courses + Deadlines */}
+          <div className="grid gap-6 md:grid-cols-3">
+            <div className="md:col-span-2 space-y-4">
+              <CourseCards courses={courses} />
             </div>
 
-            <Link
-              href="/calendar"
-              className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-500 shadow-md shadow-indigo-600/20 shrink-0 self-start md:self-auto"
-            >
-              <span>Open Full Timetable</span>
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-
-          {/* Main Dashboard Layout */}
-          <div className="grid gap-8 lg:grid-cols-3">
-            {/* Active Courses Section (2 Cols) */}
-            <div className="space-y-4 lg:col-span-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <BookOpen className="h-5 w-5 text-indigo-400" />
-                  <h2 className="text-lg font-bold tracking-tight text-white">
-                    Enrolled Courses ({courses.length})
-                  </h2>
-                </div>
-                <Link
-                  href="/courses"
-                  className="inline-flex items-center gap-1 text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors"
-                >
-                  <span>View All & Archive</span>
-                  <ArrowRight className="h-3 w-3" />
-                </Link>
-              </div>
-
-              {courses.length === 0 ? (
-                <div className="flex min-h-[220px] flex-col items-center justify-center rounded-3xl border border-zinc-800 border-dashed bg-zinc-900/40 p-8 text-center">
-                  <BookOpen className="mb-3 h-10 w-10 text-zinc-600" />
-                  <h3 className="font-bold text-zinc-200 text-sm">No Active Courses Found</h3>
-                  <p className="mt-1 text-xs text-zinc-400 max-w-sm">
-                    No active courses found. If your courses are archived from past semesters, check
-                    the{' '}
-                    <Link href="/courses" className="text-indigo-400 hover:underline">
-                      Archived Vault
-                    </Link>
-                    .
-                  </p>
-                </div>
-              ) : (
-                <CourseCards courses={courses} />
-              )}
-            </div>
-
-            {/* Upcoming Deadlines & Email Radar (1 Col) */}
-            <div className="space-y-6">
-              <EmailAlertsWidget />
-
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <CalendarIcon className="h-5 w-5 text-indigo-400" />
-                  <h2 className="text-lg font-bold tracking-tight text-white">Classroom Deadlines</h2>
-                </div>
-                <DeadlineList deadlines={deadlines} />
-              </div>
+            <div className="space-y-4">
+              <DeadlineList deadlines={deadlines} />
             </div>
           </div>
         </>

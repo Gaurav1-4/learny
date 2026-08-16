@@ -339,108 +339,70 @@ export function SubjectWorkflowSuite({ courseId, courseName, courseSection }: Su
                   <Calculator className="h-5 w-5" />
                 </div>
                 <div>
-                  <div className="flex items-center gap-2">
-                    <CardTitle className="text-lg font-bold text-white">
-                      Math III Homework & Similar Practice Suite
-                    </CardTitle>
-                    <Badge className="bg-indigo-500/20 text-indigo-300 border-indigo-500/40 text-[10px] font-bold">
-                      Erwin Kreyszig Bible
-                    </Badge>
-                  </div>
-                  <CardDescription className="text-xs text-zinc-400 mt-0.5">
-                    Extracts mandatory homework questions and auto-generates similar practice problems with identical methods of work.
+                  <CardTitle className="text-base font-semibold text-white">
+                    Math III Homework &amp; Practice Ledger
+                  </CardTitle>
+                  <CardDescription className="text-xs text-zinc-500 mt-0.5">
+                    Erwin Kreyszig • Mandatory problem sets &amp; similar practice
                   </CardDescription>
                 </div>
               </div>
 
-              {/* Mandatory Readiness Meter */}
-              <div className="text-right">
-                <div className="text-xs text-zinc-400">
-                  Mandatory Homework:{" "}
-                  <span className="font-bold text-emerald-400">
-                    {mandatorySolved} / {mandatoryCount}
-                  </span>
-                </div>
-                <div className="text-[10px] text-indigo-400 font-medium">
-                  {parsedProblems.length - mandatoryCount} Similar Practice Problems Available
+              {/* Solved Count */}
+              <div className="text-right text-xs">
+                <div className="text-zinc-400">
+                  Completed: <span className="font-semibold text-white">{mandatorySolved} / {mandatoryCount}</span>
                 </div>
               </div>
             </div>
           </CardHeader>
 
-          <CardContent className="p-6 space-y-6">
-            {/* OKF Semantic Manifest Banner (NotebookLM Topic + User Homework) */}
-            <div className="p-3.5 sm:p-4 rounded-2xl bg-zinc-900/90 border border-indigo-500/40 space-y-2">
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <div className="flex items-center gap-2">
-                  <Badge className="bg-indigo-600 text-white font-mono text-[10px] font-bold">
-                    🏷️ OKF Semantic Manifest
-                  </Badge>
-                  <span className="font-mono text-xs text-indigo-300 font-bold">
-                    iiitd-mth201-lec02
-                  </span>
-                </div>
-                <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/40 text-[10px] font-bold">
-                  Status: 🟢 Homework Logged (14.2, 14.3, 14.4)
-                </Badge>
+          <CardContent className="p-4 sm:p-5 space-y-4">
+            {/* Minimal OKF Manifest Strip */}
+            <div className="p-3 rounded-lg bg-zinc-900/60 border border-zinc-800 space-y-1 text-xs">
+              <div className="flex items-center justify-between text-[11px] text-zinc-400">
+                <span className="font-mono text-zinc-300">iiitd-mth201-lec02</span>
+                <span className="text-zinc-300">🟢 Logged</span>
               </div>
-
-              <div className="text-xs text-zinc-200 font-medium leading-relaxed">
-                <span className="text-zinc-400">NotebookLM Extracted Topic: </span>
-                <span className="text-indigo-300 font-bold">
-                  Lecture 2: Cauchy&apos;s Integral Theorem, Path Independence &amp; Cauchy Formulas (Sections 14.2, 14.3, 14.4)
-                </span>
-              </div>
-              <div className="text-[11px] text-zinc-400 truncate">
-                Storage: <span className="font-mono text-zinc-300">Learny Vault / Sem 3 / Math III / Notes / Lecture2_ComplexLineIntegrals.pdf</span>
+              <div className="font-medium text-zinc-200">
+                Lecture 2: Cauchy&apos;s Integral Theorem, Path Independence &amp; Formulas
               </div>
             </div>
 
-            {/* Textbook 'Method of Work' Recipe Card (Erwin Kreyszig Chapter 14) */}
-            <div className="p-3.5 sm:p-4 rounded-2xl bg-indigo-950/30 border border-indigo-500/30 space-y-3">
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <div className="flex items-center gap-2 text-xs font-bold text-indigo-300">
-                  <BookMarked className="h-4 w-4 text-indigo-400" />
-                  <span>Textbook Bible Method of Work (Chapter 14: Cauchy&apos;s Theorem &amp; Formula)</span>
-                </div>
-                <Badge className="bg-indigo-600/30 text-indigo-200 text-[9px] font-mono">
-                  Kreyszig Section 14.2 &amp; 14.3
-                </Badge>
-              </div>
+            {/* Collapsible Method of Work Recipe */}
+            <details className="rounded-lg border border-zinc-800 bg-zinc-900/30 p-3 text-xs group">
+              <summary className="font-medium text-zinc-300 cursor-pointer flex items-center justify-between">
+                <span>Method of Work: Cauchy&apos;s Theorem &amp; Integral Formula</span>
+                <span className="text-zinc-500 text-[11px] group-open:rotate-180 transition-transform">▼</span>
+              </summary>
 
-              <div className="p-3 rounded-xl bg-zinc-950/80 border border-zinc-800 font-mono text-xs text-indigo-300 space-y-1 overflow-x-auto scrollbar-none">
-                <div className="whitespace-nowrap">{"\\oint_C f(z) \\, dz = 0 \\quad (\\text{Cauchy's Theorem for Analytic } f(z))"}</div>
-                <div className="text-[11px] text-zinc-400 whitespace-nowrap">{"f(z_0) = \\frac{1}{2\\pi i} \\oint_C \\frac{f(z)}{z - z_0} \\, dz \\quad (\\text{Cauchy's Integral Formula})"}</div>
-              </div>
+              <div className="pt-3 space-y-2">
+                <div className="p-2.5 rounded-md bg-zinc-950 border border-zinc-800/80 font-mono text-xs text-zinc-300 overflow-x-auto scrollbar-none">
+                  <div className="whitespace-nowrap">{"\\oint_C f(z) \\, dz = 0 \\quad (\\text{Cauchy's Theorem for Analytic } f(z))"}</div>
+                  <div className="text-[11px] text-zinc-400 whitespace-nowrap pt-1">{"f(z_0) = \\frac{1}{2\\pi i} \\oint_C \\frac{f(z)}{z - z_0} \\, dz \\quad (\\text{Cauchy's Integral Formula})"}</div>
+                </div>
 
-              <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 text-xs text-zinc-300">
-                <div className="p-2.5 rounded-lg bg-zinc-900/80 border border-zinc-800">
-                  <span className="font-bold text-white block mb-0.5">Step 1: Check Domain</span>
-                  <span className="text-[11px] text-zinc-400">Verify if contour C is simple, closed, and simply connected.</span>
-                </div>
-                <div className="p-2.5 rounded-lg bg-zinc-900/80 border border-zinc-800">
-                  <span className="font-bold text-white block mb-0.5">Step 2: Locate Singularities</span>
-                  <span className="text-[11px] text-zinc-400">Find denominator roots z_0. Determine if inside or outside C.</span>
-                </div>
-                <div className="p-2.5 rounded-lg bg-zinc-900/80 border border-zinc-800">
-                  <span className="font-bold text-white block mb-0.5">Step 3: Apply Theorem</span>
-                  <span className="text-[11px] text-zinc-400">If pole is outside C → Integral is 0 (by Cauchy&apos;s Theorem).</span>
-                </div>
-                <div className="p-2.5 rounded-lg bg-zinc-900/80 border border-zinc-800">
-                  <span className="font-bold text-white block mb-0.5">Step 4: Integral Formula</span>
-                  <span className="text-[11px] text-zinc-400">If pole is inside C → Evaluate 2\pi i f(z_0).</span>
+                <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 text-[11px] text-zinc-400 pt-1">
+                  <div className="p-2 rounded bg-zinc-900 border border-zinc-800">
+                    <strong className="text-zinc-200 block">1. Check Domain &amp; Poles:</strong>
+                    Find denominator roots $z_0$. Verify whether $z_0$ lies inside contour $C$.
+                  </div>
+                  <div className="p-2 rounded bg-zinc-900 border border-zinc-800">
+                    <strong className="text-zinc-200 block">2. Apply Integral Rule:</strong>
+                    If outside $\to 0$. If inside $\to 2\pi i f(z_0)$.
+                  </div>
                 </div>
               </div>
-            </div>
+            </details>
 
             {/* Input Options: Voice Input + Shorthand Form */}
-            <form onSubmit={handleParseShorthand} className="p-3.5 sm:p-4 rounded-2xl bg-zinc-900/80 border border-zinc-800 space-y-3">
-              <div className="flex items-center justify-between flex-wrap gap-1">
-                <span className="text-xs font-bold text-zinc-200">
-                  Homework Entry (Type Shorthand or Click Mic to Speak)
+            <form onSubmit={handleParseShorthand} className="p-3 rounded-lg bg-zinc-900/40 border border-zinc-800 space-y-2">
+              <div className="flex items-center justify-between text-xs text-zinc-400">
+                <span className="font-medium text-zinc-300">
+                  Enter Homework
                 </span>
                 <span className="text-[10px] text-zinc-500 font-mono">
-                  Example: <code>14.1 1</code> or <code>4.1 3 4 5</code>
+                  e.g. <code>14.2 3 5, 14.3 2, 14.4 1</code>
                 </span>
               </div>
 
@@ -494,7 +456,7 @@ export function SubjectWorkflowSuite({ courseId, courseName, courseSection }: Su
               <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none flex-nowrap -mx-3.5 px-3.5 sm:mx-0 sm:px-0">
                 <button
                   onClick={() => setFilterMode("all")}
-                  className={`shrink-0 px-2.5 sm:px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                  className={`shrink-0 px-3 py-1 rounded-md text-xs font-medium transition-colors ${
                     filterMode === "all" ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-zinc-200"
                   }`}
                 >
@@ -502,111 +464,74 @@ export function SubjectWorkflowSuite({ courseId, courseName, courseSection }: Su
                 </button>
                 <button
                   onClick={() => setFilterMode("mandatory")}
-                  className={`shrink-0 px-2.5 sm:px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                    filterMode === "mandatory" ? "bg-rose-950/60 text-rose-300 border border-rose-500/30" : "text-zinc-400 hover:text-zinc-200"
+                  className={`shrink-0 px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                    filterMode === "mandatory" ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-zinc-200"
                   }`}
                 >
-                  <Flame className="h-3 w-3 text-rose-400" />
-                  <span>Mandatory ({mandatoryCount})</span>
+                  Mandatory ({mandatoryCount})
                 </button>
                 <button
                   onClick={() => setFilterMode("similar")}
-                  className={`shrink-0 px-2.5 sm:px-3 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                    filterMode === "similar" ? "bg-emerald-950/60 text-emerald-300 border border-emerald-500/30" : "text-zinc-400 hover:text-zinc-200"
+                  className={`shrink-0 px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                    filterMode === "similar" ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-zinc-200"
                   }`}
                 >
-                  <Sparkles className="h-3 w-3 text-emerald-400" />
-                  <span>Similar ({parsedProblems.length - mandatoryCount})</span>
+                  Similar ({parsedProblems.length - mandatoryCount})
                 </button>
               </div>
 
-              <span className="text-[10px] sm:text-[11px] text-zinc-500">
-                Professor rule: &quot;Solve homework + try similar questions in spare time&quot;
+              <span className="text-[11px] text-zinc-500">
+                Mandatory homework + optional similar practice
               </span>
             </div>
 
             {/* Problem Ledger Grid */}
-            <div className="grid gap-3">
+            <div className="grid gap-2.5">
               {displayedProblems.map((prob) => {
                 const isSolved = solvedQuestions[prob.id]
                 return (
-                  <motion.div
+                  <div
                     key={prob.id}
-                    whileHover={{ y: -1 }}
-                    className={`p-3.5 sm:p-4 rounded-xl border transition-all ${
-                      isSolved
-                        ? "border-emerald-500/30 bg-emerald-950/10"
-                        : prob.isMandatory
-                        ? "border-rose-500/30 bg-rose-950/10"
-                        : "border-zinc-800 bg-zinc-900/60"
-                    }`}
+                    className="p-3.5 rounded-lg border border-zinc-800 bg-zinc-900/40 space-y-2 transition-colors hover:border-zinc-700"
                   >
-                    <div className="flex items-start justify-between gap-3 sm:gap-4">
-                      <div className="space-y-1.5 flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-                          <Badge
-                            className={`font-mono text-[11px] sm:text-xs font-bold ${
-                              prob.isMandatory
-                                ? "bg-rose-600 text-white"
-                                : "bg-emerald-600/30 text-emerald-300 border border-emerald-500/40"
-                            }`}
-                          >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-1 flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-xs font-semibold text-white">
                             {prob.exercise} — Q{prob.qNum}
-                          </Badge>
-
-                          <Badge
-                            variant="outline"
-                            className={`text-[9px] sm:text-[10px] font-bold uppercase tracking-wider ${
-                              prob.isMandatory
-                                ? "border-rose-500/40 text-rose-300 bg-rose-950/30"
-                                : "border-emerald-500/40 text-emerald-300 bg-emerald-950/30"
-                            }`}
-                          >
-                            {prob.isMandatory ? "🔴 Mandatory" : "🟢 Similar"}
-                          </Badge>
-
-                          <Badge variant="outline" className="text-[9px] sm:text-[10px] border-zinc-700 text-zinc-300 truncate max-w-[150px] sm:max-w-none">
-                            {prob.topic}
-                          </Badge>
+                          </span>
+                          <span className="text-[10px] text-zinc-500">
+                            {prob.isMandatory ? "Mandatory" : "Similar Practice"}
+                          </span>
                         </div>
 
-                        <h4 className="text-xs font-bold text-zinc-100">{prob.title}</h4>
+                        <h4 className="text-xs font-medium text-zinc-200">{prob.title}</h4>
 
-                        <div className="p-2.5 rounded-lg bg-zinc-950 border border-zinc-800/80 font-mono text-xs text-indigo-300 overflow-x-auto scrollbar-none">
+                        <div className="p-2.5 rounded bg-zinc-950 border border-zinc-800 font-mono text-xs text-zinc-200 overflow-x-auto scrollbar-none">
                           <div className="whitespace-nowrap">{prob.latex}</div>
                         </div>
 
-                        <div className="text-[11px] text-zinc-400 leading-relaxed pt-1">
-                          <span className="font-bold text-zinc-300">Method of Work: </span>
+                        <div className="text-[11px] text-zinc-400 leading-relaxed pt-0.5">
+                          <span className="text-zinc-300 font-medium">Method: </span>
                           {prob.methodOfWork}
                         </div>
                       </div>
 
-                      <div className="shrink-0 flex flex-col items-end gap-2">
+                      <div className="shrink-0 flex items-center gap-2">
                         <button
                           onClick={() => toggleSolved(prob.id)}
-                          className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all flex items-center gap-1.5 ${
+                          className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors flex items-center gap-1 ${
                             isSolved
-                              ? "bg-emerald-600 text-white shadow-sm"
-                              : "bg-zinc-800 hover:bg-zinc-700 text-zinc-300"
+                              ? "bg-zinc-800 text-zinc-200 border border-zinc-700"
+                              : "bg-white text-zinc-950 hover:bg-zinc-200"
                           }`}
                         >
                           <CheckCircle2 className="h-3.5 w-3.5" />
-                          <span>{isSolved ? "Solved" : "Mark Solved"}</span>
+                          <span>{isSolved ? "Completed" : "Mark Done"}</span>
                         </button>
-
-                        <a
-                          href="https://notebooklm.google.com"
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-[10px] text-indigo-400 hover:underline flex items-center gap-1"
-                        >
-                          <span>NotebookLM proof</span>
-                          <ExternalLink className="h-2.5 w-2.5" />
-                        </a>
                       </div>
                     </div>
-                  </motion.div>
+                  </div>
                 )
               })}
             </div>
@@ -616,56 +541,46 @@ export function SubjectWorkflowSuite({ courseId, courseName, courseSection }: Su
 
       {/* 2. OPERATING SYSTEMS & AP WORKFLOW: Conversational Lecture Tutor */}
       {(isOS || isAP) && (
-        <Card className="border-purple-500/30 bg-zinc-950/80 shadow-xl overflow-hidden backdrop-blur-xl">
-          <CardHeader className="p-6 border-b border-zinc-800 bg-zinc-900/40">
+        <Card className="border-zinc-800 bg-zinc-900/30 overflow-hidden">
+          <CardHeader className="p-4 sm:p-5 border-b border-zinc-800 bg-zinc-900/40">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-600/20 border border-purple-500/30 text-purple-400">
-                  {isOS ? <Code2 className="h-5 w-5" /> : <Layers className="h-5 w-5" />}
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <CardTitle className="text-lg font-bold text-white">
-                      {isOS ? "Operating Systems" : "Advanced Programming"} Conversational Lecture Tutor
-                    </CardTitle>
-                    <Badge className="bg-purple-500/20 text-purple-300 border-purple-500/40 text-[10px] font-bold">
-                      Pre-Written Prompts & Dialogue
-                    </Badge>
-                  </div>
-                  <CardDescription className="text-xs text-zinc-400 mt-0.5">
-                    Click any lecture to study in conversational tutor mode with pre-crafted doubt & exam question prompts.
-                  </CardDescription>
-                </div>
+              <div>
+                <CardTitle className="text-sm sm:text-base font-semibold text-white">
+                  {isOS ? "Operating Systems" : "Advanced Programming"} Lecture Notes &amp; Prompts
+                </CardTitle>
+                <CardDescription className="text-xs text-zinc-500 mt-0.5">
+                  High-yield summaries and study prompts
+                </CardDescription>
               </div>
 
               <a
                 href="https://notebooklm.google.com"
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-lg bg-purple-600 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-purple-500 shadow-md shadow-purple-600/30"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-200"
               >
-                <span>Launch in NotebookLM</span>
-                <ExternalLink className="h-3.5 w-3.5" />
+                <span>NotebookLM</span>
+                <ExternalLink className="h-3 w-3" />
               </a>
             </div>
           </CardHeader>
 
-          <CardContent className="p-6 space-y-6">
-            <div className="grid gap-3 sm:grid-cols-3">
+          <CardContent className="p-4 sm:p-5 space-y-4">
+            <div className="grid gap-2 sm:grid-cols-3">
               {currentLectures.map((lec) => (
                 <button
                   key={lec.id}
                   onClick={() => setSelectedLecture(lec.id)}
-                  className={`p-3.5 rounded-xl border text-left transition-all ${
+                  className={`p-3 rounded-lg border text-left transition-colors ${
                     selectedLecture === lec.id
-                      ? "border-purple-500 bg-purple-950/20 text-white ring-1 ring-purple-500"
-                      : "border-zinc-800 bg-zinc-900/60 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
+                      ? "border-zinc-500 bg-zinc-800 text-white"
+                      : "border-zinc-800 bg-zinc-900/50 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
                   }`}
                 >
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-purple-400">
-                    Lecture Module
+                  <div className="text-[10px] font-medium text-zinc-500">
+                    Module
                   </div>
-                  <h4 className="text-xs font-bold text-white mt-0.5 line-clamp-1">{lec.title}</h4>
+                  <h4 className="text-xs font-semibold text-white mt-0.5 line-clamp-1">{lec.title}</h4>
                 </button>
               ))}
             </div>
@@ -673,50 +588,50 @@ export function SubjectWorkflowSuite({ courseId, courseName, courseSection }: Su
             {(() => {
               const lec = currentLectures.find((l) => l.id === selectedLecture) || currentLectures[0]
               return (
-                <div className="space-y-4 p-5 rounded-2xl bg-zinc-900/80 border border-zinc-800">
+                <div className="space-y-3 p-4 rounded-xl bg-zinc-900/50 border border-zinc-800">
                   <div className="space-y-1">
-                    <h3 className="text-sm font-bold text-white">{lec.title}</h3>
-                    <p className="text-xs text-zinc-300 leading-relaxed">{lec.summary}</p>
+                    <h3 className="text-xs font-semibold text-white">{lec.title}</h3>
+                    <p className="text-xs text-zinc-400 leading-relaxed">{lec.summary}</p>
                   </div>
 
                   <div className="flex items-center gap-1.5 flex-wrap pt-1">
-                    <span className="text-[10px] font-bold text-zinc-400">Core Concepts:</span>
+                    <span className="text-[10px] font-medium text-zinc-500">Key Concepts:</span>
                     {lec.keyConcepts.map((k) => (
-                      <Badge key={k} className="bg-zinc-950 text-purple-300 border border-purple-500/20 text-[10px]">
+                      <span key={k} className="rounded bg-zinc-800 px-2 py-0.5 text-[10px] text-zinc-300">
                         {k}
-                      </Badge>
+                      </span>
                     ))}
                   </div>
 
-                  <div className="space-y-2.5 pt-3 border-t border-zinc-800">
-                    <div className="text-xs font-bold text-zinc-300">
-                      ⚡ 1-Click Pre-Written Study & Tutor Prompts:
+                  <div className="space-y-2 pt-2 border-t border-zinc-800">
+                    <div className="text-xs font-medium text-zinc-300">
+                      Study Prompts:
                     </div>
 
                     {[
                       {
                         key: "teach",
-                        label: "🎓 Teach Me This Lecture Step-by-Step",
+                        label: "Teach Me Step-by-Step",
                         prompt: `Act as a senior professor at IIIT Delhi teaching ${lec.title}. Break down the concepts step-by-step with real-world analogies, code examples, and clear diagrams.`,
                       },
                       {
                         key: "quiz",
-                        label: "❓ Quiz Me on Potential Midsem Exam Questions",
+                        label: "Quiz Me on Exam Questions",
                         prompt: `Generate 3 high-probability conceptual and analytical midsem exam questions based on ${lec.title}. Ask me one question at a time and evaluate my answers.`,
                       },
                       {
                         key: "edge-cases",
-                        label: "💡 Explain the Hardest Concept & Concurrency Edge Cases",
-                        prompt: `What is the most difficult and commonly misunderstood concept in ${lec.title}? Explain the subtle edge cases and race conditions students often fail in tests.`,
+                        label: "Explain Edge Cases",
+                        prompt: `What is the most difficult and commonly misunderstood concept in ${lec.title}? Explain subtle edge cases.`,
                       },
                     ].map((p) => (
                       <div
                         key={p.key}
-                        className="p-3 rounded-xl bg-zinc-950 border border-zinc-800/80 flex items-center justify-between gap-3 text-xs"
+                        className="p-2.5 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-between gap-3 text-xs"
                       >
-                        <div>
-                          <div className="font-bold text-purple-200">{p.label}</div>
-                          <div className="text-[11px] text-zinc-400 mt-0.5 font-mono line-clamp-1">
+                        <div className="min-w-0 flex-1">
+                          <div className="font-medium text-zinc-200">{p.label}</div>
+                          <div className="text-[10px] text-zinc-500 mt-0.5 truncate font-mono">
                             {p.prompt}
                           </div>
                         </div>
@@ -725,15 +640,15 @@ export function SubjectWorkflowSuite({ courseId, courseName, courseSection }: Su
                           size="sm"
                           variant="outline"
                           onClick={() => handleCopyPrompt(p.prompt, `${selectedLecture}-${p.key}`)}
-                          className="h-7 text-[10px] font-bold border-zinc-700 hover:bg-zinc-800 text-zinc-200 shrink-0"
+                          className="h-7 text-[10px] font-medium border-zinc-700 hover:bg-zinc-800 text-zinc-200 shrink-0"
                         >
                           {copiedPrompt === `${selectedLecture}-${p.key}` ? (
                             <>
-                              <Check className="h-3 w-3 mr-1 text-emerald-400" /> Copied
+                              <Check className="h-3 w-3 mr-1 text-zinc-200" /> Copied
                             </>
                           ) : (
                             <>
-                              <Copy className="h-3 w-3 mr-1" /> Copy Prompt
+                              <Copy className="h-3 w-3 mr-1" /> Copy
                             </>
                           )}
                         </Button>
@@ -749,53 +664,37 @@ export function SubjectWorkflowSuite({ courseId, courseName, courseSection }: Su
 
       {/* 3. DPP 2026 & RMSSD WORKFLOW: Master Quality Design & Research Notes */}
       {(isDPP || isRMSSD) && (
-        <Card className="border-emerald-500/30 bg-zinc-950/80 shadow-xl overflow-hidden backdrop-blur-xl">
-          <CardHeader className="p-6 border-b border-zinc-800 bg-zinc-900/40">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600/20 border border-emerald-500/30 text-emerald-400">
-                  {isDPP ? <Palette className="h-5 w-5" /> : <BarChart3 className="h-5 w-5" />}
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <CardTitle className="text-lg font-bold text-white">
-                      {isDPP ? "DPP 2026 Master Quality Design Notes" : "RMSSD Comprehensive Research Methodology"}
-                    </CardTitle>
-                    <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/40 text-[10px] font-bold">
-                      Zero-Loss Documentation
-                    </Badge>
-                  </div>
-                  <CardDescription className="text-xs text-zinc-400 mt-0.5">
-                    Complete, exhaustive notes capturing design thinking frameworks, heuristics, qualitative coding, and statistics.
-                  </CardDescription>
-                </div>
-              </div>
-
-              <Badge className="bg-zinc-800 text-zinc-300 text-xs">
-                Full Studio Fidelity
-              </Badge>
+        <Card className="border-zinc-800 bg-zinc-900/30 overflow-hidden">
+          <CardHeader className="p-4 sm:p-5 border-b border-zinc-800 bg-zinc-900/40">
+            <div>
+              <CardTitle className="text-sm sm:text-base font-semibold text-white">
+                {isDPP ? "DPP 2026 Design Process Notes" : "RMSSD Research Methodology"}
+              </CardTitle>
+              <CardDescription className="text-xs text-zinc-500 mt-0.5">
+                Core frameworks and studio reference
+              </CardDescription>
             </div>
           </CardHeader>
 
-          <CardContent className="p-6 space-y-4">
-            <div className="grid gap-3 sm:grid-cols-2">
+          <CardContent className="p-4 sm:p-5 space-y-3">
+            <div className="grid gap-2.5 sm:grid-cols-2">
               {(isDPP
                 ? [
-                    { title: "Design Thinking & Empathy Mapping", desc: "User interview protocols, persona synthesis, and journey mapping frameworks for Friday studio critiques." },
-                    { title: "Nielsen's 10 Usability Heuristics", desc: "System status visibility, error prevention, heuristic scoring rubrics, and usability audit matrices." },
-                    { title: "Information Architecture & Wireframing", desc: "Card sorting methodologies, low-fidelity wireframing, and interactive prototyping guidelines." },
-                    { title: "Usability Testing & Studio Review", desc: "Moderated vs unmoderated testing, task success rate metrics, and SUS (System Usability Scale) scoring." },
+                    { title: "Design Thinking & Empathy Mapping", desc: "User interview protocols, persona synthesis, and journey mapping frameworks." },
+                    { title: "Nielsen's 10 Usability Heuristics", desc: "System status visibility, error prevention, heuristic scoring rubrics, and audit matrices." },
+                    { title: "Information Architecture & Wireframing", desc: "Card sorting methodologies, low-fidelity wireframing, and interactive prototyping." },
+                    { title: "Usability Testing & Studio Review", desc: "Moderated vs unmoderated testing, task success rate metrics, and SUS scoring." },
                   ]
                 : [
-                    { title: "Qualitative Research & Thematic Coding", desc: "Inductive vs deductive coding, thematic synthesis, inter-rater reliability, and grounded theory." },
-                    { title: "Quantitative Sampling & SPSS/R Statistics", desc: "Stratified vs cluster sampling, ANOVA, Chi-square tests, p-values, and statistical power." },
-                    { title: "Survey Design & Psychometric Scales", desc: "Likert scale design, response bias mitigation, validity, and Cronbach's alpha reliability." },
-                    { title: "Research Ethics & IRB Protocol", desc: "Informed consent, participant anonymization, and ethical design compliance for academic studies." },
+                    { title: "Qualitative Research & Thematic Coding", desc: "Inductive vs deductive coding, thematic synthesis, and grounded theory." },
+                    { title: "Quantitative Sampling & Statistics", desc: "Stratified vs cluster sampling, ANOVA, Chi-square tests, and statistical power." },
+                    { title: "Survey Design & Psychometrics", desc: "Likert scale design, response bias mitigation, and Cronbach's alpha reliability." },
+                    { title: "Research Ethics & IRB Protocol", desc: "Informed consent, participant anonymization, and ethical design compliance." },
                   ]
               ).map((mod, idx) => (
-                <div key={idx} className="p-4 rounded-xl border border-zinc-800 bg-zinc-900/60 space-y-1.5">
-                  <h4 className="text-xs font-bold text-white flex items-center gap-1.5">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+                <div key={idx} className="p-3.5 rounded-lg border border-zinc-800 bg-zinc-900/40 space-y-1">
+                  <h4 className="text-xs font-medium text-white flex items-center gap-1.5">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-zinc-400" />
                     <span>{mod.title}</span>
                   </h4>
                   <p className="text-[11px] text-zinc-400 leading-relaxed">{mod.desc}</p>

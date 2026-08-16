@@ -155,148 +155,93 @@ export default function CourseDetailPage({ params }: { params: Promise<{ courseI
         <span>Back to courses</span>
       </Link>
 
-      {/* Hero Banner with Glassmorphism & Ambient Glow */}
-      <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-white/10 bg-gradient-to-br from-indigo-950/40 via-zinc-900/90 to-purple-950/30 p-4 sm:p-8 shadow-2xl backdrop-blur-xl">
-        <BorderBeam size={300} duration={14} delay={0} colorFrom="#818cf8" colorTo="#c084fc" />
-        {/* Glow Spheres */}
-        <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-indigo-500/20 blur-3xl pointer-events-none" />
-        <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-purple-500/15 blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 flex flex-col justify-between gap-4 sm:gap-6 lg:flex-row lg:items-center">
-          <div className="space-y-2.5 sm:space-y-3 max-w-3xl">
-            {/* Badges Row */}
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-indigo-500/15 border border-indigo-500/30 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[11px] sm:text-xs font-bold text-indigo-300 backdrop-blur-sm">
-                <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-ping" />
-                {course.courseState === 'ARCHIVED' ? 'Archived Vault' : 'Active Subject'}
+      {/* Clean Editorial Banner */}
+      <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-5 sm:p-6">
+        <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="rounded-md bg-zinc-800 px-2 py-0.5 text-[11px] font-medium text-zinc-300">
+                {course.courseState === 'ARCHIVED' ? 'Archived' : 'Active'}
               </span>
               {course.section && (
-                <span className="rounded-full bg-zinc-800/80 border border-zinc-700/60 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[11px] sm:text-xs font-medium text-zinc-300">
+                <span className="text-xs text-zinc-500">
                   {course.section}
                 </span>
               )}
               {course.room && (
-                <span className="rounded-full bg-zinc-800/80 border border-zinc-700/60 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[11px] sm:text-xs font-medium text-zinc-300">
-                  Room: {course.room}
+                <span className="text-xs text-zinc-500">
+                  • Room {course.room}
                 </span>
               )}
             </div>
 
-            {/* Course Title */}
-            <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
               {course.name}
             </h1>
 
             {course.descriptionHeading && (
-              <p className="text-xs sm:text-sm text-zinc-300/90 flex items-center gap-2">
-                <User className="h-4 w-4 text-indigo-400 shrink-0" />
-                <span>{course.descriptionHeading}</span>
+              <p className="text-xs text-zinc-400">
+                {course.descriptionHeading}
               </p>
             )}
 
-            {/* Quick Metrics Strip */}
-            <div className="flex flex-wrap items-center gap-3 sm:gap-4 pt-2 sm:pt-3 text-[11px] sm:text-xs text-zinc-400 border-t border-white/5">
-              <div className="flex items-center gap-1.5">
-                <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-indigo-400" />
-                <span className="font-bold text-zinc-200">{coursework.length}</span> Assignments
-              </div>
-              <span>•</span>
-              <div className="flex items-center gap-1.5">
-                <Megaphone className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-400" />
-                <span className="font-bold text-zinc-200">{announcements.length}</span> Notices
-              </div>
-              <span>•</span>
-              <div className="flex items-center gap-1.5">
-                <Award className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-400" />
-                <span className="font-bold text-zinc-200">{gradedCount}</span> Graded Submissions
-              </div>
+            <div className="flex items-center gap-4 pt-2 text-xs text-zinc-400">
+              <div><span className="font-semibold text-zinc-200">{coursework.length}</span> Assignments</div>
+              <div>•</div>
+              <div><span className="font-semibold text-zinc-200">{announcements.length}</span> Notices</div>
             </div>
           </div>
 
-          {/* Action Button */}
+          {/* Actions */}
           {course.alternateLink && (
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 shrink-0">
+            <div className="flex items-center gap-2 shrink-0">
               <Link
                 href="/notebooklm"
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 px-4 py-2.5 sm:px-5 sm:py-3 text-xs font-bold text-purple-200 transition-all backdrop-blur-sm text-center"
+                className="rounded-lg border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 px-3.5 py-2 text-xs font-medium text-zinc-200 transition-colors"
               >
-                <Brain className="h-4 w-4 text-purple-400" />
-                <span>Study in NotebookLM</span>
+                NotebookLM
               </Link>
               <a
                 href={course.alternateLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 px-4 py-2.5 sm:px-5 sm:py-3 text-xs font-bold text-white transition-all shadow-lg shadow-indigo-600/30 hover:scale-[1.02] active:scale-[0.98] text-center"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-white text-zinc-950 hover:bg-zinc-200 px-3.5 py-2 text-xs font-medium transition-colors"
               >
-                <span>Open in Classroom</span>
-                <ExternalLink className="h-4 w-4" />
+                <span>Classroom</span>
+                <ExternalLink className="h-3.5 w-3.5" />
               </a>
             </div>
           )}
         </div>
       </div>
 
-      {/* Modern Animated Tabs Header */}
-      <div className="flex items-center gap-2 sm:gap-3 border-b border-zinc-800 pb-2 overflow-x-auto scrollbar-none flex-nowrap -mx-3.5 px-3.5 sm:mx-0 sm:px-0">
+      {/* Minimal Segmented Tab Bar */}
+      <div className="flex items-center gap-1 border-b border-zinc-800 pb-2 overflow-x-auto scrollbar-none flex-nowrap">
         <button
           onClick={() => setActiveTab('suite')}
-          className={`relative shrink-0 flex items-center gap-2 rounded-xl px-3.5 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-bold transition-all ${
-            activeTab === 'suite' ? 'text-white' : 'text-zinc-400 hover:text-zinc-200'
+          className={`shrink-0 rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors ${
+            activeTab === 'suite' ? 'bg-zinc-800 text-white font-semibold' : 'text-zinc-400 hover:text-zinc-200'
           }`}
         >
-          <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-400" />
-          <span>Academic Suite</span>
-          <span className="ml-1 rounded-full bg-emerald-500/20 text-emerald-300 px-1.5 py-0.2 text-[9px] font-bold">
-            Live
-          </span>
-          {activeTab === 'suite' && (
-            <motion.div
-              layoutId="activeCourseTab"
-              className="absolute inset-0 -z-10 rounded-xl bg-zinc-800/90 border border-zinc-700/60 shadow-sm"
-              transition={{ type: 'spring', stiffness: 450, damping: 35 }}
-            />
-          )}
+          Study Suite
         </button>
 
         <button
           onClick={() => setActiveTab('assignments')}
-          className={`relative shrink-0 flex items-center gap-2 rounded-xl px-3.5 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-bold transition-all ${
-            activeTab === 'assignments' ? 'text-white' : 'text-zinc-400 hover:text-zinc-200'
+          className={`shrink-0 rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors ${
+            activeTab === 'assignments' ? 'bg-zinc-800 text-white font-semibold' : 'text-zinc-400 hover:text-zinc-200'
           }`}
         >
-          <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-indigo-400" />
-          <span>Assignments</span>
-          <span className="ml-1 rounded-full bg-zinc-800 px-2 py-0.5 text-[10px] text-zinc-300 font-mono">
-            {coursework.length}
-          </span>
-          {activeTab === 'assignments' && (
-            <motion.div
-              layoutId="activeCourseTab"
-              className="absolute inset-0 -z-10 rounded-xl bg-zinc-800/90 border border-zinc-700/60 shadow-sm"
-              transition={{ type: 'spring', stiffness: 450, damping: 35 }}
-            />
-          )}
+          Assignments ({coursework.length})
         </button>
 
         <button
           onClick={() => setActiveTab('announcements')}
-          className={`relative shrink-0 flex items-center gap-2 rounded-xl px-3.5 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-bold transition-all ${
-            activeTab === 'announcements' ? 'text-white' : 'text-zinc-400 hover:text-zinc-200'
+          className={`shrink-0 rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors ${
+            activeTab === 'announcements' ? 'bg-zinc-800 text-white font-semibold' : 'text-zinc-400 hover:text-zinc-200'
           }`}
         >
-          <Megaphone className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-400" />
-          <span>Notices</span>
-          <span className="ml-1 rounded-full bg-zinc-800 px-2 py-0.5 text-[10px] text-zinc-300 font-mono">
-            {announcements.length}
-          </span>
-          {activeTab === 'announcements' && (
-            <motion.div
-              layoutId="activeCourseTab"
-              className="absolute inset-0 -z-10 rounded-xl bg-zinc-800/90 border border-zinc-700/60 shadow-sm"
-              transition={{ type: 'spring', stiffness: 450, damping: 35 }}
-            />
-          )}
+          Notices ({announcements.length})
         </button>
       </div>
 
