@@ -1,30 +1,30 @@
 # Learny — Project State & Milestone Tracker
 
-**Status**: IIITD CSD 3rd Semester & Historical Curriculum Integration Live on Vercel
+**Status**: Smart Subject Sorting & Personalized IIITD CSD UI Live on Vercel
 **GitHub Repository**: [https://github.com/Gaurav1-4/learny](https://github.com/Gaurav1-4/learny)
 **Live Production URLs**:
 - `https://learny.zorx.tech`
 - `https://learny-delta.vercel.app`
-- `https://learny-1atobf88n-semly.vercel.app`
+- `https://learny-l2m0tqa9t-semly.vercel.app`
 
 ---
 
-## 1. IIITD CSD 3rd Semester Data & Academic Roadmaps
+## 1. Subject Sorting & Personalized UI Features
 
-- **Continuous Subject Evaluations Preset (`/gpa`)**:
-  - `DPP 2026: Design Processes & Perspectives`: Critique (25%), Studio Assignments (25%), Midsem (20%), Final Portfolio (30%).
-  - `Data Structures & Algorithms (DSA)`: Lab Quizzes (15%), Programming Assignments (20%), Midsem (25%), Endsem (40%).
-  - `Advanced Programming (AP / OOP)`: OOP Labs (20%), Project (20%), Midsem (25%), Endsem (35%).
-  - `Computer Organization (CO / CA)`: Assembly Labs (20%), Assignments (15%), Midsem (25%), Endsem (40%).
-  - `Visual Design & Communication (VDC)`: Typography & Layout (30%), Prototype (35%), Final Showcase (35%).
-- **Multi-Semester CGPA Records**:
-  - `Semester 1 (Monsoon)`: IP, DC, M1, SM, COM (16 credits, 8.50 SGPA).
-  - `Semester 2 (Winter)`: DS, BE, M2, CD (16 credits, 8.65 SGPA).
-  - Dynamic degree Cumulative CGPA calculation engine.
-- **AI Study Decks & Flashcards (`/study`)**:
-  - Pre-packaged SM-2 decks with active recall cards and practice quizzes for DPP 2026 (Double Diamond, Affinity Mapping, Usability Heuristics), DSA (Dijkstra, Dynamic Programming, AVL Trees), and AP (SOLID principles, Singleton & Builder patterns).
-- **Google Classroom Live Sync**:
-  - All active and archived courses are queried live from `gaurav25212@iiitd.ac.in`.
+- **Smart Subject Sorting Controls**:
+  - `Priority`: Prioritizes active subjects with coursework and pending deadlines (e.g. `DPP 2026`).
+  - `Most Work`: Orders by number of active assignments.
+  - `A-Z`: Standard alphabetical sorting.
+- **Academic Context & Department Track Chips**:
+  - Automatically identifies subject domain:
+    - `Design & UX Track`: DPP 2026, VDC, HCI.
+    - `Core CS / Algorithms`: DSA.
+    - `Software Engineering`: Advanced Programming / OOP.
+    - `Systems & Architecture`: Computer Organization (CO / CA).
+- **Personalized Header Context**:
+  - Displays `IIIT Delhi • B.Tech CSD • 3rd Semester (Monsoon)`.
+- **Preloaded Evaluation & CGPA Defaults**:
+  - Auto-initializes with Semester 3 subjects and Semester 1 & 2 past records (`8.50` & `8.65` SGPA) on `/gpa`.
 
 ---
 
