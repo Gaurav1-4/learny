@@ -388,6 +388,9 @@ export default function CourseDetailPage({ params }: { params: Promise<{ courseI
               courseId={course.id}
               courseName={course.name}
               courseSection={course.section}
+              materials={materials}
+              coursework={coursework}
+              announcements={announcements}
             />
           </motion.div>
         ) : activeTab === 'materials' ? (
