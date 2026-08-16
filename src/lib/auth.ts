@@ -1,6 +1,20 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 
+// Scopes compatible with both student and teacher accounts
+const CLASSROOM_SCOPES = [
+  "openid",
+  "email",
+  "profile",
+  "https://www.googleapis.com/auth/classroom.courses.readonly",
+  "https://www.googleapis.com/auth/classroom.coursework.me.readonly",
+  "https://www.googleapis.com/auth/classroom.coursework.students.readonly",
+  "https://www.googleapis.com/auth/classroom.student-submissions.me.readonly",
+  "https://www.googleapis.com/auth/classroom.student-submissions.students.readonly",
+  "https://www.googleapis.com/auth/classroom.announcements.readonly",
+  "https://www.googleapis.com/auth/classroom.rosters.readonly",
+].join(" ");
+
 async function refreshAccessToken(token: any) {
   try {
     const url = "https://oauth2.googleapis.com/token";
@@ -46,8 +60,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           prompt: "consent",
           access_type: "offline",
           response_type: "code",
-          scope:
-            "openid email profile https://www.googleapis.com/auth/classroom.courses.readonly https://www.googleapis.com/auth/classroom.coursework.students.readonly https://www.googleapis.com/auth/classroom.student-submissions.students.readonly https://www.googleapis.com/auth/classroom.announcements.readonly https://www.googleapis.com/auth/classroom.rosters.readonly",
+          scope: CLASSROOM_SCOPES,
         },
       },
     }),
@@ -56,7 +69,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
   callbacks: {
     async jwt({ token, account, user }) {
-      // Initial sign in
       if (account && user) {
         return {
           ...token,
@@ -67,12 +79,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         };
       }
 
-      // Return previous token if the access token has not expired yet (with 60s buffer)
       if (token.expiresAt && Date.now() < ((token.expiresAt as number) - 60) * 1000) {
         return token;
       }
 
-      // Access token has expired, try to update it using refresh token
       if (token.refreshToken) {
         return refreshAccessToken(token);
       }
