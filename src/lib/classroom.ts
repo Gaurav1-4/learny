@@ -2,6 +2,7 @@ import { google, classroom_v1 } from "googleapis";
 import {
   ClassroomCourse,
   ClassroomCourseWork,
+  ClassroomCourseWorkMaterial,
   ClassroomStudentSubmission,
   ClassroomAnnouncement,
   ClassroomTeacher,
@@ -92,6 +93,18 @@ export class GoogleClassroomClient {
       return (response.data.courseWork as unknown as ClassroomCourseWork[]) || [];
     } catch (error) {
       console.warn(`Error fetching coursework for course ${courseId}:`, error);
+      return [];
+    }
+  }
+
+  async getCourseWorkMaterials(courseId: string): Promise<ClassroomCourseWorkMaterial[]> {
+    try {
+      const response = await this.classroom.courses.courseWorkMaterials.list({
+        courseId,
+      });
+      return (response.data.courseWorkMaterial as unknown as ClassroomCourseWorkMaterial[]) || [];
+    } catch (error) {
+      console.warn(`Error fetching coursework materials for course ${courseId}:`, error);
       return [];
     }
   }

@@ -14,6 +14,46 @@ export interface ClassroomCourse {
   enrollmentCode?: string;
 }
 
+export interface ClassroomMaterialItem {
+  driveFile?: {
+    driveFile?: {
+      id?: string;
+      title?: string;
+      alternateLink?: string;
+      thumbnailUrl?: string;
+    };
+    shareMode?: string;
+  };
+  youtubeVideo?: {
+    id?: string;
+    title?: string;
+    alternateLink?: string;
+    thumbnailUrl?: string;
+  };
+  link?: {
+    url?: string;
+    title?: string;
+    thumbnailUrl?: string;
+  };
+  form?: {
+    formUrl?: string;
+    title?: string;
+    thumbnailUrl?: string;
+  };
+}
+
+export interface ClassroomCourseWorkMaterial {
+  id: string;
+  courseId: string;
+  title: string;
+  description?: string;
+  state?: string;
+  alternateLink?: string;
+  creationTime?: string;
+  updateTime?: string;
+  materials?: ClassroomMaterialItem[];
+}
+
 export interface ClassroomCourseWork {
   id: string;
   courseId: string;
@@ -32,6 +72,7 @@ export interface ClassroomCourseWork {
     minutes?: number;
   };
   workType?: string;
+  materials?: ClassroomMaterialItem[];
 }
 
 export interface ClassroomStudentSubmission {
@@ -52,6 +93,7 @@ export interface ClassroomAnnouncement {
   alternateLink?: string;
   creationTime?: string;
   updateTime?: string;
+  materials?: ClassroomMaterialItem[];
 }
 
 export interface ClassroomTeacher {

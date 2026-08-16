@@ -14,56 +14,151 @@ import {
   Award,
   Clock,
   Sparkles,
-  Timer,
-  Brain,
-  Copy,
-  Check,
-  ChevronRight,
   BookOpen,
   User,
-  Layers,
   AlertCircle,
-  Calculator,
+  FileIcon,
+  Video,
+  Globe,
+  Download,
 } from 'lucide-react';
 import { format, formatDistanceToNow, isPast } from 'date-fns';
-import { ClassroomCourse, ClassroomCourseWork, ClassroomAnnouncement, ClassroomStudentSubmission } from '@/types';
+import {
+  ClassroomCourse,
+  ClassroomCourseWork,
+  ClassroomAnnouncement,
+  ClassroomStudentSubmission,
+  ClassroomCourseWorkMaterial,
+  ClassroomMaterialItem,
+} from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { BorderBeam } from '@/components/ui/border-beam';
 import { SubjectWorkflowSuite } from '@/components/courses/subject-workflow-suite';
+
+function AttachmentBadge({ item }: { item: ClassroomMaterialItem }) {
+  if (item.driveFile?.driveFile) {
+    const df = item.driveFile.driveFile;
+    return (
+      <a
+        href={df.alternateLink || '#'}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-950/80 px-2.5 py-1 text-xs text-zinc-300 transition-colors hover:border-zinc-700 hover:text-white"
+      >
+        <FileText className="h-3.5 w-3.5 text-zinc-400" />
+        <span className="max-w-[200px] truncate">{df.title || 'Attached File'}</span>
+        <ExternalLink className="h-3 w-3 text-zinc-500" />
+      </a>
+    );
+  }
+
+  if (item.youtubeVideo) {
+    const yv = item.youtubeVideo;
+    return (
+      <a
+        href={yv.alternateLink || `https://youtube.com/watch?v=${yv.id}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-950/80 px-2.5 py-1 text-xs text-zinc-300 transition-colors hover:border-zinc-700 hover:text-white"
+      >
+        <Video className="h-3.5 w-3.5 text-zinc-400" />
+        <span className="max-w-[200px] truncate">{yv.title || 'YouTube Video'}</span>
+        <ExternalLink className="h-3 w-3 text-zinc-500" />
+      </a>
+    );
+  }
+
+  if (item.link) {
+    const lk = item.link;
+    return (
+      <a
+        href={lk.url || '#'}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-950/80 px-2.5 py-1 text-xs text-zinc-300 transition-colors hover:border-zinc-700 hover:text-white"
+      >
+        <Globe className="h-3.5 w-3.5 text-zinc-400" />
+        <span className="max-w-[200px] truncate">{lk.title || lk.url || 'Web Link'}</span>
+        <ExternalLink className="h-3 w-3 text-zinc-500" />
+      </a>
+    );
+  }
+
+  if (item.form) {
+    const fm = item.form;
+    return (
+      <a
+        href={fm.formUrl || '#'}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-950/80 px-2.5 py-1 text-xs text-zinc-300 transition-colors hover:border-zinc-700 hover:text-white"
+      >
+        <FileText className="h-3.5 w-3.5 text-zinc-400" />
+        <span className="max-w-[200px] truncate">{fm.title || 'Google Form'}</span>
+        <ExternalLink className="h-3 w-3 text-zinc-500" />
+      </a>
+    );
+  }
+
+  return null;
+}
 
 export default function CourseDetailPage({ params }: { params: Promise<{ courseId: string }> }) {
   const resolvedParams = use(params);
   const courseId = resolvedParams.courseId;
   const router = useRouter();
 
-  const [activeTab, setActiveTab] = useState<'suite' | 'assignments' | 'announcements'>('suite');
   const [loading, setLoading] = useState(true);
   const [course, setCourse] = useState<ClassroomCourse | null>(null);
   const [coursework, setCoursework] = useState<ClassroomCourseWork[]>([]);
+  const [materials, setMaterials] = useState<ClassroomCourseWorkMaterial[]>([]);
   const [announcements, setAnnouncements] = useState<ClassroomAnnouncement[]>([]);
   const [submissions, setSubmissions] = useState<ClassroomStudentSubmission[]>([]);
-  const [copiedAnnId, setCopiedAnnId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<string>('suite');
 
   useEffect(() => {
     async function fetchCourseData() {
       try {
         setLoading(true);
-        const [courseRes, courseworkRes, announcementsRes, submissionsRes] = await Promise.all([
-          fetch(`/api/classroom/courses/${courseId}`),
-          fetch(`/api/classroom/courses/${courseId}/coursework`),
-          fetch(`/api/classroom/courses/${courseId}/announcements`),
-          fetch(`/api/classroom/courses/${courseId}/submissions`),
-        ]);
+        const [courseRes, courseworkRes, materialsRes, announcementsRes, submissionsRes] =
+          await Promise.all([
+            fetch(`/api/classroom/courses/${courseId}`),
+            fetch(`/api/classroom/courses/${courseId}/coursework`),
+            fetch(`/api/classroom/courses/${courseId}/materials`),
+            fetch(`/api/classroom/courses/${courseId}/announcements`),
+            fetch(`/api/classroom/courses/${courseId}/submissions`),
+          ]);
 
         if (courseRes.ok) {
           const courseData = await courseRes.json();
-          setCourse(courseData.course || courseData);
+          const crs = courseData.course || courseData;
+          setCourse(crs);
+
+          // Decide default tab: if course has custom suite, default to 'suite', otherwise default to 'all'
+          const cName = (crs.name || '').toLowerCase();
+          const hasCustomSuite =
+            cName.includes('math') ||
+            cName.includes('mth') ||
+            cName.includes('operating') ||
+            cName.includes('os') ||
+            cName.includes('programming') ||
+            cName.includes('ap') ||
+            cName.includes('dpp') ||
+            cName.includes('design') ||
+            cName.includes('rmssd') ||
+            cName.includes('research');
+
+          setActiveTab(hasCustomSuite ? 'suite' : 'all');
         }
 
         if (courseworkRes.ok) {
           const cwData = await courseworkRes.json();
           setCoursework(Array.isArray(cwData) ? cwData : cwData.coursework || []);
+        }
+
+        if (materialsRes.ok) {
+          const matData = await materialsRes.json();
+          setMaterials(Array.isArray(matData) ? matData : matData.materials || []);
         }
 
         if (announcementsRes.ok) {
@@ -87,24 +182,18 @@ export default function CourseDetailPage({ params }: { params: Promise<{ courseI
     }
   }, [courseId]);
 
-  const handleCopyAnnouncement = (id: string, text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedAnnId(id);
-    setTimeout(() => setCopiedAnnId(null), 2000);
-  };
-
   if (loading) {
     return (
-      <div className="space-y-8 animate-pulse max-w-6xl">
-        <div className="h-6 w-32 rounded-lg bg-zinc-800" />
-        <div className="h-56 rounded-3xl bg-zinc-900/80 border border-zinc-800" />
-        <div className="flex gap-4 border-b border-zinc-800 pb-3">
-          <div className="h-10 w-40 rounded-xl bg-zinc-800" />
-          <div className="h-10 w-40 rounded-xl bg-zinc-800" />
+      <div className="space-y-6 animate-pulse max-w-5xl">
+        <div className="h-5 w-28 rounded bg-zinc-800" />
+        <div className="h-36 rounded-xl bg-zinc-900/60 border border-zinc-800" />
+        <div className="flex gap-2 border-b border-zinc-800 pb-2">
+          <div className="h-8 w-28 rounded-lg bg-zinc-800" />
+          <div className="h-8 w-28 rounded-lg bg-zinc-800" />
         </div>
-        <div className="space-y-4">
+        <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-36 rounded-2xl bg-zinc-900 border border-zinc-800" />
+            <div key={i} className="h-28 rounded-xl bg-zinc-900 border border-zinc-800" />
           ))}
         </div>
       </div>
@@ -113,23 +202,22 @@ export default function CourseDetailPage({ params }: { params: Promise<{ courseI
 
   if (!course) {
     return (
-      <div className="flex min-h-[450px] flex-col items-center justify-center rounded-3xl border border-zinc-800 border-dashed bg-zinc-900/30 p-12 text-center">
-        <AlertCircle className="h-12 w-12 text-zinc-600 mb-3" />
-        <h2 className="text-2xl font-bold text-zinc-100">Course Not Found</h2>
-        <p className="text-sm text-zinc-400 mt-1 max-w-md">
+      <div className="flex min-h-[350px] flex-col items-center justify-center rounded-2xl border border-zinc-800 border-dashed bg-zinc-900/30 p-8 text-center">
+        <AlertCircle className="h-10 w-10 text-zinc-500 mb-2" />
+        <h2 className="text-lg font-bold text-zinc-100">Course Not Found</h2>
+        <p className="text-xs text-zinc-400 mt-1 max-w-sm">
           Could not load the course details from Google Classroom.
         </p>
         <Button
           onClick={() => router.push('/courses')}
-          className="mt-6 gap-2 bg-indigo-600 hover:bg-indigo-500 text-white"
+          className="mt-4 bg-white text-zinc-950 hover:bg-zinc-200 text-xs font-semibold"
         >
-          <ArrowLeft className="h-4 w-4" /> Return to Courses
+          <ArrowLeft className="h-3.5 w-3.5 mr-1.5" /> Return to Courses
         </Button>
       </div>
     );
   }
 
-  // Calculate submission map
   const submissionMap = new Map<string, ClassroomStudentSubmission>();
   submissions.forEach((sub) => {
     if (sub.courseWorkId) {
@@ -137,21 +225,32 @@ export default function CourseDetailPage({ params }: { params: Promise<{ courseI
     }
   });
 
-  const gradedCount = submissions.filter((s) => s.assignedGrade !== undefined).length;
+  const cName = (course.name || '').toLowerCase();
+  const hasCustomSuite =
+    cName.includes('math') ||
+    cName.includes('mth') ||
+    cName.includes('operating') ||
+    cName.includes('os') ||
+    cName.includes('programming') ||
+    cName.includes('ap') ||
+    cName.includes('dpp') ||
+    cName.includes('design') ||
+    cName.includes('rmssd') ||
+    cName.includes('research');
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, ease: 'easeOut' }}
-      className="space-y-8 max-w-6xl"
+      transition={{ duration: 0.25 }}
+      className="space-y-6 max-w-5xl"
     >
       {/* Back Button */}
       <Link
         href="/courses"
-        className="group inline-flex items-center gap-2 text-xs font-semibold text-zinc-400 hover:text-zinc-100 transition-colors"
+        className="inline-flex items-center gap-1.5 text-xs font-medium text-zinc-400 hover:text-zinc-100 transition-colors"
       >
-        <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-1" />
+        <ArrowLeft className="h-3.5 w-3.5" />
         <span>Back to courses</span>
       </Link>
 
@@ -163,16 +262,8 @@ export default function CourseDetailPage({ params }: { params: Promise<{ courseI
               <span className="rounded-md bg-zinc-800 px-2 py-0.5 text-[11px] font-medium text-zinc-300">
                 {course.courseState === 'ARCHIVED' ? 'Archived' : 'Active'}
               </span>
-              {course.section && (
-                <span className="text-xs text-zinc-500">
-                  {course.section}
-                </span>
-              )}
-              {course.room && (
-                <span className="text-xs text-zinc-500">
-                  • Room {course.room}
-                </span>
-              )}
+              {course.section && <span className="text-xs text-zinc-500">{course.section}</span>}
+              {course.room && <span className="text-xs text-zinc-500">• Room {course.room}</span>}
             </div>
 
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
@@ -180,15 +271,23 @@ export default function CourseDetailPage({ params }: { params: Promise<{ courseI
             </h1>
 
             {course.descriptionHeading && (
-              <p className="text-xs text-zinc-400">
-                {course.descriptionHeading}
-              </p>
+              <p className="text-xs text-zinc-400">{course.descriptionHeading}</p>
             )}
 
             <div className="flex items-center gap-4 pt-2 text-xs text-zinc-400">
-              <div><span className="font-semibold text-zinc-200">{coursework.length}</span> Assignments</div>
+              <div>
+                <span className="font-semibold text-zinc-200">{coursework.length}</span>{' '}
+                Assignments
+              </div>
               <div>•</div>
-              <div><span className="font-semibold text-zinc-200">{announcements.length}</span> Notices</div>
+              <div>
+                <span className="font-semibold text-zinc-200">{materials.length}</span> Notes &amp;
+                Materials
+              </div>
+              <div>•</div>
+              <div>
+                <span className="font-semibold text-zinc-200">{announcements.length}</span> Notices
+              </div>
             </div>
           </div>
 
@@ -215,21 +314,49 @@ export default function CourseDetailPage({ params }: { params: Promise<{ courseI
         </div>
       </div>
 
-      {/* Minimal Segmented Tab Bar */}
+      {/* Segmented Tab Bar */}
       <div className="flex items-center gap-1 border-b border-zinc-800 pb-2 overflow-x-auto scrollbar-none flex-nowrap">
+        {hasCustomSuite && (
+          <button
+            onClick={() => setActiveTab('suite')}
+            className={`shrink-0 rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors ${
+              activeTab === 'suite'
+                ? 'bg-zinc-800 text-white font-semibold'
+                : 'text-zinc-400 hover:text-zinc-200'
+            }`}
+          >
+            Study Suite
+          </button>
+        )}
+
         <button
-          onClick={() => setActiveTab('suite')}
+          onClick={() => setActiveTab('all')}
           className={`shrink-0 rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors ${
-            activeTab === 'suite' ? 'bg-zinc-800 text-white font-semibold' : 'text-zinc-400 hover:text-zinc-200'
+            activeTab === 'all'
+              ? 'bg-zinc-800 text-white font-semibold'
+              : 'text-zinc-400 hover:text-zinc-200'
           }`}
         >
-          Study Suite
+          All Content ({coursework.length + materials.length + announcements.length})
+        </button>
+
+        <button
+          onClick={() => setActiveTab('materials')}
+          className={`shrink-0 rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors ${
+            activeTab === 'materials'
+              ? 'bg-zinc-800 text-white font-semibold'
+              : 'text-zinc-400 hover:text-zinc-200'
+          }`}
+        >
+          Notes &amp; Materials ({materials.length})
         </button>
 
         <button
           onClick={() => setActiveTab('assignments')}
           className={`shrink-0 rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors ${
-            activeTab === 'assignments' ? 'bg-zinc-800 text-white font-semibold' : 'text-zinc-400 hover:text-zinc-200'
+            activeTab === 'assignments'
+              ? 'bg-zinc-800 text-white font-semibold'
+              : 'text-zinc-400 hover:text-zinc-200'
           }`}
         >
           Assignments ({coursework.length})
@@ -238,7 +365,9 @@ export default function CourseDetailPage({ params }: { params: Promise<{ courseI
         <button
           onClick={() => setActiveTab('announcements')}
           className={`shrink-0 rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors ${
-            activeTab === 'announcements' ? 'bg-zinc-800 text-white font-semibold' : 'text-zinc-400 hover:text-zinc-200'
+            activeTab === 'announcements'
+              ? 'bg-zinc-800 text-white font-semibold'
+              : 'text-zinc-400 hover:text-zinc-200'
           }`}
         >
           Notices ({announcements.length})
@@ -247,7 +376,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ courseI
 
       {/* Content Area */}
       <AnimatePresence mode="wait">
-        {activeTab === 'suite' ? (
+        {activeTab === 'suite' && hasCustomSuite ? (
           <motion.div
             key="suite-tab"
             initial={{ opacity: 0, y: 8 }}
@@ -261,6 +390,72 @@ export default function CourseDetailPage({ params }: { params: Promise<{ courseI
               courseSection={course.section}
             />
           </motion.div>
+        ) : activeTab === 'materials' ? (
+          <motion.div
+            key="materials-tab"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-3"
+          >
+            {materials.length === 0 ? (
+              <div className="rounded-xl border border-zinc-800 border-dashed bg-zinc-900/30 p-8 text-center">
+                <BookOpen className="mx-auto mb-2 h-8 w-8 text-zinc-600" />
+                <h3 className="text-sm font-semibold text-zinc-300">No Course Materials Posted</h3>
+                <p className="text-xs text-zinc-500 mt-1 max-w-sm mx-auto">
+                  Lecture slides, reference PDFs, and reading materials posted by the teacher will appear here.
+                </p>
+              </div>
+            ) : (
+              materials.map((mat) => (
+                <div
+                  key={mat.id}
+                  className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 space-y-2 transition-colors hover:border-zinc-700"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="space-y-1 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="rounded bg-zinc-800 px-2 py-0.5 text-[10px] font-medium text-zinc-300">
+                          Lecture Material
+                        </span>
+                        {mat.updateTime && (
+                          <span className="text-[11px] text-zinc-500">
+                            {format(new Date(mat.updateTime), 'MMM d, yyyy')}
+                          </span>
+                        )}
+                      </div>
+                      <h4 className="text-sm font-semibold text-white">{mat.title}</h4>
+                      {mat.description && (
+                        <p className="text-xs text-zinc-400 leading-relaxed whitespace-pre-line">
+                          {mat.description}
+                        </p>
+                      )}
+                    </div>
+
+                    {mat.alternateLink && (
+                      <a
+                        href={mat.alternateLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="rounded-lg border border-zinc-700 bg-zinc-900 hover:bg-zinc-800 p-2 text-zinc-300 hover:text-white transition-colors shrink-0"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </a>
+                    )}
+                  </div>
+
+                  {mat.materials && mat.materials.length > 0 && (
+                    <div className="flex flex-wrap gap-2 pt-2 border-t border-zinc-800/80">
+                      {mat.materials.map((item, idx) => (
+                        <AttachmentBadge key={idx} item={item} />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </motion.div>
         ) : activeTab === 'assignments' ? (
           <motion.div
             key="assignments-tab"
@@ -268,214 +463,292 @@ export default function CourseDetailPage({ params }: { params: Promise<{ courseI
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
-            className="space-y-4"
+            className="space-y-3"
           >
             {coursework.length === 0 ? (
-              <div className="flex min-h-[300px] flex-col items-center justify-center rounded-3xl border border-zinc-800 border-dashed bg-zinc-900/30 p-12 text-center">
-                <FileText className="mb-3 h-10 w-10 text-zinc-600" />
-                <h3 className="text-base font-bold text-zinc-200">No Coursework Posted</h3>
-                <p className="text-xs text-zinc-400 mt-1 max-w-sm">
-                  Assignments, quizzes, and homework posted by your instructor will appear here with instant deadline tracking.
+              <div className="rounded-xl border border-zinc-800 border-dashed bg-zinc-900/30 p-8 text-center">
+                <FileText className="mx-auto mb-2 h-8 w-8 text-zinc-600" />
+                <h3 className="text-sm font-semibold text-zinc-300">No Coursework Posted</h3>
+                <p className="text-xs text-zinc-500 mt-1 max-w-sm mx-auto">
+                  Assignments and homework will appear here.
                 </p>
               </div>
             ) : (
-              <div className="grid gap-4">
-                {coursework.map((item, index) => {
-                  const submission = submissionMap.get(item.id);
-                  const isGraded = submission?.assignedGrade !== undefined;
-                  const isSubmitted = submission?.state === 'TURNED_IN';
+              coursework.map((item) => {
+                const submission = submissionMap.get(item.id);
+                const isGraded = submission?.assignedGrade !== undefined;
+                const isSubmitted = submission?.state === 'TURNED_IN';
 
-                  let dueDateObj: Date | null = null;
-                  if (item.dueDate) {
-                    const y = item.dueDate.year || new Date().getFullYear();
-                    const m = (item.dueDate.month || 1) - 1;
-                    const d = item.dueDate.day || 1;
-                    const h = item.dueTime?.hours || 23;
-                    const min = item.dueTime?.minutes || 59;
-                    dueDateObj = new Date(y, m, d, h, min);
-                  }
+                let dueDateObj: Date | null = null;
+                if (item.dueDate) {
+                  const y = item.dueDate.year || new Date().getFullYear();
+                  const m = (item.dueDate.month || 1) - 1;
+                  const d = item.dueDate.day || 1;
+                  const h = item.dueTime?.hours || 23;
+                  const min = item.dueTime?.minutes || 59;
+                  dueDateObj = new Date(y, m, d, h, min);
+                }
 
-                  const isPastDue = dueDateObj ? isPast(dueDateObj) : false;
+                const isPastDue = dueDateObj ? isPast(dueDateObj) : false;
 
-                  return (
-                    <motion.div
-                      key={item.id}
-                      initial={{ opacity: 0, y: 12 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05, duration: 0.25 }}
-                      className="group relative overflow-hidden rounded-2xl border border-zinc-800/90 bg-zinc-900/80 p-6 backdrop-blur-sm transition-all hover:border-indigo-500/40 hover:bg-zinc-800/40 shadow-sm"
-                    >
-                      <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                        <div className="flex items-start gap-4">
-                          {/* Assignment Icon */}
-                          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 group-hover:scale-105 transition-transform">
-                            <FileText className="h-6 w-6" />
-                          </div>
-
-                          <div className="space-y-1.5">
-                            {/* Tags */}
-                            <div className="flex flex-wrap items-center gap-2">
-                              {isGraded ? (
-                                <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 text-xs font-bold gap-1">
-                                  <Award className="h-3 w-3" /> Graded: {submission?.assignedGrade} / {item.maxPoints || 100} pts
-                                </Badge>
-                              ) : isSubmitted ? (
-                                <Badge className="bg-blue-500/15 text-blue-400 border-blue-500/30 text-xs font-bold gap-1">
-                                  <CheckCircle2 className="h-3 w-3" /> Turned In
-                                </Badge>
-                              ) : isPastDue ? (
-                                <Badge className="bg-red-500/15 text-red-400 border-red-500/30 text-xs font-bold gap-1">
-                                  <Clock className="h-3 w-3" /> Overdue
-                                </Badge>
-                              ) : (
-                                <Badge className="bg-indigo-500/15 text-indigo-400 border-indigo-500/30 text-xs font-bold gap-1">
-                                  <Clock className="h-3 w-3" /> Assigned
-                                </Badge>
-                              )}
-
-                              {item.maxPoints && !isGraded && (
-                                <span className="text-xs text-zinc-400 font-medium">
-                                  {item.maxPoints} Points
-                                </span>
-                              )}
-                            </div>
-
-                            {/* Title */}
-                            <h3 className="text-lg font-bold text-zinc-100 group-hover:text-indigo-300 transition-colors">
-                              {item.title}
-                            </h3>
-
-                            {/* Description */}
-                            {item.description && (
-                              <p className="text-xs text-zinc-400 line-clamp-3 leading-relaxed pt-1">
-                                {item.description}
-                              </p>
-                            )}
-
-                            {/* Due Date Indicator */}
-                            {dueDateObj && (
-                              <div className="flex items-center gap-2 pt-2 text-xs font-medium">
-                                <Calendar className="h-3.5 w-3.5 text-zinc-400" />
-                                <span className={isPastDue ? 'text-red-400' : 'text-zinc-300'}>
-                                  Due {format(dueDateObj, 'dd MMM yyyy, hh:mm a')}
-                                </span>
-                                <span className="text-zinc-500 font-normal">
-                                  ({isPastDue ? 'Passed ' : 'in '}
-                                  {formatDistanceToNow(dueDateObj, { addSuffix: false })})
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Action buttons */}
-                        <div className="flex flex-row md:flex-col items-center md:items-end gap-2 shrink-0 pt-2 md:pt-0">
-                          {item.alternateLink && (
-                            <a
-                              href={item.alternateLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 px-4 py-2 text-xs font-bold text-zinc-200 transition-all hover:text-white"
-                            >
-                              <span>Submit in Classroom</span>
-                              <ExternalLink className="h-3.5 w-3.5" />
-                            </a>
+                return (
+                  <div
+                    key={item.id}
+                    className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 space-y-2 transition-colors hover:border-zinc-700"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="space-y-1 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {isGraded ? (
+                            <span className="rounded bg-zinc-800 px-2 py-0.5 text-[10px] font-medium text-white border border-zinc-700">
+                              Graded: {submission?.assignedGrade} / {item.maxPoints || 100} pts
+                            </span>
+                          ) : isSubmitted ? (
+                            <span className="rounded bg-zinc-800 px-2 py-0.5 text-[10px] font-medium text-zinc-300">
+                              Turned In
+                            </span>
+                          ) : isPastDue ? (
+                            <span className="rounded bg-zinc-800 px-2 py-0.5 text-[10px] font-medium text-zinc-400">
+                              Overdue
+                            </span>
+                          ) : (
+                            <span className="rounded bg-zinc-800 px-2 py-0.5 text-[10px] font-medium text-zinc-300">
+                              Assigned
+                            </span>
                           )}
-                          <Link
-                            href="/timer"
-                            className="inline-flex items-center gap-1.5 rounded-xl bg-zinc-800/40 hover:bg-zinc-800 border border-zinc-700/50 px-3 py-1.5 text-[11px] font-semibold text-zinc-400 hover:text-zinc-200 transition-all"
-                          >
-                            <Timer className="h-3 w-3 text-amber-400" />
-                            <span>Focus Session</span>
-                          </Link>
+
+                          {item.maxPoints && !isGraded && (
+                            <span className="text-[11px] text-zinc-500">
+                              {item.maxPoints} pts
+                            </span>
+                          )}
                         </div>
+
+                        <h4 className="text-sm font-semibold text-white">{item.title}</h4>
+                        {item.description && (
+                          <p className="text-xs text-zinc-400 leading-relaxed line-clamp-2">
+                            {item.description}
+                          </p>
+                        )}
                       </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
+
+                      <div className="text-right shrink-0">
+                        {dueDateObj && (
+                          <div className="text-[11px] text-zinc-400">
+                            Due {format(dueDateObj, 'MMM d, h:mm a')}
+                          </div>
+                        )}
+                        {item.alternateLink && (
+                          <a
+                            href={item.alternateLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-[11px] text-zinc-400 hover:text-white mt-1"
+                          >
+                            <span>Open</span>
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+
+                    {item.materials && item.materials.length > 0 && (
+                      <div className="flex flex-wrap gap-2 pt-2 border-t border-zinc-800/80">
+                        {item.materials.map((mat, idx) => (
+                          <AttachmentBadge key={idx} item={mat} />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })
             )}
           </motion.div>
-        ) : (
+        ) : activeTab === 'announcements' ? (
           <motion.div
             key="announcements-tab"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
-            className="space-y-4"
+            className="space-y-3"
           >
             {announcements.length === 0 ? (
-              <div className="flex min-h-[300px] flex-col items-center justify-center rounded-3xl border border-zinc-800 border-dashed bg-zinc-900/30 p-12 text-center">
-                <Megaphone className="mb-3 h-10 w-10 text-zinc-600" />
-                <h3 className="text-base font-bold text-zinc-200">No Announcements Yet</h3>
-                <p className="text-xs text-zinc-400 mt-1 max-w-sm">
-                  Course updates, lecture slides, and notices posted by your instructor will appear in this stream.
+              <div className="rounded-xl border border-zinc-800 border-dashed bg-zinc-900/30 p-8 text-center">
+                <Megaphone className="mx-auto mb-2 h-8 w-8 text-zinc-600" />
+                <h3 className="text-sm font-semibold text-zinc-300">No Announcements</h3>
+                <p className="text-xs text-zinc-500 mt-1 max-w-sm mx-auto">
+                  Notices and updates from your teacher will appear here.
                 </p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {announcements.map((ann, index) => (
-                  <motion.div
-                    key={ann.id}
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05, duration: 0.25 }}
-                    className="relative overflow-hidden rounded-2xl border border-zinc-800/90 bg-zinc-900/80 p-6 backdrop-blur-sm shadow-sm space-y-3"
-                  >
-                    <div className="flex items-center justify-between border-b border-zinc-800/60 pb-3">
-                      <div className="flex items-center gap-2.5">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/20 font-bold text-xs">
-                          <Megaphone className="h-4 w-4" />
-                        </div>
-                        <div>
-                          <span className="text-xs font-bold text-zinc-200">
-                            {course.descriptionHeading || 'Instructor Announcement'}
-                          </span>
-                          <div className="text-[11px] text-zinc-500">
-                            {ann.creationTime
-                              ? format(new Date(ann.creationTime), 'dd MMMM yyyy, hh:mm a')
-                              : 'Recent'}
-                          </div>
-                        </div>
-                      </div>
+              announcements.map((ann) => (
+                <div
+                  key={ann.id}
+                  className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 space-y-2 transition-colors hover:border-zinc-700"
+                >
+                  <div className="flex items-center justify-between text-[11px] text-zinc-500">
+                    <span>Notice</span>
+                    {ann.creationTime && (
+                      <span>{format(new Date(ann.creationTime), 'MMM d, yyyy • h:mm a')}</span>
+                    )}
+                  </div>
 
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleCopyAnnouncement(ann.id, ann.text)}
-                          className="h-8 text-xs text-zinc-400 hover:text-white"
-                        >
-                          {copiedAnnId === ann.id ? (
-                            <>
-                              <Check className="h-3.5 w-3.5 mr-1 text-emerald-400" /> Copied
-                            </>
-                          ) : (
-                            <>
-                              <Copy className="h-3.5 w-3.5 mr-1" /> Copy Note
-                            </>
-                          )}
-                        </Button>
-                        {ann.alternateLink && (
-                          <a
-                            href={ann.alternateLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-zinc-500 hover:text-zinc-200 transition-colors"
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </a>
-                        )}
-                      </div>
-                    </div>
+                  <p className="text-xs text-zinc-300 leading-relaxed whitespace-pre-line">
+                    {ann.text}
+                  </p>
 
-                    <div className="text-xs sm:text-sm text-zinc-200 whitespace-pre-wrap leading-relaxed">
-                      {ann.text}
+                  {ann.materials && ann.materials.length > 0 && (
+                    <div className="flex flex-wrap gap-2 pt-2 border-t border-zinc-800/80">
+                      {ann.materials.map((mat, idx) => (
+                        <AttachmentBadge key={idx} item={mat} />
+                      ))}
                     </div>
-                  </motion.div>
-                ))}
+                  )}
+                </div>
+              ))
+            )}
+          </motion.div>
+        ) : (
+          /* Unified "All Content" Timeline */
+          <motion.div
+            key="all-tab"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-3"
+          >
+            {coursework.length === 0 && materials.length === 0 && announcements.length === 0 ? (
+              <div className="rounded-xl border border-zinc-800 border-dashed bg-zinc-900/30 p-8 text-center">
+                <BookOpen className="mx-auto mb-2 h-8 w-8 text-zinc-600" />
+                <h3 className="text-sm font-semibold text-zinc-300">No Content Posted Yet</h3>
+                <p className="text-xs text-zinc-500 mt-1 max-w-sm mx-auto">
+                  When your instructor posts assignments, materials, or announcements, they will appear here.
+                </p>
               </div>
+            ) : (
+              <>
+                {/* 1. Materials Section */}
+                {materials.length > 0 && (
+                  <div className="space-y-2">
+                    <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+                      Lecture Slides &amp; Notes ({materials.length})
+                    </h3>
+                    <div className="space-y-2">
+                      {materials.map((mat) => (
+                        <div
+                          key={mat.id}
+                          className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 space-y-2"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <h4 className="text-sm font-semibold text-white">{mat.title}</h4>
+                              {mat.description && (
+                                <p className="text-xs text-zinc-400 mt-0.5 line-clamp-2">
+                                  {mat.description}
+                                </p>
+                              )}
+                            </div>
+                            {mat.alternateLink && (
+                              <a
+                                href={mat.alternateLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-zinc-400 hover:text-white shrink-0"
+                              >
+                                <ExternalLink className="h-3.5 w-3.5" />
+                              </a>
+                            )}
+                          </div>
+                          {mat.materials && mat.materials.length > 0 && (
+                            <div className="flex flex-wrap gap-2 pt-2 border-t border-zinc-800/80">
+                              {mat.materials.map((item, idx) => (
+                                <AttachmentBadge key={idx} item={item} />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 2. Coursework Section */}
+                {coursework.length > 0 && (
+                  <div className="space-y-2 pt-3">
+                    <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+                      Assignments &amp; Homework ({coursework.length})
+                    </h3>
+                    <div className="space-y-2">
+                      {coursework.map((item) => (
+                        <div
+                          key={item.id}
+                          className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 space-y-2"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <h4 className="text-sm font-semibold text-white">{item.title}</h4>
+                              {item.description && (
+                                <p className="text-xs text-zinc-400 mt-0.5 line-clamp-2">
+                                  {item.description}
+                                </p>
+                              )}
+                            </div>
+                            {item.alternateLink && (
+                              <a
+                                href={item.alternateLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-zinc-400 hover:text-white shrink-0"
+                              >
+                                <ExternalLink className="h-3.5 w-3.5" />
+                              </a>
+                            )}
+                          </div>
+                          {item.materials && item.materials.length > 0 && (
+                            <div className="flex flex-wrap gap-2 pt-2 border-t border-zinc-800/80">
+                              {item.materials.map((mat, idx) => (
+                                <AttachmentBadge key={idx} item={mat} />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. Announcements Section */}
+                {announcements.length > 0 && (
+                  <div className="space-y-2 pt-3">
+                    <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+                      Notices &amp; Announcements ({announcements.length})
+                    </h3>
+                    <div className="space-y-2">
+                      {announcements.map((ann) => (
+                        <div
+                          key={ann.id}
+                          className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 space-y-1.5"
+                        >
+                          <div className="text-[11px] text-zinc-500">
+                            {ann.creationTime &&
+                              format(new Date(ann.creationTime), 'MMM d, yyyy • h:mm a')}
+                          </div>
+                          <p className="text-xs text-zinc-300 leading-relaxed">{ann.text}</p>
+                          {ann.materials && ann.materials.length > 0 && (
+                            <div className="flex flex-wrap gap-2 pt-2 border-t border-zinc-800/80">
+                              {ann.materials.map((mat, idx) => (
+                                <AttachmentBadge key={idx} item={mat} />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </motion.div>
         )}
