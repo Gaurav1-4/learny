@@ -409,13 +409,12 @@ export function CalendarView() {
           </Button>
 
           <a
-            href="/api/calendar/feed.ics"
-            download="learny-academic-schedule.ics"
-            className="h-8 rounded-lg border border-zinc-800 bg-zinc-900 hover:bg-zinc-800 px-2.5 flex items-center gap-1.5 text-xs font-medium text-zinc-300 hover:text-white transition-colors"
-            title="Subscribe or download Apple Calendar .ics feed"
+            href="webcal://learny.zorx.tech/api/calendar/feed.ics"
+            className="h-8 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-white border border-zinc-700 px-3 flex items-center gap-1.5 text-xs font-semibold shadow-sm transition-colors"
+            title="1-Tap Subscribe in Apple Calendar (Syncs across Mac, iPhone, iPad via iCloud)"
           >
-            <Download className="h-3 w-3" />
-            <span className="hidden md:inline">Apple iCal</span>
+            <CalendarIcon className="h-3.5 w-3.5 text-zinc-300" />
+            <span>Apple Calendar (iCloud)</span>
           </a>
         </div>
       </div>
