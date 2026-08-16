@@ -158,6 +158,75 @@ export function SubjectEvaluations() {
     setExpandedSubject(newId)
   }
 
+  // Load IIITD CSD 3rd Semester & Past Semesters Preset
+  const handleLoadIIITDCSDCurriculum = () => {
+    const iiitdSem3: SubjectEvaluation[] = [
+      {
+        courseId: "iiitd-csd-dpp",
+        courseName: "DPP 2026: Design Processes & Perspectives",
+        credits: 4,
+        evaluations: [
+          { id: "dpp-1", name: "Design Critique & Presentations", maxMarks: 30, marksObtained: 28, weightPercent: 25 },
+          { id: "dpp-2", name: "Studio Assignments & Artifacts", maxMarks: 50, marksObtained: 46, weightPercent: 25 },
+          { id: "dpp-3", name: "Midsem Review", maxMarks: 30, marksObtained: 27, weightPercent: 20 },
+          { id: "dpp-4", name: "Final Design Portfolio / Exhibition", maxMarks: 100, marksObtained: 90, weightPercent: 30 },
+        ],
+      },
+      {
+        courseId: "iiitd-csd-dsa",
+        courseName: "Data Structures & Algorithms (DSA)",
+        credits: 4,
+        evaluations: [
+          { id: "dsa-1", name: "Lab Quizzes & Coding Challenges", maxMarks: 20, marksObtained: 18, weightPercent: 15 },
+          { id: "dsa-2", name: "Homework & Programming Assignments", maxMarks: 50, marksObtained: 48, weightPercent: 20 },
+          { id: "dsa-3", name: "Midsem Exam", maxMarks: 40, marksObtained: 34, weightPercent: 25 },
+          { id: "dsa-4", name: "Endsem Final Exam", maxMarks: 100, marksObtained: 85, weightPercent: 40 },
+        ],
+      },
+      {
+        courseId: "iiitd-csd-ap",
+        courseName: "Advanced Programming (AP / OOP)",
+        credits: 4,
+        evaluations: [
+          { id: "ap-1", name: "Object-Oriented Design Labs", maxMarks: 30, marksObtained: 27, weightPercent: 20 },
+          { id: "ap-2", name: "Software Engineering Project", maxMarks: 50, marksObtained: 45, weightPercent: 20 },
+          { id: "ap-3", name: "Midsem Exam", maxMarks: 35, marksObtained: 30, weightPercent: 25 },
+          { id: "ap-4", name: "Endsem Final Exam", maxMarks: 100, marksObtained: 84, weightPercent: 35 },
+        ],
+      },
+      {
+        courseId: "iiitd-csd-co",
+        courseName: "Computer Organization (CO / CA)",
+        credits: 4,
+        evaluations: [
+          { id: "co-1", name: "Assembly Labs & Quizzes", maxMarks: 20, marksObtained: 17, weightPercent: 20 },
+          { id: "co-2", name: "Architecture Assignments", maxMarks: 40, marksObtained: 36, weightPercent: 15 },
+          { id: "co-3", name: "Midsem Exam", maxMarks: 30, marksObtained: 25, weightPercent: 25 },
+          { id: "co-4", name: "Endsem Final Exam", maxMarks: 100, marksObtained: 82, weightPercent: 40 },
+        ],
+      },
+      {
+        courseId: "iiitd-csd-vdc",
+        courseName: "Visual Design & Communication (VDC)",
+        credits: 4,
+        evaluations: [
+          { id: "vdc-1", name: "Typography & Layout Assignments", maxMarks: 40, marksObtained: 38, weightPercent: 30 },
+          { id: "vdc-2", name: "Interactive Prototype Submission", maxMarks: 50, marksObtained: 46, weightPercent: 35 },
+          { id: "vdc-3", name: "Final Studio Showcase", maxMarks: 100, marksObtained: 92, weightPercent: 35 },
+        ],
+      },
+    ]
+
+    const iiitdPastSems: PreviousSemester[] = [
+      { id: "sem-1", name: "Semester 1 (Monsoon - IP, DC, M1, SM, COM)", totalCredits: 16, sgpa: 8.5 },
+      { id: "sem-2", name: "Semester 2 (Winter - DS, BE, M2, CD)", totalCredits: 16, sgpa: 8.65 },
+    ]
+
+    setSubjectEvals(iiitdSem3)
+    setPrevSemesters(iiitdPastSems)
+    setExpandedSubject("iiitd-csd-dpp")
+  }
+
   // Update Evaluation Item
   const handleUpdateEvaluation = (
     courseId: string,
@@ -353,13 +422,24 @@ export function SubjectEvaluations() {
             </p>
           </div>
 
-          <Button
-            size="sm"
-            onClick={handleAddCustomSubject}
-            className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs"
-          >
-            <Plus className="h-4 w-4 mr-1" /> Add Subject
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleLoadIIITDCSDCurriculum}
+              className="border-indigo-500/30 bg-indigo-950/40 text-indigo-300 hover:bg-indigo-900/60 font-semibold text-xs gap-1.5 shadow-sm"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
+              <span>Load IIITD CSD Sem 3 Preset</span>
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleAddCustomSubject}
+              className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs"
+            >
+              <Plus className="h-4 w-4 mr-1" /> Add Subject
+            </Button>
+          </div>
         </div>
 
         <div className="space-y-4">

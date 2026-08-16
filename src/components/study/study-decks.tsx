@@ -334,6 +334,115 @@ export function StudyDecks() {
     URL.revokeObjectURL(url)
   }
 
+  // Load IIITD CSD 3rd Sem AI Decks Preset
+  const handleLoadIIITDDecks = () => {
+    const iiitdDecks: StudyDeck[] = [
+      {
+        id: "deck-dpp-2026",
+        title: "DPP 2026: Design Processes & Perspectives",
+        description: "Design thinking, Double Diamond, affinity mapping, and heuristic evaluation.",
+        courseName: "DPP 2026",
+        createdAt: new Date().toISOString(),
+        flashcards: [
+          {
+            id: "fc-dpp-1",
+            question: "What are the 4 distinct phases of the British Design Council's Double Diamond Model?",
+            answer: "1. Discover (Divergent research)\n2. Define (Convergent problem framing)\n3. Develop (Divergent ideation & prototyping)\n4. Deliver (Convergent testing & shipping).",
+            status: "new",
+          },
+          {
+            id: "fc-dpp-2",
+            question: "What is the primary objective of an Affinity Diagram in design synthesis?",
+            answer: "To cluster large volumes of qualitative user observations, quotes, and research notes into natural thematic hierarchies to uncover design insights.",
+            status: "new",
+          },
+          {
+            id: "fc-dpp-3",
+            question: "State Nielsen's First Usability Heuristic.",
+            answer: "Visibility of System Status: The design should always keep users informed about what is going on through appropriate feedback within a reasonable time.",
+            status: "new",
+          },
+        ],
+        quizQuestions: [
+          {
+            id: "q-dpp-1",
+            question: "In user experience design, which stage immediately follows Empathize in the Stanford d.school model?",
+            options: ["Define", "Ideate", "Prototype", "Test"],
+            correctAnswerIndex: 0,
+            explanation: "The 5 stages are Empathize -> Define -> Ideate -> Prototype -> Test.",
+          },
+        ],
+      },
+      {
+        id: "deck-dsa-sem3",
+        title: "DSA: Graphs, Trees & Dynamic Programming",
+        description: "Core algorithms, complexity bounds, and tree rotations for IIITD CSD Sem 3.",
+        courseName: "Data Structures & Algorithms",
+        createdAt: new Date().toISOString(),
+        flashcards: [
+          {
+            id: "fc-dsa-1",
+            question: "What is the time complexity of Dijkstra's algorithm using a Min-Heap (Priority Queue)?",
+            answer: "O((V + E) log V), where V is the number of vertices and E is the number of edges.",
+            status: "new",
+          },
+          {
+            id: "fc-dsa-2",
+            question: "What two essential properties must a problem satisfy to be solvable via Dynamic Programming?",
+            answer: "1. Optimal Substructure (optimal solution contains optimal solutions to subproblems)\n2. Overlapping Subproblems (subproblems are solved repeatedly).",
+            status: "new",
+          },
+          {
+            id: "fc-dsa-3",
+            question: "What is the maximum balance factor allowed in an AVL Tree?",
+            answer: "The balance factor (height(left) - height(right)) must be in {-1, 0, +1} for every node.",
+            status: "new",
+          },
+        ],
+        quizQuestions: [
+          {
+            id: "q-dsa-1",
+            question: "Which algorithm finds the shortest paths from a single source in a graph with negative edge weights?",
+            options: ["Bellman-Ford Algorithm", "Dijkstra's Algorithm", "Kruskal's Algorithm", "Prim's Algorithm"],
+            correctAnswerIndex: 0,
+            explanation: "Bellman-Ford handles negative edge weights and detects negative weight cycles in O(V*E) time.",
+          },
+        ],
+      },
+      {
+        id: "deck-ap-sem3",
+        title: "Advanced Programming: SOLID & Design Patterns",
+        description: "OOP architecture, design patterns, and concurrency.",
+        courseName: "Advanced Programming",
+        createdAt: new Date().toISOString(),
+        flashcards: [
+          {
+            id: "fc-ap-1",
+            question: "What does each letter in SOLID represent?",
+            answer: "S: Single Responsibility\nO: Open/Closed\nL: Liskov Substitution\nI: Interface Segregation\nD: Dependency Inversion",
+            status: "new",
+          },
+          {
+            id: "fc-ap-2",
+            question: "Explain the Singleton Pattern and its double-checked locking mechanism.",
+            answer: "Ensures a class has only one instance with global access. Double-checked locking checks null before and after acquiring the lock to prevent concurrency race conditions without locking every call.",
+            status: "new",
+          },
+        ],
+        quizQuestions: [
+          {
+            id: "q-ap-1",
+            question: "Which creational pattern separates the construction of a complex object from its representation?",
+            options: ["Builder Pattern", "Adapter Pattern", "Observer Pattern", "Decorator Pattern"],
+            correctAnswerIndex: 0,
+            explanation: "The Builder pattern separates constructing complex objects from their final representation.",
+          },
+        ],
+      },
+    ]
+    setDecks(iiitdDecks)
+    localStorage.setItem("learny-study-decks", JSON.stringify(iiitdDecks))
+  }
   
   // Import Deck (JSON / Markdown)
   const handleImportDeck = () => {
@@ -422,7 +531,15 @@ export function StudyDecks() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            variant="outline"
+            onClick={handleLoadIIITDDecks}
+            className="border-indigo-500/30 bg-indigo-950/40 text-indigo-300 hover:bg-indigo-900/60 font-semibold text-xs gap-1.5 shadow-sm"
+          >
+            <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
+            <span>Load IIITD CSD 3rd Sem Decks</span>
+          </Button>
           <Button
             variant="outline"
             onClick={handleImportDeck}
@@ -434,7 +551,7 @@ export function StudyDecks() {
             onClick={() => setShowCreateModal(true)}
             className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-md shadow-indigo-600/20"
           >
-            <Sparkles className="h-4 w-4 mr-1.5" /> Generate / Add Deck
+            <Plus className="h-4 w-4 mr-1.5" /> Generate / Add Deck
           </Button>
         </div>
       </div>
