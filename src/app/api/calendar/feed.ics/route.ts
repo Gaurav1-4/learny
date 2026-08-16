@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 import { TIMETABLE_CLASSES } from "@/lib/timetable-data";
+import { getStudentCloudStateServer } from "@/lib/firebase/server-sync";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +29,7 @@ export async function GET() {
     let cloudCustomEvents: any[] = [];
     let backlogHwMap: Record<string, any> = {};
 
+    // 1. Read from local cache if present
     if (fs.existsSync(CLOUD_STORE_FILE)) {
       try {
         const raw = fs.readFileSync(CLOUD_STORE_FILE, "utf8");
@@ -36,6 +38,22 @@ export async function GET() {
         backlogHwMap = parsed.backlogHomeworkMap || {};
       } catch {}
     }
+
+    // 2. Fetch directly from Firebase Firestore Cloud Database
+    try {
+      const firestoreData = await getStudentCloudStateServer("default_student");
+      if (firestoreData) {
+        if (firestoreData.backlogHomeworkMap) {
+          backlogHwMap = { ...backlogHwMap, ...firestoreData.backlogHomeworkMap };
+        }
+        if (Array.isArray(firestoreData.calendarEvents) && firestoreData.calendarEvents.length > 0) {
+          const eventMap = new Map<string, any>();
+          cloudCustomEvents.forEach((e) => eventMap.set(e.id, e));
+          firestoreData.calendarEvents.forEach((e: any) => eventMap.set(e.id, e));
+          cloudCustomEvents = Array.from(eventMap.values());
+        }
+      }
+    } catch {}
 
     const pad = (n: number) => String(n).padStart(2, "0");
     const nowUtc = new Date().toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";

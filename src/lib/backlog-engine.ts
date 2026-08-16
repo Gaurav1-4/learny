@@ -3,6 +3,7 @@
 
 import { TIMETABLE_CLASSES, ClassSlot } from "@/lib/timetable-data";
 import { OKFRegistry } from "@/lib/okf-indexer";
+import { pushToFirestore } from "@/lib/firebase/firestore-sync";
 
 export interface BacklogLecture {
   id: string;
@@ -193,8 +194,11 @@ export function saveLectureHomework(
     const okfLectureId = `iiitd-${lecture.courseId.toLowerCase()}-lec02`;
     OKFRegistry.updateLectureHomework(okfLectureId, rawInput);
 
-    // 6. Sync to Server Ledger API
+    // 6. Sync to Server Ledger API & Cloud Firestore
     try {
+      pushToFirestore({
+        backlogHomeworkMap: { [lecture.id]: payload },
+      });
       fetch("/api/homework/sync", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

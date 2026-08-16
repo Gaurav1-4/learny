@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { getStudentCloudStateServer, saveStudentCloudStateServer } from "@/lib/firebase/server-sync";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +40,7 @@ function writeCloudStore(data: Record<string, any>) {
   }
 }
 
-// POST: Upload client state from any device (Desktop or Phone) to Cloud
+// POST: Upload client state from any device (Desktop or Phone) to Cloud Firestore
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -48,6 +49,7 @@ export async function POST(request: Request) {
       backlogHomeworkMap,
       calendarEvents,
       courseProblemsMap,
+      studentId = "default_student",
     } = body;
 
     const store = readCloudStore();
@@ -86,9 +88,12 @@ export async function POST(request: Request) {
     store.lastUpdated = new Date().toISOString();
     writeCloudStore(store);
 
+    // Save to Firebase Firestore Cloud database in background
+    await saveStudentCloudStateServer(store, studentId);
+
     return NextResponse.json({
       success: true,
-      message: "State successfully synced to cloud!",
+      message: "State successfully synced to Firebase Cloud Firestore!",
       store,
     });
   } catch (error: any) {
@@ -98,8 +103,27 @@ export async function POST(request: Request) {
 }
 
 // GET: Retrieve merged cloud state for any device
-export async function GET() {
-  const store = readCloudStore();
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const studentId = searchParams.get("studentId") || "default_student";
+
+  let store = readCloudStore();
+
+  // Also query Firestore for the most up-to-date real-time cloud data
+  try {
+    const firestoreData = await getStudentCloudStateServer(studentId);
+    if (firestoreData && Object.keys(firestoreData).length > 0) {
+      store = {
+        ...store,
+        ...firestoreData,
+        backlogHomeworkMap: {
+          ...(store.backlogHomeworkMap || {}),
+          ...(firestoreData.backlogHomeworkMap || {}),
+        },
+      };
+    }
+  } catch {}
+
   return NextResponse.json({
     success: true,
     store,

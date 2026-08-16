@@ -34,6 +34,7 @@ import { Input } from "@/components/ui/input"
 import { MathView, FormattedMathText } from "@/components/ui/math-view"
 import { ClassroomCourseWorkMaterial, ClassroomCourseWork, ClassroomAnnouncement } from "@/types"
 import { isHomeworkDone, toggleHomeworkStatus } from "@/lib/backlog-engine"
+import { pushToFirestore } from "@/lib/firebase/firestore-sync"
 
 interface SubjectWorkflowSuiteProps {
   courseId: string
@@ -439,7 +440,9 @@ export function SubjectWorkflowSuite({
   // Set explicit Done status (Yes/No toggle)
   const handleSetDoneStatus = (problemId: string, isDoneVal: boolean) => {
     toggleHomeworkStatus(problemId, isDoneVal)
-    setSolvedQuestions((prev) => ({ ...prev, [problemId]: isDoneVal }))
+    const updatedSolved = { ...solvedQuestions, [problemId]: isDoneVal }
+    setSolvedQuestions(updatedSolved)
+    pushToFirestore({ solvedQuestions: updatedSolved })
     showToast(isDoneVal ? "Marked as Done! Moved to Done section." : "Marked as Pending.")
   }
 
@@ -470,6 +473,7 @@ export function SubjectWorkflowSuite({
 
     setParsedProblems(updatedList)
     localStorage.setItem(`learny-problems-${courseId}`, JSON.stringify(updatedList))
+    pushToFirestore({ problemsMap: { [courseId]: updatedList } })
     setEditingProblem(null)
     showToast("Homework details updated successfully!")
   }
@@ -593,6 +597,7 @@ export function SubjectWorkflowSuite({
       if (allNewProblems.length > 0) {
         setParsedProblems(allNewProblems)
         localStorage.setItem(`learny-problems-${courseId}`, JSON.stringify(allNewProblems))
+        pushToFirestore({ problemsMap: { [courseId]: allNewProblems } })
         showToast("✨ Re-processed all saved homework with Gemini LLM!")
       } else {
         showToast("AI re-processing complete.")
