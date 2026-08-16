@@ -1,7 +1,7 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 
-// Complete Google Classroom scopes for Courses, Materials, Assignments, Announcements & Topics
+// Complete Google Classroom & Google Calendar scopes for Courses, Assignments, Announcements & Calendar Sync
 const CLASSROOM_SCOPES = [
   "openid",
   "email",
@@ -16,6 +16,8 @@ const CLASSROOM_SCOPES = [
   "https://www.googleapis.com/auth/classroom.announcements.readonly",
   "https://www.googleapis.com/auth/classroom.topics.readonly",
   "https://www.googleapis.com/auth/classroom.rosters.readonly",
+  "https://www.googleapis.com/auth/calendar.events",
+  "https://www.googleapis.com/auth/calendar.readonly",
 ].join(" ");
 
 async function refreshAccessToken(token: any) {

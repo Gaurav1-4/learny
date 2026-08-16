@@ -1,34 +1,29 @@
 # Learny — Project State & Milestone Tracker
 
-**Current Status**: Complete Real-Time Post-Class Intelligent Scheduling & Auto-Banner Dismissal Live on Production
+**Current Status**: Complete Bi-Directional Cloud State Sync Engine (`/api/sync/all`) Live on Production
 **GitHub Repository**: [https://github.com/Gaurav1-4/learny](https://github.com/Gaurav1-4/learny)
 **Live Production URLs**:
 - `https://learny.zorx.tech`
-- `https://learny-a95geya1w-semly.vercel.app`
+- `https://learny-dor7292hz-semly.vercel.app`
 
 ---
 
-## 🎯 Verified Intelligent Post-Class Workflow (Live)
+## 🚀 Unified Multi-Device Cloud State Synchronization (Live)
 
-1. **Auto-Disappearing Backlog Banner**:
-   - The 1-Week Backlog Resolver banner on the Dashboard **automatically disappears** once all 15 backlog lectures are reviewed/completed.
-2. **Post-Class Trigger & Prompt**:
-   - Whenever an authentic timetable class finishes, the system prompts with the Post-Class check-in banner and device notification.
-3. **Gemini LLM Intelligent Scheduling Layer (`/api/homework/ai-format`)**:
-   - Reads what the student typed and matches it against the authentic timetable evaluation schedule (e.g. Math III Graded Tutorial Test every Tuesday 1:30 PM, OS Lab Wednesday 2:00 PM, DPP Studio Friday 2:00 PM).
-   - Generates the exact **Scheduled Deadline** AND schedules a **Smart Prep/Study Session** in the calendar before the deadline.
-4. **Immediate Auto-Dismissal & Calendar Injection**:
-   - As soon as the student logs homework (or skips), the banner disappears immediately.
-   - Events are injected into the Calendar (`learny-calendar-custom-events`) and synced across devices via `/api/homework/sync`.
-5. **Strict Zero Fake Data**:
-   - Zero hardcoded formulas or imaginary placeholders. All venues, times, and textbook references (Thomas' Calculus 11th Ed for Math III) are authentic.
+1. **The Core Issue Identified**:
+   - The desktop had saved the 15/15 backlog state into its browser `localStorage` **prior** to the creation of the cloud server sync endpoint.
+   - The "Sync" button in the dashboard was only requesting Google Classroom courses from Google's API, rather than syncing browser backlog records.
+2. **The Complete Fix (`/api/sync/all` + `CloudSyncHydrator`)**:
+   - **Automatic Push on Desktop**: Opening the app on your desktop immediately uploads your 15/15 completed backlog and calendar events to the cloud server.
+   - **Automatic Pull on Phone**: Opening the app on your phone immediately pulls all 15/15 completed backlog records and populates your phone.
+   - **Dashboard "Sync" Button**: Clicking the "Sync" button in the dashboard now runs a full push-and-pull sync across all devices, with a live green toast confirmation.
 
 ---
 
 ## 🌐 All 20 Production Routes Live
 
 - `GET /`: Landing page with authentic Google Classroom sign-in.
-- `GET /dashboard`: Student dashboard with post-class banner, auto-clearing backlog, and upcoming deadlines.
+- `GET /dashboard`: Student dashboard with post-class banner, auto-clearing backlog, upcoming deadlines, and 1-click cloud sync.
 - `GET /courses`: Clean course catalog with Active Courses and Archived Vault.
 - `GET /courses/[courseId]`: Minimalist course workspace with live Classroom materials and KaTeX problem solver.
 - `GET /calendar`: 3-Tab Hub: Weekly Timetable, AI Study Planner, and Month Deadlines Calendar.

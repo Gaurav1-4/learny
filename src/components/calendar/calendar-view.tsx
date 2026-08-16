@@ -18,6 +18,8 @@ import {
   Brain,
   Layers,
   LayoutGrid,
+  RefreshCw,
+  Download,
 } from "lucide-react"
 import {
   format,
@@ -80,6 +82,8 @@ export function CalendarView() {
   )
   const [showBacklogModal, setShowBacklogModal] = useState(false)
   const [backlogStatus, setBacklogStatus] = useState(getBacklogStatus())
+  const [googleSyncLoading, setGoogleSyncLoading] = useState(false)
+  const [calendarToast, setCalendarToast] = useState<string | null>(null)
 
   // New event form state
   const [newEventTitle, setNewEventTitle] = useState("")
@@ -367,8 +371,69 @@ export function CalendarView() {
               Month View
             </button>
           </div>
+
+          {/* Google Calendar & Apple iCal Sync Triggers */}
+          <Button
+            size="sm"
+            onClick={async () => {
+              try {
+                setGoogleSyncLoading(true);
+                const res = await fetch('/api/calendar/google-sync', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ events: allEvents }),
+                });
+                const json = await res.json();
+                if (res.ok) {
+                  setCalendarToast(json.message || 'Synced to Google Calendar!');
+                } else {
+                  setCalendarToast(json.error || 'Google Calendar sync failed. Please reconnect Google account.');
+                }
+              } catch {
+                setCalendarToast('Failed to sync to Google Calendar');
+              } finally {
+                setGoogleSyncLoading(false);
+                setTimeout(() => setCalendarToast(null), 4000);
+              }
+            }}
+            disabled={googleSyncLoading}
+            className="h-8 bg-blue-600/90 hover:bg-blue-600 text-white text-xs font-semibold px-3 gap-1.5 shadow-sm"
+          >
+            {googleSyncLoading ? (
+              <RefreshCw className="h-3 w-3 animate-spin" />
+            ) : (
+              <CalendarIcon className="h-3.5 w-3.5" />
+            )}
+            <span className="hidden sm:inline">Sync Google Calendar</span>
+            <span className="sm:hidden">GCal</span>
+          </Button>
+
+          <a
+            href="/api/calendar/feed.ics"
+            download="learny-academic-schedule.ics"
+            className="h-8 rounded-lg border border-zinc-800 bg-zinc-900 hover:bg-zinc-800 px-2.5 flex items-center gap-1.5 text-xs font-medium text-zinc-300 hover:text-white transition-colors"
+            title="Subscribe or download Apple Calendar .ics feed"
+          >
+            <Download className="h-3 w-3" />
+            <span className="hidden md:inline">Apple iCal</span>
+          </a>
         </div>
       </div>
+
+      {/* Calendar Toast Notification */}
+      <AnimatePresence>
+        {calendarToast && (
+          <motion.div
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            className="rounded-lg bg-zinc-900 border border-blue-500/30 p-2.5 flex items-center gap-2 text-xs text-blue-400 font-medium"
+          >
+            <CheckCircle2 className="h-4 w-4 shrink-0" />
+            <span>{calendarToast}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Backlog Resolver Modal */}
       <BacklogResolverModal
