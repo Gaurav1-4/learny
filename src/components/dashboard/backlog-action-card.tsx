@@ -26,6 +26,11 @@ export function BacklogActionCard() {
     setStatus(getBacklogStatus());
   };
 
+  // Automatically remove banner once all backlog lectures are completed
+  if (status.isFullyResolved) {
+    return null;
+  }
+
   return (
     <>
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">

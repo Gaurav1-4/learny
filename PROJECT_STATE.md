@@ -1,20 +1,20 @@
 # Learny — Project State & Milestone Tracker
 
-**Current Status**: Real-Time Cross-Device Cloud Syncing (Laptop ↔ Phone ↔ Tablet) Live on Production
+**Current Status**: Real-Time Form Submission & Cross-Device Cloud Syncing (Laptop ↔ Phone ↔ Tablet) Live on Production
 **GitHub Repository**: [https://github.com/Gaurav1-4/learny](https://github.com/Gaurav1-4/learny)
 **Live Production URLs**:
 - `https://learny.zorx.tech`
-- `https://learny-exkw9c604-semly.vercel.app`
+- `https://learny-69n4tri7i-semly.vercel.app`
 
 ---
 
-## 🚀 Real-Time Multi-Device Cloud Synchronization (Live)
+## 🛠️ Fixed: Form State & Real Homework Persistence
 
-1. **Automatic Cloud Sync (`CloudSyncHydrator`)**:
-   - Whenever Learny opens on your phone, laptop, or tablet, it automatically syncs with the server cloud ledger (`GET /api/homework/sync`).
-   - If you add or edit homework on your laptop, opening the app on your phone **instantly pulls and displays the exact same homework, backlog progress, and calendar deadlines**!
-2. **Bi-Directional Cloud Ledger (`/api/homework/sync`)**:
-   - Every save, edit, and deletion writes to both the browser's instant cache AND the server's persistent cloud ledger.
+1. **Root Cause**: `handleSaveHomework` was reading an uninitialized input map key when the form was submitted, causing it to fall back to empty string and mark `No homework assigned`.
+2. **The Fix**:
+   - Explicitly tied the `<form onSubmit>` to direct input value evaluation.
+   - Any text typed by the student (e.g. `Activity 1: 3 interviews & empathy mapping`) is sent to Gemini KaTeX / course parser and saved to both local device storage and the cloud server ledger (`/api/homework/sync`).
+   - If the student explicitly clicks **[No Homework]**, only then is `No homework assigned` recorded.
 
 ---
 

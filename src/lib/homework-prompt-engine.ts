@@ -17,6 +17,8 @@ export interface TimetableClass {
   type: string;
 }
 
+export type ClassScheduleItem = TimetableClass;
+
 const DAY_MAP: Record<string, number> = {
   Monday: 1,
   Tuesday: 2,
