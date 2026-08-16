@@ -44,7 +44,13 @@ export function NotebookLMHub() {
   const [importText, setImportText] = useState("")
   const [importSuccess, setImportSuccess] = useState("")
 
-  // 1. Load saved personal account email from localStorage (Default: studyonly.co@gmail.com with 5 TB Storage)
+  // Autonomous Session-Cookie Sync State
+  const [sessionCookies, setSessionCookies] = useState("")
+  const [isAutoSyncing, setIsAutoSyncing] = useState(false)
+  const [autoSyncResult, setAutoSyncResult] = useState<{ notebookUrl?: string; message?: string } | null>(null)
+  const [showCookieConnector, setShowCookieConnector] = useState(false)
+
+  // 1. Load saved personal account email and session cookies from localStorage
   useEffect(() => {
     const saved = localStorage.getItem("learny_notebooklm_personal_email")
     if (saved) {
@@ -56,7 +62,51 @@ export function NotebookLMHub() {
       setIsSavedPersonal(true)
       localStorage.setItem("learny_notebooklm_personal_email", defaultEmail)
     }
+
+    const savedCookies = localStorage.getItem("learny_notebooklm_cookies")
+    if (savedCookies) {
+      setSessionCookies(savedCookies)
+    }
   }, [])
+
+  const handleSaveCookies = (e: React.FormEvent) => {
+    e.preventDefault()
+    localStorage.setItem("learny_notebooklm_cookies", sessionCookies)
+    setShowCookieConnector(false)
+  }
+
+  const handleAutonomousSync = async () => {
+    if (!generatedCorpus) return
+    const course = courses.find((c) => c.id === selectedCourseId)
+
+    try {
+      setIsAutoSyncing(true)
+      setAutoSyncResult(null)
+
+      const res = await fetch("/api/notebooklm/auto-sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          courseName: course?.name || "Subject",
+          courseCode: course?.section || "Course",
+          markdownContent: generatedCorpus,
+          sessionCookies,
+        }),
+      })
+
+      const data = await res.json()
+      if (data.success) {
+        setAutoSyncResult({
+          notebookUrl: data.notebookUrl,
+          message: data.message,
+        })
+      }
+    } catch (e: any) {
+      console.error(e)
+    } finally {
+      setIsAutoSyncing(false)
+    }
+  }
 
   // 2. Fetch all courses (both active and archived)
   useEffect(() => {
@@ -353,7 +403,7 @@ export function NotebookLMHub() {
               </CardDescription>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <select
                 value={selectedCourseId}
                 onChange={(e) => setSelectedCourseId(e.target.value)}
@@ -366,13 +416,22 @@ export function NotebookLMHub() {
                 ))}
               </select>
 
+              <Button
+                onClick={handleAutonomousSync}
+                disabled={isAutoSyncing || loadingContent}
+                className="h-10 bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs gap-1.5 shadow-lg shadow-purple-600/30"
+              >
+                <Zap className={`h-4 w-4 ${isAutoSyncing ? "animate-spin text-amber-300" : "text-amber-300"}`} />
+                <span>{isAutoSyncing ? "Auto-Uploading Sources..." : "⚡ Auto-Upload to NotebookLM"}</span>
+              </Button>
+
               <a
                 href="https://notebooklm.google.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-500 transition-all shadow-md shadow-indigo-600/20"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-950 px-4 py-2.5 text-xs font-bold text-zinc-300 hover:text-white hover:bg-zinc-900 transition-all"
               >
-                Open NotebookLM
+                Open Studio
                 <ExternalLink className="h-3.5 w-3.5" />
               </a>
             </div>
@@ -380,11 +439,45 @@ export function NotebookLMHub() {
         </CardHeader>
 
         <CardContent className="p-6 space-y-4">
+          {/* Autonomous Sync Result Banner */}
+          {autoSyncResult && (
+            <div className="p-4 rounded-xl bg-purple-950/40 border border-purple-500/40 flex items-center justify-between gap-4">
+              <div className="space-y-0.5">
+                <div className="text-xs font-bold text-purple-200 flex items-center gap-1.5">
+                  <Check className="h-4 w-4 text-emerald-400" />
+                  <span>{autoSyncResult.message}</span>
+                </div>
+                <div className="text-[11px] text-zinc-400">
+                  Target Account: <span className="font-mono text-purple-300 font-bold">studyonly.co@gmail.com</span>
+                </div>
+              </div>
+              <a
+                href={autoSyncResult.notebookUrl || "https://notebooklm.google.com"}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold shrink-0 shadow-md shadow-purple-600/30"
+              >
+                <span>View Notebook</span>
+                <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
+          )}
+
           <div className="flex items-center justify-between">
             <div className="text-xs font-semibold text-zinc-300">
               Knowledge Base Preview ({coursework.length} assignments, {announcements.length} notices)
             </div>
             <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowCookieConnector(!showCookieConnector)}
+                className="h-8 text-xs text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800 gap-1"
+              >
+                <Zap className="h-3.5 w-3.5 text-purple-400" />
+                <span>{showCookieConnector ? "Hide Cookie Token" : "RPC Cookie Token"}</span>
+              </Button>
+
               <Button
                 variant="outline"
                 size="sm"
@@ -393,7 +486,7 @@ export function NotebookLMHub() {
               >
                 {copiedCorpus ? (
                   <>
-                    <Check className="h-3.5 w-3.5 mr-1 text-emerald-400" /> Copied to Clipboard
+                    <Check className="h-3.5 w-3.5 mr-1 text-emerald-400" /> Copied
                   </>
                 ) : (
                   <>
@@ -408,14 +501,38 @@ export function NotebookLMHub() {
                 onClick={handleDownloadCorpus}
                 className="h-8 text-xs border-zinc-800 hover:bg-zinc-800 text-zinc-300"
               >
-                <Download className="h-3.5 w-3.5 mr-1" /> Download .md Source
+                <Download className="h-3.5 w-3.5 mr-1" /> Download .md
               </Button>
             </div>
           </div>
 
+          {/* Collapsible Session Cookie Connector */}
+          {showCookieConnector && (
+            <form onSubmit={handleSaveCookies} className="p-4 rounded-xl bg-zinc-950 border border-purple-500/30 space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-bold text-purple-300">
+                  Google Session Token (__Secure-1PSID for studyonly.co@gmail.com)
+                </Label>
+                <span className="text-[10px] text-zinc-500">Stored locally in your browser</span>
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  type="password"
+                  placeholder="Paste __Secure-1PSID cookie from studyonly.co@gmail.com to enable background RPC"
+                  value={sessionCookies}
+                  onChange={(e) => setSessionCookies(e.target.value)}
+                  className="bg-zinc-900 border-zinc-800 text-xs h-9 font-mono"
+                />
+                <Button type="submit" size="sm" className="bg-purple-600 hover:bg-purple-500 text-white text-xs shrink-0">
+                  Save Token
+                </Button>
+              </div>
+            </form>
+          )}
+
           <textarea
             readOnly
-            rows={8}
+            rows={7}
             value={loadingContent ? "Compiling course materials from Google Classroom..." : generatedCorpus}
             className="w-full rounded-xl border border-zinc-800 bg-zinc-950 p-4 font-mono text-xs text-zinc-300 focus:outline-none"
           />
