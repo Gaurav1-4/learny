@@ -1,71 +1,161 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { TIMETABLE_CLASSES } from "@/components/calendar/weekly-timetable";
 
 export const dynamic = "force-dynamic";
+
+const DAY_RRULE_MAP: Record<string, { byDay: string; offsetDays: number }> = {
+  Monday: { byDay: "MO", offsetDays: 0 },
+  Tuesday: { byDay: "TU", offsetDays: 1 },
+  Wednesday: { byDay: "WE", offsetDays: 2 },
+  Thursday: { byDay: "TH", offsetDays: 3 },
+  Friday: { byDay: "FR", offsetDays: 4 },
+};
+
+function formatUtc(d: Date): string {
+  return d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+}
+
+function parseTimeToDate(baseMondayDateStr: string, offsetDays: number, timeStr: string): Date {
+  const [hours, mins] = timeStr.split(":").map(Number);
+  const base = new Date(`${baseMondayDateStr}T00:00:00+05:30`);
+  base.setDate(base.getDate() + offsetDays);
+  base.setHours(hours, mins || 0, 0, 0);
+  return base;
+}
 
 export async function GET() {
   try {
     const DATA_DIR = path.join(process.cwd(), ".data");
     const CLOUD_STORE_FILE = path.join(DATA_DIR, "student-cloud-state.json");
 
-    let events: any[] = [];
+    let cloudCustomEvents: any[] = [];
+    let backlogHwMap: Record<string, any> = {};
+
     if (fs.existsSync(CLOUD_STORE_FILE)) {
       try {
         const raw = fs.readFileSync(CLOUD_STORE_FILE, "utf8");
         const parsed = JSON.parse(raw);
-        events = parsed.calendarEvents || [];
+        cloudCustomEvents = parsed.calendarEvents || [];
+        backlogHwMap = parsed.backlogHomeworkMap || {};
       } catch {}
     }
 
-    const pad = (n: number) => String(n).padStart(2, "0");
-    const formatIcsDate = (dateStr: string, timeStr?: string) => {
-      const defaultTime = timeStr || "11:59 PM";
-      const [timePart, modifier] = defaultTime.trim().split(/\s+/);
-      let [hours, minutes] = (timePart || "12:00").split(":").map(Number);
-      if (modifier?.toUpperCase() === "PM" && hours < 12) hours += 12;
-      if (modifier?.toUpperCase() === "AM" && hours === 12) hours = 0;
+    // Base semester reference Monday: Aug 10, 2026
+    const baseMondayStr = "2026-08-10";
 
-      const d = new Date(`${dateStr}T${pad(hours)}:${pad(minutes || 0)}:00+05:30`);
-      return d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
-    };
-
-    let icsContent = [
+    const icsLines: string[] = [
       "BEGIN:VCALENDAR",
       "VERSION:2.0",
-      "PRODID:-//Learny//IIITD Academic Calendar//EN",
+      "PRODID:-//Learny//IIIT Delhi Academic Calendar//EN",
       "CALSCALE:GREGORIAN",
       "METHOD:PUBLISH",
-      "X-WR-CALNAME:Learny Academic Schedule",
+      "X-WR-CALNAME:Learny Academic Schedule (IIIT Delhi)",
       "X-WR-TIMEZONE:Asia/Kolkata",
+      "X-WR-CALDESC:Monsoon 2026 Lectures, Graded Tutorial Tests, Labs & AI-Scheduled Homework",
     ];
 
-    events.forEach((evt, idx) => {
-      const start = formatIcsDate(evt.date, evt.time);
-      const uid = `learny-${evt.id || idx}-${Date.now()}@learny.zorx.tech`;
+    // 1. RECURRING WEEKLY TIMETABLE CLASSES (Monsoon 2026)
+    TIMETABLE_CLASSES.forEach((slot) => {
+      const dayInfo = DAY_RRULE_MAP[slot.day] || { byDay: "MO", offsetDays: 0 };
+      const startDt = parseTimeToDate(baseMondayStr, dayInfo.offsetDays, slot.startTime);
+      const endDt = parseTimeToDate(baseMondayStr, dayInfo.offsetDays, slot.endTime);
 
-      icsContent.push(
+      const uid = `class-${slot.id}@learny.zorx.tech`;
+      const isTest = slot.isTest || slot.type === "Test";
+
+      icsLines.push(
         "BEGIN:VEVENT",
         `UID:${uid}`,
-        `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, "").split(".")[0]}Z`,
-        `DTSTART:${start}`,
-        `SUMMARY:${evt.title}`,
-        `DESCRIPTION:${(evt.description || "").replace(/\n/g, "\\n")}`,
+        `DTSTAMP:${formatUtc(new Date())}`,
+        `DTSTART:${formatUtc(startDt)}`,
+        `DTEND:${formatUtc(endDt)}`,
+        `RRULE:FREQ=WEEKLY;BYDAY=${dayInfo.byDay};UNTIL=20261215T235959Z`,
+        `SUMMARY:${isTest ? "🔥 " : ""}${slot.code}: ${slot.subject} (${slot.type})`,
+        `LOCATION:Room ${slot.room}`,
+        `DESCRIPTION:${slot.notes || slot.subject}\\nVenue: Room ${slot.room}\\nSemester: Monsoon 2026 (IIIT Delhi)`,
         "STATUS:CONFIRMED",
+        "BEGIN:VALARM",
+        "TRIGGER:-PT15M",
+        "ACTION:DISPLAY",
+        `DESCRIPTION:Reminder: ${slot.code} in Room ${slot.room} starts in 15 minutes`,
+        "END:VALARM",
         "END:VEVENT"
       );
     });
 
-    icsContent.push("END:VCALENDAR");
+    // 2. LOGGED HOMEWORK & AI-SCHEDULED FOCUS SESSIONS (From Backlog & Live entries)
+    Object.keys(backlogHwMap).forEach((lecId) => {
+      const hw = backlogHwMap[lecId];
+      if (!hw || !hw.rawInput || !hw.rawInput.trim()) return;
 
-    return new NextResponse(icsContent.join("\r\n"), {
+      const dueDateStr = (hw.dueDate || "2026-08-18").split("T")[0];
+      const dueStart = new Date(`${dueDateStr}T23:59:00+05:30`);
+      const dueEnd = new Date(`${dueDateStr}T23:59:59+05:30`);
+
+      icsLines.push(
+        "BEGIN:VEVENT",
+        `UID:hw-${lecId}-${Date.now()}@learny.zorx.tech`,
+        `DTSTAMP:${formatUtc(new Date())}`,
+        `DTSTART:${formatUtc(dueStart)}`,
+        `DTEND:${formatUtc(dueEnd)}`,
+        `SUMMARY:📝 ${hw.courseCode || "Course"} Homework: ${hw.summary || hw.rawInput}`,
+        `DESCRIPTION:Assignment: ${hw.rawInput}\\nCourse: ${hw.courseName || hw.courseCode || ""}\\nStatus: Logged via Learny`,
+        "STATUS:CONFIRMED",
+        "BEGIN:VALARM",
+        "TRIGGER:-PT3H",
+        "ACTION:DISPLAY",
+        `DESCRIPTION:Homework Due Today: ${hw.summary || hw.rawInput}`,
+        "END:VALARM",
+        "END:VEVENT"
+      );
+    });
+
+    // 3. CUSTOM CALENDAR EVENTS & STUDY PREP SESSIONS
+    cloudCustomEvents.forEach((evt, idx) => {
+      const dateStr = evt.date || "2026-08-18";
+      const timeStr = evt.time || "11:59 PM";
+
+      const [timePart, modifier] = timeStr.trim().split(/\s+/);
+      let [hours, minutes] = (timePart || "12:00").split(":").map(Number);
+      if (modifier?.toUpperCase() === "PM" && hours < 12) hours += 12;
+      if (modifier?.toUpperCase() === "AM" && hours === 12) hours = 0;
+
+      const pad = (n: number) => String(n).padStart(2, "0");
+      const startDt = new Date(`${dateStr}T${pad(hours)}:${pad(minutes || 0)}:00+05:30`);
+      const endDt = new Date(startDt.getTime() + 60 * 60 * 1000);
+
+      icsLines.push(
+        "BEGIN:VEVENT",
+        `UID:custom-${evt.id || idx}@learny.zorx.tech`,
+        `DTSTAMP:${formatUtc(new Date())}`,
+        `DTSTART:${formatUtc(startDt)}`,
+        `DTEND:${formatUtc(endDt)}`,
+        `SUMMARY:${evt.title}`,
+        `DESCRIPTION:${(evt.description || "").replace(/\n/g, "\\n")}`,
+        "STATUS:CONFIRMED",
+        "BEGIN:VALARM",
+        "TRIGGER:-PT30M",
+        "ACTION:DISPLAY",
+        `DESCRIPTION:Upcoming: ${evt.title}`,
+        "END:VALARM",
+        "END:VEVENT"
+      );
+    });
+
+    icsLines.push("END:VCALENDAR");
+
+    return new NextResponse(icsLines.join("\r\n"), {
       status: 200,
       headers: {
         "Content-Type": "text/calendar; charset=utf-8",
         "Content-Disposition": 'attachment; filename="learny-academic-schedule.ics"',
+        "Cache-Control": "no-cache, no-store, must-revalidate",
       },
     });
   } catch (error: any) {
+    console.error("Error generating iCal feed:", error);
     return new NextResponse("Error generating calendar feed", { status: 500 });
   }
 }
