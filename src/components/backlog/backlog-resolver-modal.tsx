@@ -10,19 +10,22 @@ import {
   ArrowRight,
   Clock,
   MapPin,
-  Zap,
   RotateCcw,
   BookOpen,
-  ChevronRight,
+  Plus,
+  Loader2,
+  FileEdit,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { MathView } from '@/components/ui/math-view';
 import {
   MONSOON_2026_BACKLOG_LECTURES,
   BacklogLecture,
   getBacklogStatus,
-  logBacklogLecture,
-  resolveAllBacklog,
+  getLoggedHomeworkForLecture,
+  saveLectureHomework,
+  markLectureNoHomework,
   resetBacklogState,
   BacklogStatus,
 } from '@/lib/backlog-engine';
@@ -40,7 +43,9 @@ export function BacklogResolverModal({
 }: BacklogResolverModalProps) {
   const [status, setStatus] = useState<BacklogStatus>(getBacklogStatus());
   const [selectedDay, setSelectedDay] = useState<string>('Monday');
-  const [justLoggedId, setJustLoggedId] = useState<string | null>(null);
+  const [activeEditingId, setActiveEditingId] = useState<string | null>(null);
+  const [customInputMap, setCustomInputMap] = useState<Record<string, string>>({});
+  const [loadingMap, setLoadingMap] = useState<Record<string, boolean>>({});
 
   const refreshStatus = () => {
     const s = getBacklogStatus();
@@ -59,20 +64,51 @@ export function BacklogResolverModal({
       ? MONSOON_2026_BACKLOG_LECTURES
       : MONSOON_2026_BACKLOG_LECTURES.filter((l) => l.dayName === selectedDay);
 
-  const handleLogSingle = (lecture: BacklogLecture) => {
-    logBacklogLecture(lecture);
-    setJustLoggedId(lecture.id);
-    refreshStatus();
-    setTimeout(() => setJustLoggedId(null), 2000);
-  };
+  const handleSaveHomework = async (lecture: BacklogLecture) => {
+    const rawInput = customInputMap[lecture.id] || '';
+    if (!rawInput.trim()) {
+      markLectureNoHomework(lecture);
+      setActiveEditingId(null);
+      refreshStatus();
+      return;
+    }
 
-  const handleResolveAll = () => {
-    resolveAllBacklog();
-    refreshStatus();
+    try {
+      setLoadingMap((prev) => ({ ...prev, [lecture.id]: true }));
+
+      // Format user's real typed homework with Gemini KaTeX engine
+      const res = await fetch('/api/homework/ai-format', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rawInput,
+          courseCode: lecture.courseCode,
+          courseName: lecture.courseName,
+        }),
+      });
+
+      let formattedData: any = { summary: rawInput };
+      if (res.ok) {
+        const json = await res.json();
+        if (json.data) formattedData = json.data;
+      }
+
+      saveLectureHomework(lecture, rawInput, formattedData);
+      setActiveEditingId(null);
+      refreshStatus();
+    } catch (err) {
+      console.error('Failed to format homework', err);
+      saveLectureHomework(lecture, rawInput);
+      setActiveEditingId(null);
+      refreshStatus();
+    } finally {
+      setLoadingMap((prev) => ({ ...prev, [lecture.id]: false }));
+    }
   };
 
   const handleReset = () => {
     resetBacklogState();
+    setCustomInputMap({});
     refreshStatus();
   };
 
@@ -93,33 +129,20 @@ export function BacklogResolverModal({
                 1-Week Backlog Resolver • Monsoon 2026
               </span>
               <span className="rounded bg-zinc-800 border border-zinc-700 px-1.5 py-0.2 text-[9px] text-zinc-300 font-mono">
-                {status.completedCount}/{status.totalCount} Logged ({status.percentComplete}%)
+                {status.completedCount}/{status.totalCount} Logged
               </span>
             </div>
             <h2 className="text-base sm:text-lg font-bold text-white">
-              Lecture-by-Lecture Backlog Walkthrough
+              Log Your Real Homework (Lecture by Lecture)
             </h2>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleResolveAll}
-              className="h-8 text-xs border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 font-medium gap-1.5"
-            >
-              <Zap className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Resolve All 10 at Once</span>
-              <span className="sm:hidden">All</span>
-            </Button>
-
-            <button
-              onClick={onClose}
-              className="rounded-lg p-1.5 text-zinc-400 hover:text-white transition-colors"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
+          <button
+            onClick={onClose}
+            className="rounded-lg p-1.5 text-zinc-400 hover:text-white transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
         </div>
 
         {/* Progress Bar */}
@@ -127,8 +150,8 @@ export function BacklogResolverModal({
           <div className="flex items-center justify-between text-xs">
             <span className="font-medium text-zinc-300">
               {status.isFullyResolved
-                ? '🎉 Complete! All 1-Week Backlog Lectures & Homework Synced!'
-                : `${status.pendingCount} Lectures Remaining to Log`}
+                ? '🎉 All 1-Week Backlog Lectures Reviewed & Synced to Calendar!'
+                : `${status.pendingCount} Lectures Pending Homework Entry`}
             </span>
             <span className="font-mono text-zinc-400 text-[11px]">{status.percentComplete}%</span>
           </div>
@@ -175,18 +198,16 @@ export function BacklogResolverModal({
         <div className="flex-1 overflow-y-auto space-y-3 pr-1 scrollbar-thin">
           {filteredLectures.map((lec) => {
             const isLogged = status.loggedIds.includes(lec.id);
-            const isJustLogged = justLoggedId === lec.id;
+            const loggedHw = getLoggedHomeworkForLecture(lec.id);
+            const isEditing = activeEditingId === lec.id || (!isLogged && !loggedHw);
+            const isLoading = loadingMap[lec.id];
 
             return (
               <div
                 key={lec.id}
-                className={`rounded-xl border p-4 space-y-3 transition-colors ${
-                  isLogged
-                    ? 'bg-zinc-900/20 border-zinc-800/80 opacity-90'
-                    : 'bg-zinc-900/50 border-zinc-800'
-                }`}
+                className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 space-y-3"
               >
-                {/* Card Header */}
+                {/* Slot Header */}
                 <div className="flex items-start justify-between gap-3">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -204,67 +225,126 @@ export function BacklogResolverModal({
                     </div>
 
                     <h3 className="text-sm font-bold text-white">{lec.courseName}</h3>
-                    <p className="text-xs text-zinc-300 font-medium">Topic: {lec.topic}</p>
-                  </div>
-
-                  {/* Log Button */}
-                  <div>
-                    {isLogged ? (
-                      <span className="inline-flex items-center gap-1 rounded-lg bg-zinc-800/80 border border-zinc-700 px-2.5 py-1 text-xs font-semibold text-emerald-400">
-                        <CheckCircle2 className="h-3.5 w-3.5" />
-                        <span>Logged &amp; Synced</span>
-                      </span>
-                    ) : (
-                      <Button
-                        size="sm"
-                        onClick={() => handleLogSingle(lec)}
-                        className="h-8 bg-white text-zinc-950 hover:bg-zinc-200 text-xs font-semibold px-3 gap-1 shadow-sm"
-                      >
-                        <Sparkles className="h-3 w-3" />
-                        <span>Log Homework &amp; Schedule</span>
-                        <ChevronRight className="h-3 w-3" />
-                      </Button>
+                    {lec.topic && (
+                      <p className="text-xs text-zinc-400 font-medium">{lec.topic}</p>
                     )}
                   </div>
-                </div>
 
-                {/* Assigned Homework & KaTeX Preview */}
-                <div className="rounded-lg bg-zinc-950 border border-zinc-800/80 p-3 space-y-2 text-xs">
-                  <div className="flex items-center justify-between text-[11px] text-zinc-400 border-b border-zinc-800/80 pb-1.5">
-                    <span className="font-semibold text-zinc-300">
-                      Assigned Homework: {lec.homeworkSummary}
-                    </span>
-                    <span className="font-mono text-zinc-500">Shorthand: &quot;{lec.rawInput}&quot;</span>
+                  {/* Status Badge */}
+                  <div>
+                    {isLogged && !isEditing ? (
+                      <button
+                        onClick={() => {
+                          setActiveEditingId(lec.id);
+                          setCustomInputMap((prev) => ({
+                            ...prev,
+                            [lec.id]: loggedHw?.rawInput || '',
+                          }));
+                        }}
+                        className="inline-flex items-center gap-1 rounded-lg bg-zinc-800/80 border border-zinc-700 px-2.5 py-1 text-xs font-semibold text-zinc-300 hover:text-white transition-colors"
+                      >
+                        <FileEdit className="h-3 w-3 text-zinc-400" />
+                        <span>Edit Homework</span>
+                      </button>
+                    ) : null}
                   </div>
-
-                  {lec.problems && lec.problems.length > 0 && (
-                    <div className="space-y-2 pt-1">
-                      {lec.problems.map((p, pIdx) => (
-                        <div key={pIdx} className="space-y-1">
-                          <div className="flex items-center justify-between text-[11px]">
-                            <span className="font-medium text-zinc-300">
-                              {p.exercise} • Q{p.qNum}: {p.title}
-                            </span>
-                            <span className="text-[10px] text-zinc-500 font-mono">
-                              {p.difficulty}
-                            </span>
-                          </div>
-
-                          <div className="py-1 px-2 rounded bg-zinc-900 text-center text-xs overflow-x-auto scrollbar-none">
-                            <MathView math={p.latex} displayMode={true} />
-                          </div>
-
-                          {p.methodOfWork && (
-                            <p className="text-[11px] text-zinc-400 leading-relaxed">
-                              <strong className="text-zinc-300">Method: </strong>
-                              {p.methodOfWork}
-                            </p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
+
+                {/* Logged Homework Display (Zero Fake Data) */}
+                {isLogged && !isEditing && loggedHw && (
+                  <div className="rounded-lg bg-zinc-950 border border-zinc-800/80 p-3 space-y-2 text-xs">
+                    <div className="flex items-center justify-between text-[11px] text-zinc-400 border-b border-zinc-800/80 pb-1.5">
+                      <span className="font-semibold text-white">
+                        {loggedHw.summary || 'No homework assigned'}
+                      </span>
+                      <span className="text-emerald-400 font-medium flex items-center gap-1">
+                        <CheckCircle2 className="h-3 w-3" />
+                        <span>Synced to Calendar</span>
+                      </span>
+                    </div>
+
+                    {loggedHw.problems && loggedHw.problems.length > 0 && (
+                      <div className="space-y-2 pt-1">
+                        {loggedHw.problems.map((p: any, pIdx: number) => (
+                          <div key={pIdx} className="space-y-1">
+                            <div className="flex items-center justify-between text-[11px]">
+                              <span className="font-medium text-zinc-300">
+                                {p.exercise} • Q{p.qNum}: {p.title}
+                              </span>
+                              <span className="text-[10px] text-zinc-500 font-mono">
+                                {p.difficulty}
+                              </span>
+                            </div>
+
+                            <div className="py-1 px-2 rounded bg-zinc-900 text-center text-xs overflow-x-auto scrollbar-none">
+                              <MathView math={p.latex} displayMode={true} />
+                            </div>
+
+                            {p.methodOfWork && (
+                              <p className="text-[11px] text-zinc-400 leading-relaxed">
+                                <strong className="text-zinc-300">Method: </strong>
+                                {p.methodOfWork}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Homework Input Form (User Types Real Data) */}
+                {isEditing && (
+                  <div className="rounded-lg bg-zinc-950 border border-zinc-800 p-3 space-y-3">
+                    <div className="space-y-1">
+                      <label className="text-[11px] font-medium text-zinc-300">
+                        Enter homework assigned by your professor:
+                      </label>
+                      <Input
+                        value={customInputMap[lec.id] ?? (loggedHw?.rawInput || '')}
+                        onChange={(e) =>
+                          setCustomInputMap((prev) => ({
+                            ...prev,
+                            [lec.id]: e.target.value,
+                          }))
+                        }
+                        placeholder="e.g. Exercise 14.2 Q3, Q5 or Lab 1 questions (leave empty if none)"
+                        className="bg-zinc-900 border-zinc-800 text-xs h-8"
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-end gap-2 pt-1">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          markLectureNoHomework(lec);
+                          setActiveEditingId(null);
+                          refreshStatus();
+                        }}
+                        className="h-7 text-[11px] text-zinc-400"
+                      >
+                        No Homework
+                      </Button>
+
+                      <Button
+                        type="button"
+                        size="sm"
+                        disabled={isLoading}
+                        onClick={() => handleSaveHomework(lec)}
+                        className="h-7 bg-white text-zinc-950 hover:bg-zinc-200 text-[11px] font-semibold px-3 gap-1"
+                      >
+                        {isLoading ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <Sparkles className="h-3 w-3" />
+                        )}
+                        <span>Save &amp; Sync to Calendar</span>
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}
@@ -277,7 +357,7 @@ export function BacklogResolverModal({
             className="inline-flex items-center gap-1 text-[11px] text-zinc-500 hover:text-zinc-300 transition-colors"
           >
             <RotateCcw className="h-3 w-3" />
-            <span>Reset Backlog Demo</span>
+            <span>Reset Backlog</span>
           </button>
 
           <Button
