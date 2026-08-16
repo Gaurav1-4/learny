@@ -44,12 +44,17 @@ export function NotebookLMHub() {
   const [importText, setImportText] = useState("")
   const [importSuccess, setImportSuccess] = useState("")
 
-  // 1. Load saved personal account email from localStorage
+  // 1. Load saved personal account email from localStorage (Default: studyonly.co@gmail.com with 5 TB Storage)
   useEffect(() => {
     const saved = localStorage.getItem("learny_notebooklm_personal_email")
     if (saved) {
       setPersonalEmail(saved)
       setIsSavedPersonal(true)
+    } else {
+      const defaultEmail = "studyonly.co@gmail.com"
+      setPersonalEmail(defaultEmail)
+      setIsSavedPersonal(true)
+      localStorage.setItem("learny_notebooklm_personal_email", defaultEmail)
     }
   }, [])
 
@@ -273,44 +278,62 @@ export function NotebookLMHub() {
           </div>
         </Card>
 
-        {/* Account 2: Personal Google Account with NotebookLM Subscription */}
-        <Card className="border-zinc-800 bg-zinc-900/90 shadow-sm p-6 space-y-4">
+        {/* Account 2: Personal Google Account with NotebookLM Subscription & 5 TB Storage */}
+        <Card className="border-purple-500/30 bg-zinc-900/90 shadow-sm p-6 space-y-4">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400">
                 <Brain className="h-5 w-5" />
               </div>
               <div>
-                <span className="text-xs font-semibold uppercase tracking-wider text-purple-400">
-                  NotebookLM Account (Subscribed)
-                </span>
-                <h3 className="text-base font-bold text-zinc-100">
-                  {isSavedPersonal ? personalEmail : "Personal Google Account"}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-purple-400">
+                    NotebookLM & Google Storage
+                  </span>
+                  <span className="rounded-full bg-purple-500/20 px-2 py-0.5 text-[10px] font-bold text-purple-300">
+                    5 TB Cloud Storage
+                  </span>
+                </div>
+                <h3 className="text-base font-bold text-zinc-100 mt-0.5">
+                  {isSavedPersonal ? personalEmail : "studyonly.co@gmail.com"}
                 </h3>
               </div>
             </div>
-            {isSavedPersonal ? (
-              <Badge className="bg-purple-500/10 text-purple-300 border-purple-500/30 text-xs">
-                <Zap className="h-3 w-3 mr-1" /> Active
-              </Badge>
-            ) : (
-              <Badge variant="outline" className="text-zinc-500 text-xs">
-                Not set
-              </Badge>
-            )}
+            <Badge className="bg-purple-500/15 text-purple-300 border-purple-500/40 text-xs">
+              <Zap className="h-3 w-3 mr-1 text-purple-400" /> Active 5 TB
+            </Badge>
           </div>
 
-          <form onSubmit={handleSavePersonalEmail} className="flex gap-2">
+          <div className="text-xs text-zinc-400 bg-zinc-950/60 p-3 rounded-lg border border-zinc-800 flex items-center justify-between">
+            <div>
+              <span className="font-semibold text-zinc-300">Target Account: </span>
+              <span className="text-purple-300 font-mono font-bold">studyonly.co@gmail.com</span>
+              <div className="mt-0.5 text-[11px] text-zinc-500">
+                Deep Audio Overview generation, 5 TB Google Drive storage, and source uploads.
+              </div>
+            </div>
+            <a
+              href="https://notebooklm.google.com"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 rounded-lg bg-purple-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-purple-500 shrink-0 shadow-md shadow-purple-600/30"
+            >
+              <span>Launch</span>
+              <ExternalLink className="h-3.5 w-3.5" />
+            </a>
+          </div>
+
+          <form onSubmit={handleSavePersonalEmail} className="flex gap-2 pt-1">
             <Input
               type="email"
-              placeholder="e.g. yourname@gmail.com (Subscribed Account)"
+              placeholder="e.g. studyonly.co@gmail.com"
               value={personalEmail}
               onChange={(e) => setPersonalEmail(e.target.value)}
               className="bg-zinc-950 border-zinc-800 text-xs h-9"
               required
             />
             <Button type="submit" size="sm" className="bg-purple-600 hover:bg-purple-500 text-white text-xs shrink-0">
-              Save Account
+              Update
             </Button>
           </form>
         </Card>

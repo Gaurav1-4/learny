@@ -138,33 +138,48 @@ export function SettingsView() {
         </div>
       </section>
 
-      {/* Google Classroom Integration */}
-      <section className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Cloud className="h-5 w-5 text-zinc-400" />
-          <h2 className="text-xl font-semibold text-zinc-100">Google Classroom</h2>
+      {/* Google Accounts & Cloud Storage */}
+      <section className="rounded-xl border border-zinc-800 bg-zinc-900 p-6 space-y-4">
+        <div className="flex items-center gap-2 mb-2">
+          <Cloud className="h-5 w-5 text-indigo-400" />
+          <h2 className="text-xl font-semibold text-zinc-100">Connected Google Accounts & Cloud Storage</h2>
         </div>
         
-        <div className="space-y-4">
-          {session?.user ? (
-            <div className="bg-zinc-950 p-4 rounded-lg border border-zinc-800 flex items-center justify-between">
-              <div>
-                <div className="font-medium text-white mb-1">Connected Account</div>
-                <div className="text-sm text-zinc-400">{session.user.email}</div>
-              </div>
-              <div className="px-3 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-semibold rounded-full border border-emerald-500/20">
+        <div className="grid gap-4 sm:grid-cols-2">
+          {/* Primary Classroom & Gmail Account */}
+          <div className="bg-zinc-950 p-4 rounded-xl border border-zinc-800 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-indigo-400">
+                Academic Classroom & Gmail
+              </span>
+              <div className="px-2.5 py-0.5 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold rounded-full border border-emerald-500/20">
                 Active Session
               </div>
             </div>
-          ) : (
-            <div className="bg-zinc-950 p-4 rounded-lg border border-zinc-800">
-              <div className="font-medium text-white mb-1">Not Connected</div>
-              <div className="text-sm text-zinc-400">Sign in to sync your classroom courses and assignments.</div>
+            <div className="font-medium text-white text-sm truncate">
+              {session?.user?.email || "gaurav25212@iiitd.ac.in"}
             </div>
-          )}
-          
-          <div className="text-sm text-zinc-500">
-            Note: To fully enable syncing, ensure you have set up your Google Cloud Credentials with the correct scopes for Google Classroom API and updated your environment variables.
+            <div className="text-[11px] text-zinc-500">
+              Syncs Google Classroom courses, coursework, grades, and college academic emails.
+            </div>
+          </div>
+
+          {/* 5 TB Storage & NotebookLM Account */}
+          <div className="bg-zinc-950 p-4 rounded-xl border border-purple-500/30 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-purple-400">
+                NotebookLM & Cloud Storage
+              </span>
+              <div className="px-2.5 py-0.5 bg-purple-500/15 text-purple-300 text-[10px] font-bold rounded-full border border-purple-500/30">
+                5 TB Storage
+              </div>
+            </div>
+            <div className="font-medium text-purple-200 text-sm font-mono truncate">
+              studyonly.co@gmail.com
+            </div>
+            <div className="text-[11px] text-zinc-500">
+              5 TB Google Drive storage, source uploads, and AI Deep Audio Overview synthesis.
+            </div>
           </div>
         </div>
       </section>
