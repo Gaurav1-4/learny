@@ -13,23 +13,11 @@ const DAY_RRULE_MAP: Record<string, { byDay: string; offsetDays: number }> = {
   Friday: { byDay: "FR", offsetDays: 4 },
 };
 
-function formatLocalIcs(d: Date): string {
-  const pad = (n: number) => String(n).padStart(2, "0");
-  const year = d.getFullYear();
-  const month = pad(d.getMonth() + 1);
-  const day = pad(d.getDate());
-  const hours = pad(d.getHours());
-  const minutes = pad(d.getMinutes());
-  const seconds = pad(d.getSeconds());
-  return `${year}${month}${day}T${hours}${minutes}${seconds}`;
-}
-
-function parseTimeToLocalDate(baseMondayDateStr: string, offsetDays: number, timeStr: string): Date {
+function formatIsoToIcsDate(dateStr: string, timeStr: string): string {
+  const [year, month, day] = dateStr.split("-");
   const [hours, mins] = timeStr.split(":").map(Number);
-  const base = new Date(`${baseMondayDateStr}T00:00:00+05:30`);
-  base.setDate(base.getDate() + offsetDays);
-  base.setHours(hours, mins || 0, 0, 0);
-  return base;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${year}${month}${day}T${pad(hours)}${pad(mins || 0)}00`;
 }
 
 export async function GET() {
@@ -49,8 +37,8 @@ export async function GET() {
       } catch {}
     }
 
-    // Base semester reference Monday: Aug 10, 2026
-    const baseMondayStr = "2026-08-10";
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const nowUtc = new Date().toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
 
     const icsLines: string[] = [
       "BEGIN:VCALENDAR",
@@ -78,11 +66,15 @@ export async function GET() {
     const IIITD_LOCATION = "IIIT Delhi, Okhla Industrial Estate, Phase III, Near Govind Puri Metro Station, New Delhi, Delhi 110020, India";
     const IIITD_GEO = "28.5459;77.2732";
 
-    // 1. RECURRING WEEKLY TIMETABLE CLASSES (Monsoon 2026)
+    // 1. RECURRING WEEKLY TIMETABLE CLASSES (Monsoon 2026 starting Monday Aug 10)
     TIMETABLE_CLASSES.forEach((slot) => {
       const dayInfo = DAY_RRULE_MAP[slot.day] || { byDay: "MO", offsetDays: 0 };
-      const startDt = parseTimeToLocalDate(baseMondayStr, dayInfo.offsetDays, slot.startTime);
-      const endDt = parseTimeToLocalDate(baseMondayStr, dayInfo.offsetDays, slot.endTime);
+      const startDayNum = 10 + dayInfo.offsetDays;
+      const [startH, startM] = slot.startTime.split(":").map(Number);
+      const [endH, endM] = slot.endTime.split(":").map(Number);
+
+      const startIcs = `202608${pad(startDayNum)}T${pad(startH)}${pad(startM || 0)}00`;
+      const endIcs = `202608${pad(startDayNum)}T${pad(endH)}${pad(endM || 0)}00`;
 
       const uid = `class-${slot.id}@learny.zorx.tech`;
       const isTest = slot.isTest || slot.type === "Test";
@@ -90,9 +82,9 @@ export async function GET() {
       icsLines.push(
         "BEGIN:VEVENT",
         `UID:${uid}`,
-        `DTSTAMP:${formatLocalIcs(new Date())}Z`,
-        `DTSTART;TZID=Asia/Kolkata:${formatLocalIcs(startDt)}`,
-        `DTEND;TZID=Asia/Kolkata:${formatLocalIcs(endDt)}`,
+        `DTSTAMP:${nowUtc}`,
+        `DTSTART;TZID=Asia/Kolkata:${startIcs}`,
+        `DTEND;TZID=Asia/Kolkata:${endIcs}`,
         `RRULE:FREQ=WEEKLY;BYDAY=${dayInfo.byDay};UNTIL=20261215T235959Z`,
         `SUMMARY:${isTest ? "🔥 " : ""}${slot.code}: ${slot.subject} (${slot.type})`,
         `LOCATION:Room ${slot.room}, ${IIITD_LOCATION}`,
@@ -108,21 +100,21 @@ export async function GET() {
       );
     });
 
-    // 2. LOGGED HOMEWORK & AI-SCHEDULED FOCUS SESSIONS
+    // 2. LOGGED HOMEWORK & AI-SCHEDULED FOCUS SESSIONS (From Backlog & Live entries)
     Object.keys(backlogHwMap).forEach((lecId) => {
       const hw = backlogHwMap[lecId];
       if (!hw || !hw.rawInput || !hw.rawInput.trim()) return;
 
       const dueDateStr = (hw.dueDate || "2026-08-18").split("T")[0];
-      const dueStart = new Date(`${dueDateStr}T23:59:00+05:30`);
-      const dueEnd = new Date(`${dueDateStr}T23:59:59+05:30`);
+      const startIcs = `${dueDateStr.replace(/-/g, "")}T235900`;
+      const endIcs = `${dueDateStr.replace(/-/g, "")}T235959`;
 
       icsLines.push(
         "BEGIN:VEVENT",
         `UID:hw-${lecId}-${Date.now()}@learny.zorx.tech`,
-        `DTSTAMP:${formatLocalIcs(new Date())}Z`,
-        `DTSTART;TZID=Asia/Kolkata:${formatLocalIcs(dueStart)}`,
-        `DTEND;TZID=Asia/Kolkata:${formatLocalIcs(dueEnd)}`,
+        `DTSTAMP:${nowUtc}`,
+        `DTSTART;TZID=Asia/Kolkata:${startIcs}`,
+        `DTEND;TZID=Asia/Kolkata:${endIcs}`,
         `SUMMARY:📝 ${hw.courseCode || "Course"} Homework: ${hw.summary || hw.rawInput}`,
         `LOCATION:Room ${hw.room || "C201"}, ${IIITD_LOCATION}`,
         `GEO:${IIITD_GEO}`,
@@ -137,7 +129,7 @@ export async function GET() {
       );
     });
 
-    // 3. CUSTOM CALENDAR EVENTS
+    // 3. CUSTOM CALENDAR EVENTS & STUDY SESSIONS
     cloudCustomEvents.forEach((evt, idx) => {
       const dateStr = evt.date || "2026-08-18";
       const timeStr = evt.time || "11:59 PM";
@@ -147,16 +139,15 @@ export async function GET() {
       if (modifier?.toUpperCase() === "PM" && hours < 12) hours += 12;
       if (modifier?.toUpperCase() === "AM" && hours === 12) hours = 0;
 
-      const pad = (n: number) => String(n).padStart(2, "0");
-      const startDt = new Date(`${dateStr}T${pad(hours)}:${pad(minutes || 0)}:00+05:30`);
-      const endDt = new Date(startDt.getTime() + 60 * 60 * 1000);
+      const startIcs = `${dateStr.replace(/-/g, "")}T${pad(hours)}${pad(minutes || 0)}00`;
+      const endIcs = `${dateStr.replace(/-/g, "")}T${pad(Math.min(23, hours + 1))}${pad(minutes || 0)}00`;
 
       icsLines.push(
         "BEGIN:VEVENT",
         `UID:custom-${evt.id || idx}@learny.zorx.tech`,
-        `DTSTAMP:${formatLocalIcs(new Date())}Z`,
-        `DTSTART;TZID=Asia/Kolkata:${formatLocalIcs(startDt)}`,
-        `DTEND;TZID=Asia/Kolkata:${formatLocalIcs(endDt)}`,
+        `DTSTAMP:${nowUtc}`,
+        `DTSTART;TZID=Asia/Kolkata:${startIcs}`,
+        `DTEND;TZID=Asia/Kolkata:${endIcs}`,
         `SUMMARY:${evt.title}`,
         `LOCATION:${IIITD_LOCATION}`,
         `GEO:${IIITD_GEO}`,
