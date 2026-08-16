@@ -1,34 +1,34 @@
 # Learny — Project State & Milestone Tracker
 
-**Current Status**: Complete Google Classroom Materials & Topics Scopes (`classroom.courseworkmaterials.readonly`, `classroom.topics.readonly`) Live on Production
+**Current Status**: Automated Post-Class Homework Engine (Timetable Detection, Dashboard Banner, Web Notifications, Gemini 1.5 Flash KaTeX Formatter & OKF Google Drive Storage) Live on Production
 **GitHub Repository**: [https://github.com/Gaurav1-4/learny](https://github.com/Gaurav1-4/learny)
 **Live Production URLs**:
 - `https://learny.zorx.tech`
-- `https://learny-qifkqe6h0-semly.vercel.app`
+- `https://learny-3o9qsxi2u-semly.vercel.app`
 
 ---
 
 ## 🎯 Deployed & Verified Systems
 
-1. **Google Classroom Scopes & API Access**:
-   - Added `https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly` & `https://www.googleapis.com/auth/classroom.courseworkmaterials` (required by Google to read lecture slides, PDFs, notes, and study handouts).
-   - Added `https://www.googleapis.com/auth/classroom.topics.readonly` (required to read organized subject syllabus modules).
-   - Enhanced `GoogleClassroomClient` with `pageSize: 50` for materials, announcements, and coursework.
-2. **Unified Course Content Experience**:
-   - Renders live Classroom lecture files, assignments, and announcements.
-   - For all courses: renders syllabus-aligned KaTeX problem sets for math subjects, and AI Study Companions & prompts for systems/design courses.
-3. **Unified Study & Productivity Suite (`/study`)**:
-   - `Flashcards (SM-2)`
-   - `NotebookLM Vault`
-   - `Focus Timer`
-   - `GPA & Continuous Evaluation Planner`
+1. **Post-Class Timetable Detection Engine (`src/lib/homework-prompt-engine.ts`)**:
+   - Compares current time against Monsoon 2026 course timetable (Applied Math III, OS, AP, DSA, DPP, RMSSD).
+   - Automatically detects when a lecture has concluded in the last 90 minutes.
+   - Triggers native browser Web Notifications: *"Lecture Ended: [Course Name] — Click to log today's homework"*.
+2. **Dashboard Post-Class Check-In Banner (`src/components/dashboard/post-class-banner.tsx`)**:
+   - Renders a prominent check-in banner at the top of the Dashboard when a class ends.
+   - Includes **[ ✍️ Log Homework ]**, **[ No Homework / Skip ]**, and on-demand **[ 🧪 Simulate Class Ended ]** test button.
+3. **Gemini 1.5 Flash AI KaTeX Formatter (`/api/homework/ai-format`)**:
+   - Uses the 9-Key Gemini rotation pool to parse shorthand typing (`14.2 3 5, 14.3 2, 14.4 1` or plain text).
+   - Generates authentic mathematical LaTeX statements ($\oint_C \frac{z^2+1}{z-3} dz = 0$), exercise numbers, and step-by-step methods of work.
+4. **OKF (Ontological Knowledge Framework) & Google Drive Storage**:
+   - Generates structured OKF markdown metadata embeddings and updates the course's Problem Ledger + Google Drive NotebookLM vault registry.
 
 ---
 
 ## 🌐 All 20 Production Routes Live
 
 - `GET /`: Landing page with authentic Google Classroom sign-in.
-- `GET /dashboard`: Student dashboard with action items and upcoming deadlines.
+- `GET /dashboard`: Student dashboard with post-class banner, action items, and upcoming deadlines.
 - `GET /courses`: Clean course catalog with Active Courses and Archived Vault.
 - `GET /courses/[courseId]`: Minimalist course workspace with direct content stream and KaTeX typography.
 - `GET /calendar`: 3-Tab Hub: Weekly Timetable, AI Study Planner, and Month Deadlines Calendar.

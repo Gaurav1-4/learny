@@ -39,6 +39,8 @@ import { Badge } from "@/components/ui/badge"
 import { ClassroomCourse, ClassroomCourseWork } from "@/types"
 import { WeeklyTimetable } from "@/components/calendar/weekly-timetable"
 import { StudyPlannerView } from "@/components/calendar/study-planner-view"
+import { BacklogResolverModal } from "@/components/backlog/backlog-resolver-modal"
+import { getBacklogStatus } from "@/lib/backlog-engine"
 
 export interface CalendarEvent {
   id: string
@@ -76,6 +78,8 @@ export function CalendarView() {
   const [selectedDateForNewEvent, setSelectedDateForNewEvent] = useState<string>(
     format(new Date(), "yyyy-MM-dd")
   )
+  const [showBacklogModal, setShowBacklogModal] = useState(false)
+  const [backlogStatus, setBacklogStatus] = useState(getBacklogStatus())
 
   // New event form state
   const [newEventTitle, setNewEventTitle] = useState("")
@@ -318,40 +322,64 @@ export function CalendarView() {
           </h1>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="flex items-center gap-1 rounded-lg bg-zinc-950 p-0.5 border border-zinc-800 text-xs">
-          <button
-            onClick={() => setActiveTab("timetable")}
-            className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-              activeTab === "timetable"
-                ? "bg-zinc-800 text-white font-semibold"
-                : "text-zinc-400 hover:text-zinc-200"
-            }`}
+        <div className="flex items-center gap-2">
+          {/* Backlog Resolver Walkthrough Trigger */}
+          <Button
+            size="sm"
+            onClick={() => setShowBacklogModal(true)}
+            className="h-8 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-zinc-200 text-xs font-semibold px-3 gap-1.5"
           >
-            Weekly Timetable
-          </button>
-          <button
-            onClick={() => setActiveTab("planner")}
-            className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-              activeTab === "planner"
-                ? "bg-zinc-800 text-white font-semibold"
-                : "text-zinc-400 hover:text-zinc-200"
-            }`}
-          >
-            Study Planner
-          </button>
-          <button
-            onClick={() => setActiveTab("month")}
-            className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-              activeTab === "month"
-                ? "bg-zinc-800 text-white font-semibold"
-                : "text-zinc-400 hover:text-zinc-200"
-            }`}
-          >
-            Month View
-          </button>
+            <Sparkles className="h-3.5 w-3.5 text-zinc-300" />
+            <span className="hidden sm:inline">1-Week Backlog Walkthrough</span>
+            <span className="sm:hidden">Backlog</span>
+          </Button>
+
+          {/* Tab Switcher */}
+          <div className="flex items-center gap-1 rounded-lg bg-zinc-950 p-0.5 border border-zinc-800 text-xs">
+            <button
+              onClick={() => setActiveTab("timetable")}
+              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                activeTab === "timetable"
+                  ? "bg-zinc-800 text-white font-semibold"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
+            >
+              Weekly Timetable
+            </button>
+            <button
+              onClick={() => setActiveTab("planner")}
+              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                activeTab === "planner"
+                  ? "bg-zinc-800 text-white font-semibold"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
+            >
+              Study Planner
+            </button>
+            <button
+              onClick={() => setActiveTab("month")}
+              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                activeTab === "month"
+                  ? "bg-zinc-800 text-white font-semibold"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
+            >
+              Month View
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* Backlog Resolver Modal */}
+      <BacklogResolverModal
+        isOpen={showBacklogModal}
+        onClose={() => setShowBacklogModal(false)}
+        onUpdated={() => {
+          setBacklogStatus(getBacklogStatus())
+          const saved = localStorage.getItem("learny-calendar-custom-events")
+          if (saved) setCustomEvents(JSON.parse(saved))
+        }}
+      />
 
       {/* TAB 1: WEEKLY TIMETABLE */}
       {activeTab === "timetable" && <WeeklyTimetable />}
