@@ -1,32 +1,31 @@
 # Learny — Project State & Milestone Tracker
 
-**Current Status**: Complete Minimalist UI Polish Across Entire Application Live on Production
+**Current Status**: Universal Course Content Engine (Guaranteed KaTeX Problem Sets, Interactive Study Tutors & Live Classroom Stream) Live on Production
 **GitHub Repository**: [https://github.com/Gaurav1-4/learny](https://github.com/Gaurav1-4/learny)
 **Live Production URLs**:
 - `https://learny.zorx.tech`
-- `https://learny-10ofji93c-semly.vercel.app`
+- `https://learny-dbcdiexxm-semly.vercel.app`
 
 ---
 
 ## 🎯 Deployed & Verified Systems
 
-1. **Ultra-Clean, Unified Design System**:
-   - **Monochrome Slate Aesthetic**: Standardized across all 20 routes (`#09090b` canvas, `#27272a` subtle borders, high-contrast white/zinc typography, zero glowing AI slop/rainbow gradients).
-   - **Minimalist Page Headers**: Standardized compact header format:
-     - Small top context breadcrumb (`Monsoon 2026 • IIIT Delhi`, `SuperMemo SM-2 • Active Recall`, `Academic Progress`)
-     - Clean, sharp title (`text-xl font-bold text-white`)
-     - Flat segmented tabs (`bg-zinc-950` container, `bg-zinc-800` active indicator)
-2. **Decluttered Dashboard**:
-   - 100% focused on active deadlines and quick-jump to courses.
-   - Clean summary card with accurate active count (`dueDate >= now`) and isolated overdue tab.
-   - Removed all email widgets and duplicate shortcuts.
-3. **Streamlined Courses & Classroom View**:
-   - Compact single-line course header with direct Google Classroom link.
-   - Zero stacked 200px banners.
-   - Direct KaTeX mathematical typesetting for problem sets ($\oint_C \frac{z^2+1}{z-3} dz = 0$).
-4. **4-Tab Mobile Navigation**:
-   - Native bottom navigation bar: `Dashboard`, `Courses`, `Schedule`, `Study & Tools`.
-   - Zero navigation duplication.
+1. **Course Content Engine**:
+   - **Math & Calculus Courses (MTH203, MTH201, Linear Algebra, Calculus)**:
+     - KaTeX textbook-grade problem sets ($\oint_C \frac{z^2+1}{z-3} dz = 0$), Method-of-Work proofs, and voice/shorthand homework logger.
+   - **System, Programming & Design Courses (OS, AP, DSA, DPP, RMSSD)**:
+     - Dynamic **Syllabus Mastery Modules** and **4 High-Yield Contextual AI Prompts** (Foundations, Midsem Quizzes, Exam Traps, and SM-2 Flashcards).
+   - **Live Classroom Stream**:
+     - Real-time connection to Google Classroom `materials`, `coursework`, `announcements`, and direct Drive attachment openers.
+2. **Ultra-Clean Minimalist UI**:
+   - Monochrome slate design system (`#09090b` / `#27272a`).
+   - Compact single-line headers with zero stacked banner clutter.
+   - 4-tab native mobile bottom navigation.
+3. **Strict Temporal Deadline Separation**:
+   - Compares all course due dates against `new Date()`.
+   - `Upcoming Deadlines` strictly displays future items (`dueDate >= now`), while past items are isolated in `Overdue`.
+4. **Email Extraction**:
+   - Cleaned Gmail scopes and email widgets from Learny; prepared for dedicated Zobox app (`zobox.zorx.tech`).
 
 ---
 
