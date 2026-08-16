@@ -308,70 +308,47 @@ export function CalendarView() {
   }
 
   return (
-    <div className="space-y-6 max-w-7xl">
-      {/* Header with 3 Core Tab Selectors */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-800 pb-4">
+    <div className="space-y-5 max-w-5xl">
+      {/* Clean Minimalist Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-800 pb-3">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-2.5">
-            <CalendarIcon className="h-8 w-8 text-indigo-400" />
-            Academic Calendar & Schedule Hub
+          <div className="text-[11px] font-medium text-zinc-500">Monsoon 2026 • IIIT Delhi</div>
+          <h1 className="text-lg sm:text-xl font-bold tracking-tight text-white mt-0.5">
+            Schedule &amp; Timetable
           </h1>
-          <p className="text-sm text-zinc-400 mt-1">
-            Weekly class timetable, autonomous AI study planner, and Google Classroom deadline calendar.
-          </p>
         </div>
 
-        {/* Tab Switcher Pills */}
-        <div className="flex items-center gap-2 rounded-2xl bg-zinc-900 border border-zinc-800 p-1.5 shadow-sm">
+        {/* Tab Switcher */}
+        <div className="flex items-center gap-1 rounded-lg bg-zinc-950 p-0.5 border border-zinc-800 text-xs">
           <button
             onClick={() => setActiveTab("timetable")}
-            className={`relative flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-extrabold transition-all ${
-              activeTab === "timetable" ? "text-white" : "text-zinc-400 hover:text-zinc-200"
+            className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              activeTab === "timetable"
+                ? "bg-zinc-800 text-white font-semibold"
+                : "text-zinc-400 hover:text-zinc-200"
             }`}
           >
-            <LayoutGrid className="h-4 w-4 text-indigo-400" />
-            <span>Weekly Timetable</span>
-            {activeTab === "timetable" && (
-              <motion.div
-                layoutId="calendarActiveTabPill"
-                className="absolute inset-0 -z-10 rounded-xl bg-indigo-600 shadow-md"
-                transition={{ type: "spring", stiffness: 450, damping: 35 }}
-              />
-            )}
+            Weekly Timetable
           </button>
-
           <button
             onClick={() => setActiveTab("planner")}
-            className={`relative flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-extrabold transition-all ${
-              activeTab === "planner" ? "text-white" : "text-zinc-400 hover:text-zinc-200"
+            className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              activeTab === "planner"
+                ? "bg-zinc-800 text-white font-semibold"
+                : "text-zinc-400 hover:text-zinc-200"
             }`}
           >
-            <Brain className="h-4 w-4 text-emerald-400" />
-            <span>AI Study Planner</span>
-            {activeTab === "planner" && (
-              <motion.div
-                layoutId="calendarActiveTabPill"
-                className="absolute inset-0 -z-10 rounded-xl bg-indigo-600 shadow-md"
-                transition={{ type: "spring", stiffness: 450, damping: 35 }}
-              />
-            )}
+            Study Planner
           </button>
-
           <button
             onClick={() => setActiveTab("month")}
-            className={`relative flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-extrabold transition-all ${
-              activeTab === "month" ? "text-white" : "text-zinc-400 hover:text-zinc-200"
+            className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+              activeTab === "month"
+                ? "bg-zinc-800 text-white font-semibold"
+                : "text-zinc-400 hover:text-zinc-200"
             }`}
           >
-            <CalendarIcon className="h-4 w-4 text-purple-400" />
-            <span>Month Deadlines</span>
-            {activeTab === "month" && (
-              <motion.div
-                layoutId="calendarActiveTabPill"
-                className="absolute inset-0 -z-10 rounded-xl bg-indigo-600 shadow-md"
-                transition={{ type: "spring", stiffness: 450, damping: 35 }}
-              />
-            )}
+            Month View
           </button>
         </div>
       </div>

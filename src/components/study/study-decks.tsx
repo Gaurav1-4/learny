@@ -520,38 +520,44 @@ export function StudyDecks() {
   }
 
   return (
-    <div className="space-y-8 max-w-6xl">
-      
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-5 max-w-5xl">
+      {/* Clean Minimalist Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-800 pb-3">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-zinc-100">Study Decks & Flashcards</h1>
-          <p className="text-sm text-zinc-400 mt-1">
-            Active recall, practice quizzes, and AI study cards linked to your college coursework.
-          </p>
+          <div className="text-[11px] font-medium text-zinc-500">SuperMemo SM-2 • Active Recall</div>
+          <h1 className="text-lg sm:text-xl font-bold tracking-tight text-white mt-0.5">
+            Study Decks &amp; Flashcards
+          </h1>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-1.5 flex-wrap">
           <Button
             variant="outline"
+            size="sm"
             onClick={handleLoadIIITDDecks}
-            className="border-indigo-500/30 bg-indigo-950/40 text-indigo-300 hover:bg-indigo-900/60 font-semibold text-xs gap-1.5 shadow-sm"
+            className="h-8 border-zinc-800 bg-zinc-900 text-zinc-300 hover:text-white text-xs font-medium"
           >
-            <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
-            <span>Load IIITD CSD 3rd Sem Decks</span>
+            <Sparkles className="h-3 w-3 mr-1 text-zinc-400" />
+            <span>Load IIITD Decks</span>
           </Button>
+
           <Button
             variant="outline"
+            size="sm"
             onClick={handleImportDeck}
-            className="border-zinc-800 hover:bg-zinc-800 text-xs text-zinc-300"
+            className="h-8 border-zinc-800 bg-zinc-900 text-zinc-300 hover:text-white text-xs font-medium"
           >
-            <Upload className="h-4 w-4 mr-1.5" /> Import
+            <Upload className="h-3 w-3 mr-1" />
+            <span>Import</span>
           </Button>
+
           <Button
+            size="sm"
             onClick={() => setShowCreateModal(true)}
-            className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs shadow-md shadow-indigo-600/20"
+            className="h-8 bg-white text-zinc-950 hover:bg-zinc-200 text-xs font-semibold"
           >
-            <Plus className="h-4 w-4 mr-1.5" /> Generate / Add Deck
+            <Plus className="h-3.5 w-3.5 mr-1" />
+            <span>New Deck</span>
           </Button>
         </div>
       </div>
