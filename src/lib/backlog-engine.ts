@@ -220,6 +220,44 @@ export function markLectureNoHomework(lecture: BacklogLecture): void {
 }
 
 /**
+ * Checks if a specific homework problem / lecture is marked completed
+ */
+export function isHomeworkDone(homeworkId: string): boolean {
+  if (typeof window === "undefined") return false;
+  const raw = localStorage.getItem(`learny-hw-status-${homeworkId}`);
+  return raw === "done" || raw === "true";
+}
+
+/**
+ * Toggles a homework problem / lecture between Done and Pending
+ */
+export function toggleHomeworkStatus(homeworkId: string, isDone?: boolean): boolean {
+  if (typeof window === "undefined") return false;
+  const current = isHomeworkDone(homeworkId);
+  const next = isDone !== undefined ? isDone : !current;
+  localStorage.setItem(`learny-hw-status-${homeworkId}`, next ? "done" : "pending");
+  window.dispatchEvent(new Event("storage"));
+  return next;
+}
+
+/**
+ * Updates an existing homework record in localStorage
+ */
+export function updateHomeworkItem(homeworkId: string, updatedData: any): void {
+  if (typeof window === "undefined") return;
+  const key = `learny-backlog-hw-${homeworkId}`;
+  const existingRaw = localStorage.getItem(key);
+  if (existingRaw) {
+    try {
+      const existing = JSON.parse(existingRaw);
+      const merged = { ...existing, ...updatedData, updatedAt: new Date().toISOString() };
+      localStorage.setItem(key, JSON.stringify(merged));
+      window.dispatchEvent(new Event("storage"));
+    } catch {}
+  }
+}
+
+/**
  * Resets backlog state for clean re-testing
  */
 export function resetBacklogState(): void {
@@ -227,5 +265,6 @@ export function resetBacklogState(): void {
   localStorage.removeItem("learny-backlog-logged-ids");
   MONSOON_2026_BACKLOG_LECTURES.forEach((l) => {
     localStorage.removeItem(`learny-backlog-hw-${l.id}`);
+    localStorage.removeItem(`learny-hw-status-${l.id}`);
   });
 }
