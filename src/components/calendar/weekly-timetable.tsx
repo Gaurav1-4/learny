@@ -458,52 +458,7 @@ export function WeeklyTimetable() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Top Banner & Action Controls */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 rounded-3xl border border-indigo-500/30 bg-gradient-to-r from-indigo-950/60 via-zinc-900/90 to-purple-950/60 p-6 shadow-xl backdrop-blur-xl">
-        <div className="space-y-1.5">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge className="bg-indigo-600 text-white font-bold text-[10px] uppercase tracking-wider">
-              Official Schedule
-            </Badge>
-            <span className="text-xs font-semibold text-zinc-300">
-              IIIT Delhi • Monsoon 2026
-            </span>
-          </div>
-          <h2 className="text-2xl font-extrabold text-white">
-            Weekly Class Timetable & Intelligent Study Matrix
-          </h2>
-          <p className="text-xs text-zinc-400 max-w-2xl">
-            Live schedule mapped with room coordinates and autonomous AI study blocks engineered for Math III tests, OS revisions, and AP surprise quizzes.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2.5">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setShowStudySlots(!showStudySlots)}
-            className={`text-xs font-bold transition-all ${
-              showStudySlots
-                ? "border-emerald-500/40 bg-emerald-950/40 text-emerald-300 hover:bg-emerald-900/60 shadow-sm"
-                : "border-zinc-800 bg-zinc-900 text-zinc-400"
-            }`}
-          >
-            <Brain className="h-3.5 w-3.5 mr-1.5 text-emerald-400" />
-            {showStudySlots ? "AI Study Slots: Enabled" : "Show AI Study Slots"}
-          </Button>
-
-          <Button
-            size="sm"
-            onClick={handleExportICal}
-            className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs shadow-md shadow-indigo-600/30 gap-1.5"
-          >
-            <Download className="h-3.5 w-3.5" />
-            Export to Google Calendar (.ics)
-          </Button>
-        </div>
-      </div>
-
+    <div className="space-y-4">
       {/* Filter Toolbar */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800 pb-3 text-xs">
         <div className="flex flex-wrap items-center gap-1.5">
