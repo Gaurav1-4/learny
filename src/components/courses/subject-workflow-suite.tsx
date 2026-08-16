@@ -559,11 +559,14 @@ export function SubjectWorkflowSuite({
           <CardHeader className="p-4 sm:p-5 border-b border-zinc-800 bg-zinc-900/40">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-sm sm:text-base font-semibold text-white">
-                  {courseName} Study Tutor &amp; AI Prompts
+                <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-400">
+                  Classroom Prescribed Materials &amp; AI Tutor
+                </div>
+                <CardTitle className="text-sm sm:text-base font-semibold text-white mt-0.5">
+                  {courseName} Course Materials &amp; AI Suite
                 </CardTitle>
-                <CardDescription className="text-xs text-zinc-500 mt-0.5">
-                  Dynamic prompts synthesized from your actual Classroom materials
+                <CardDescription className="text-xs text-zinc-400 mt-0.5">
+                  Grounded directly in your professor&apos;s uploaded Classroom textbooks, slides, and syllabus
                 </CardDescription>
               </div>
 
