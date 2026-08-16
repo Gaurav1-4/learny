@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useSession, signIn, signOut } from 'next-auth/react';
 import { motion } from 'framer-motion';
 import { DeadlineList, Deadline } from '@/components/dashboard/deadline-list';
-import { EmailAlertsWidget } from '@/components/dashboard/email-alerts-widget';
 import { ClassroomCourse, ClassroomCourseWork } from '@/types';
 import {
   AlertCircle,
@@ -13,8 +12,6 @@ import {
   BookOpen,
   ArrowRight,
   Clock,
-  CheckCircle2,
-  Calendar,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -171,7 +168,6 @@ export default function DashboardPage() {
         <div className="space-y-4 animate-pulse">
           <div className="h-20 rounded-xl bg-zinc-900/80 border border-zinc-800" />
           <div className="h-48 rounded-xl bg-zinc-900/80 border border-zinc-800" />
-          <div className="h-48 rounded-xl bg-zinc-900/80 border border-zinc-800" />
         </div>
       ) : !error ? (
         <>
@@ -205,7 +201,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* 1. Upcoming Deadlines Section */}
+          {/* Upcoming Deadlines Section */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <h2 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
@@ -213,14 +209,6 @@ export default function DashboardPage() {
               </h2>
             </div>
             <DeadlineList deadlines={deadlines} />
-          </div>
-
-          {/* 2. College Email Notices Section */}
-          <div className="space-y-2 pt-2">
-            <h2 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-              Academic Email Notices
-            </h2>
-            <EmailAlertsWidget />
           </div>
         </>
       ) : null}
