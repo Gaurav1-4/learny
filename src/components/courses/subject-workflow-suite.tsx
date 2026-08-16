@@ -15,6 +15,8 @@ import {
   CheckCircle2,
   BookOpen,
   Sparkles,
+  Plus,
+  Loader2,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -56,99 +58,119 @@ export function SubjectWorkflowSuite({
   const isMath3 =
     courseName.toLowerCase().includes("math") ||
     courseName.toLowerCase().includes("mth") ||
-    courseId.includes("m3")
+    courseId.includes("m3") ||
+    courseName.toLowerCase().includes("calculus")
 
-  // --- Math III State (Dynamic Homework Ledger & KaTeX Parser) ---
-  const [shorthandInput, setShorthandInput] = useState("14.2 3 5, 14.3 2, 14.4 1")
+  const [shorthandInput, setShorthandInput] = useState("")
   const [filterMode, setFilterMode] = useState<"all" | "mandatory" | "similar">("all")
   const [isListening, setIsListening] = useState(false)
   const [speechTranscript, setSpeechTranscript] = useState("")
   const [solvedQuestions, setSolvedQuestions] = useState<Record<string, boolean>>({})
   const [showHomeworkModal, setShowHomeworkModal] = useState(false)
   const [showMethodModal, setShowMethodModal] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Math problems dynamically parsed from homework input (Thomas' Calculus 11th Ed)
-  const [parsedProblems, setParsedProblems] = useState<MathProblem[]>([
-    {
-      id: "14.2-3",
-      exercise: "Ex 14.2",
-      qNum: 3,
-      isMandatory: true,
-      title: "Two-Path Test for Non-Existence of Limit",
-      latex: "\\lim_{(x,y) \\to (0,0)} \\frac{x^2 - y^2}{x^2 + y^2} = \\text{Does Not Exist (DNE)}",
-      topic: "Limits & Continuity in Higher Dimensions (Thomas Ch 14.2)",
-      difficulty: "Medium",
-      methodOfWork: "Approach along $y=0$ gives limit $1$; approach along $x=0$ gives limit $-1$. Since directional limits differ, the limit does not exist.",
-    },
-    {
-      id: "14.2-5",
-      exercise: "Ex 14.2",
-      qNum: 5,
-      isMandatory: true,
-      title: "Multivariable Limit via Polar Coordinates",
-      latex: "\\lim_{(x,y) \\to (0,0)} \\frac{3x^2 y}{x^2 + y^2} = \\lim_{r \\to 0} \\frac{3(r\\cos\\theta)^2 (r\\sin\\theta)}{r^2} = 0",
-      topic: "Polar Coordinate Limit Substitution",
-      difficulty: "Easy",
-      methodOfWork: "Substitute $x = r\\cos\\theta, y = r\\sin\\theta$. Expression simplifies to $3r\\cos^2\\theta\\sin\\theta \\to 0$ as $r \\to 0$ independent of $\\theta$.",
-    },
-    {
-      id: "14.3-2",
-      exercise: "Ex 14.3",
-      qNum: 2,
-      isMandatory: true,
-      title: "First-Order Partial Derivatives Evaluation",
-      latex: "f(x,y) = x^3 y^2 + 2xy \\implies \\frac{\\partial f}{\\partial x} = 3x^2 y^2 + 2y, \\quad \\frac{\\partial f}{\\partial y} = 2x^3 y + 2x",
-      topic: "Partial Differentiation (Thomas Ch 14.3)",
-      difficulty: "Easy",
-      methodOfWork: "Hold $y$ constant when differentiating with respect to $x$; hold $x$ constant when differentiating with respect to $y$.",
-    },
-    {
-      id: "14.4-1",
-      exercise: "Ex 14.4",
-      qNum: 1,
-      isMandatory: true,
-      title: "Multivariable Chain Rule for One Independent Parameter",
-      latex: "\\frac{dw}{dt} = \\frac{\\partial w}{\\partial x} \\frac{dx}{dt} + \\frac{\\partial w}{\\partial y} \\frac{dy}{dt}",
-      topic: "The Multivariable Chain Rule (Thomas Ch 14.4)",
-      difficulty: "Medium",
-      methodOfWork: "Differentiate $w = f(x,y)$ along parametric path $(x(t), y(t))$ using the tree diagram derivative sum.",
-    },
-    {
-      id: "14.2-4",
-      exercise: "Ex 14.2",
-      qNum: 4,
-      isMandatory: false,
-      similarTo: 3,
-      title: "Similar Practice: Limit along Parabolic Paths y = kx^2",
-      latex: "\\lim_{(x,y) \\to (0,0)} \\frac{xy^2}{x^2 + y^4} = \\text{DNE (Path dependent on } x = my^2)",
-      topic: "Non-Linear Path Limit Tests",
-      difficulty: "Medium",
-      methodOfWork: "Test the parabolic path $x = my^2$ to show the limit depends on slope $m$, proving discontinuity at the origin.",
-    },
-  ])
+  // Math problems dynamically parsed from authentic student input (starts empty - zero hardcoded data)
+  const [parsedProblems, setParsedProblems] = useState<MathProblem[]>([])
 
   // Dynamic Lecture Selection for non-math subjects
   const [selectedMaterialId, setSelectedMaterialId] = useState<string>("")
   const [copiedPrompt, setCopiedPrompt] = useState("")
 
+  // Load authentic problems from student's local and cloud state
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const savedProbs = localStorage.getItem(`learny-problems-${courseId}`);
-      if (savedProbs) {
-        try {
-          const parsed = JSON.parse(savedProbs);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            setParsedProblems(parsed);
-          }
-        } catch {}
-      }
+    if (typeof window === "undefined") return
 
-      const savedInput = localStorage.getItem(`learny-hw-input-${courseId}`);
-      if (savedInput) {
-        setShorthandInput(savedInput);
-      }
+    // 1. Check direct course problem ledger
+    const savedProbs = localStorage.getItem(`learny-problems-${courseId}`)
+    if (savedProbs) {
+      try {
+        const parsed = JSON.parse(savedProbs)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setParsedProblems(parsed)
+          return
+        }
+      } catch {}
     }
-  }, [courseId]);
+
+    // 2. Check 1-Week Backlog Homework Map for this course
+    const backlogMapRaw = localStorage.getItem("learny-backlog-homework-map")
+    if (backlogMapRaw) {
+      try {
+        const backlogMap = JSON.parse(backlogMapRaw)
+        const relevantEntries = Object.values(backlogMap).filter((item: any) => {
+          if (!item || !item.rawInput || !item.rawInput.trim()) return false
+          const codeMatch = item.courseCode && courseName.toLowerCase().includes(item.courseCode.toLowerCase())
+          const idMatch = item.courseId === courseId
+          const nameMatch = item.courseName && courseName.toLowerCase().includes(item.courseName.toLowerCase())
+          return codeMatch || idMatch || nameMatch
+        })
+
+        if (relevantEntries.length > 0) {
+          const generatedProblems: MathProblem[] = []
+          relevantEntries.forEach((entry: any, eIdx: number) => {
+            const rawText = entry.rawInput || entry.homeworkSummary || "Homework Assignment"
+            const segments = rawText.split(/[,;\n]+/).map((s: string) => s.trim()).filter(Boolean)
+
+            segments.forEach((seg: string, sIdx: number) => {
+              const tokens = seg.split(/\s+/)
+              const exercise = tokens[0] || `Ex ${eIdx + 1}`
+              const questionNums = tokens.slice(1).map((n: string) => parseInt(n, 10)).filter((n: number) => !isNaN(n))
+
+              if (questionNums.length === 0) {
+                generatedProblems.push({
+                  id: `hw-${eIdx}-${sIdx}`,
+                  exercise: entry.courseCode || "Homework",
+                  qNum: sIdx + 1,
+                  isMandatory: true,
+                  title: `${entry.topic || "Assignment"}: ${seg}`,
+                  latex: "\\text{" + seg.replace(/[^a-zA-Z0-9\s+=()/-]/g, "") + "}",
+                  topic: entry.topic || `${courseName} Practice`,
+                  difficulty: "Medium",
+                  methodOfWork: `Complete assignment: "${seg}". Focus on standard methodology and check solutions.`,
+                })
+              } else {
+                questionNums.forEach((qNum: number) => {
+                  generatedProblems.push({
+                    id: `${exercise}-${qNum}`,
+                    exercise: `Ex ${exercise}`,
+                    qNum,
+                    isMandatory: true,
+                    title: `Exercise ${exercise} — Question ${qNum}`,
+                    latex: `\\text{Solve Exercise } ${exercise} \\text{ Question } ${qNum}`,
+                    topic: entry.topic || `${exercise} Problem Set`,
+                    difficulty: "Medium",
+                    methodOfWork: `Apply standard techniques for Section ${exercise} to evaluate Question ${qNum}.`,
+                  })
+                })
+              }
+            })
+          })
+
+          if (generatedProblems.length > 0) {
+            setParsedProblems(generatedProblems)
+            return
+          }
+        }
+      } catch {}
+    }
+
+    // 3. Check Google Classroom Coursework for this course
+    if (coursework.length > 0) {
+      const cwProblems: MathProblem[] = coursework.map((cw, idx) => ({
+        id: cw.id,
+        exercise: "Assignment",
+        qNum: idx + 1,
+        isMandatory: true,
+        title: cw.title,
+        latex: "\\text{" + (cw.title || "Classroom Assignment").replace(/[^a-zA-Z0-9\s+=()/-]/g, "") + "}",
+        topic: cw.description ? cw.description.slice(0, 50) + "..." : "Classroom CourseWork",
+        difficulty: "Medium",
+        methodOfWork: cw.description || "Refer to instructions provided on Google Classroom.",
+      }))
+      setParsedProblems(cwProblems)
+    }
+  }, [courseId, courseName, coursework])
 
   useEffect(() => {
     if (materials.length > 0 && !selectedMaterialId) {
@@ -180,7 +202,7 @@ export function SubjectWorkflowSuite({
 
       recognition.onstart = () => {
         setIsListening(true)
-        setSpeechTranscript("Listening... Speak (e.g. 'Exercise 14.2 Questions 3 and 5')")
+        setSpeechTranscript("Listening... Speak your homework problems (e.g. 'Exercise 14.2 Questions 3 and 5')")
       }
 
       recognition.onresult = (event: any) => {
@@ -203,51 +225,90 @@ export function SubjectWorkflowSuite({
     }
   }
 
-  const handleParseShorthand = (e?: React.FormEvent) => {
+  // Parse and save homework via LLM AI layer
+  const handleParseShorthand = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     if (!shorthandInput.trim()) return
 
-    const segments = shorthandInput.split(/[,;\n]+/).map((s) => s.trim()).filter(Boolean)
-    const newProblems: MathProblem[] = []
-
-    segments.forEach((seg) => {
-      const tokens = seg.split(/\s+/)
-      if (tokens.length === 0) return
-
-      const exercise = tokens[0]
-      const questionNums = tokens.slice(1).map((n) => parseInt(n, 10)).filter((n) => !isNaN(n))
-
-      questionNums.forEach((qNum) => {
-        newProblems.push({
-          id: `${exercise}-${qNum}`,
-          exercise: `Ex ${exercise}`,
-          qNum,
-          isMandatory: true,
-          title: `Exercise ${exercise} — Question ${qNum}`,
-          latex: `\\oint_C f(z) \\, dz \\quad (\\text{Section } ${exercise}, \\text{ Question } ${qNum})`,
-          topic: `Chapter ${exercise.split(".")[0]} Homework`,
-          difficulty: "Medium",
-          methodOfWork: `Solve using Chapter ${exercise.split(".")[0]} standard formula and evaluate integral limits.`,
-        })
-
-        // Add similar practice problem
-        newProblems.push({
-          id: `${exercise}-${qNum + 1}-sim`,
-          exercise: `Ex ${exercise}`,
-          qNum: qNum + 1,
-          isMandatory: false,
-          similarTo: qNum,
-          title: `Similar Practice: Question ${qNum + 1} (Same Method as Q${qNum})`,
-          latex: `\\oint_C g(z) \\, dz \\quad (\\text{Section } ${exercise}, \\text{ Similar to Q}${qNum})`,
-          topic: `Chapter ${exercise.split(".")[0]} Similar Practice`,
-          difficulty: "Medium",
-          methodOfWork: `Analogous to Question ${qNum}: follow the exact same integration rule with altered coefficients.`,
-        })
+    setIsSubmitting(true)
+    try {
+      const res = await fetch("/api/homework/ai-format", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          rawInput: shorthandInput,
+          courseName,
+          courseCode: courseName.split(" ")[0] || "COURSE",
+          topic: `${courseName} Homework`,
+        }),
       })
-    })
 
-    if (newProblems.length > 0) {
-      setParsedProblems(newProblems)
+      const json = await res.json()
+      const segments = shorthandInput.split(/[,;\n]+/).map((s) => s.trim()).filter(Boolean)
+      const newProblems: MathProblem[] = []
+
+      segments.forEach((seg, sIdx) => {
+        const tokens = seg.split(/\s+/)
+        const exercise = tokens[0]
+        const questionNums = tokens.slice(1).map((n) => parseInt(n, 10)).filter((n) => !isNaN(n))
+
+        if (questionNums.length === 0) {
+          newProblems.push({
+            id: `hw-${Date.now()}-${sIdx}`,
+            exercise: "HW",
+            qNum: sIdx + 1,
+            isMandatory: true,
+            title: seg,
+            latex: "\\text{" + seg.replace(/[^a-zA-Z0-9\s+=()/-]/g, "") + "}",
+            topic: `${courseName} Assignment`,
+            difficulty: "Medium",
+            methodOfWork: json.formattedText || "Solve problems according to lecture methodology.",
+          })
+        } else {
+          questionNums.forEach((qNum) => {
+            newProblems.push({
+              id: `${exercise}-${qNum}-${Date.now()}`,
+              exercise: `Ex ${exercise}`,
+              qNum,
+              isMandatory: true,
+              title: `Exercise ${exercise} — Question ${qNum}`,
+              latex: `\\text{Solve Exercise } ${exercise} \\text{ Question } ${qNum}`,
+              topic: `Chapter ${exercise.split(".")[0]} Homework`,
+              difficulty: "Medium",
+              methodOfWork: `Solve using Chapter ${exercise.split(".")[0]} standard formula and evaluate integral limits.`,
+            })
+          })
+        }
+      })
+
+      if (newProblems.length > 0) {
+        const updated = [...newProblems, ...parsedProblems]
+        setParsedProblems(updated)
+        localStorage.setItem(`learny-problems-${courseId}`, JSON.stringify(updated))
+      }
+
+      setShorthandInput("")
+      setShowHomeworkModal(false)
+    } catch {
+      // Fallback local save
+      const newProb: MathProblem = {
+        id: `hw-${Date.now()}`,
+        exercise: "HW",
+        qNum: 1,
+        isMandatory: true,
+        title: shorthandInput,
+        latex: "\\text{" + shorthandInput.replace(/[^a-zA-Z0-9\s+=()/-]/g, "") + "}",
+        topic: `${courseName} Homework`,
+        difficulty: "Medium",
+        methodOfWork: "Complete problem set.",
+      }
+      const updated = [newProb, ...parsedProblems]
+      setParsedProblems(updated)
+      localStorage.setItem(`learny-problems-${courseId}`, JSON.stringify(updated))
+      setShorthandInput("")
+      setShowHomeworkModal(false)
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -268,14 +329,13 @@ export function SubjectWorkflowSuite({
   })
 
   const mandatoryCount = parsedProblems.filter((p) => p.isMandatory).length
-  const mandatorySolved = parsedProblems.filter((p) => p.isMandatory && solvedQuestions[p.id]).length
 
   const selectedMaterial =
     materials.find((m) => m.id === selectedMaterialId) || materials[0] || null
 
   return (
     <div className="space-y-3">
-      {/* 1. MATH III: Dynamic Homework Ledger & Real KaTeX Typesetting */}
+      {/* 1. MATH III / PROBLEM SET VIEW: Dynamic Homework Ledger */}
       {isMath3 ? (
         <div className="space-y-3">
           {/* Minimalist Top Action Bar */}
@@ -323,7 +383,7 @@ export function SubjectWorkflowSuite({
                 onClick={() => setShowHomeworkModal(true)}
                 className="h-7 text-[11px] font-medium bg-white text-zinc-950 hover:bg-zinc-200 gap-1 px-2.5"
               >
-                <Mic className="h-3 w-3" />
+                <Plus className="h-3 w-3" />
                 <span>+ Homework</span>
               </Button>
             </div>
@@ -349,63 +409,88 @@ export function SubjectWorkflowSuite({
                         <span className="text-[11px] text-zinc-400 font-medium">
                           {prob.isMandatory ? "Mandatory Homework" : "Similar Practice"}
                         </span>
+                        {prob.difficulty && (
+                          <>
+                            <span className="text-zinc-600">•</span>
+                            <Badge
+                              variant="outline"
+                              className="text-[9px] font-semibold border-zinc-800 text-zinc-400"
+                            >
+                              {prob.difficulty}
+                            </Badge>
+                          </>
+                        )}
                       </div>
 
                       {/* Problem Title */}
-                      <h3 className="text-xs sm:text-sm font-medium text-zinc-200">
-                        {prob.title}
-                      </h3>
+                      <h4 className="text-sm font-semibold text-zinc-100">{prob.title}</h4>
 
-                      {/* Beautiful KaTeX Typeset Formula Block */}
-                      <div className="my-2.5 p-3 rounded-lg bg-zinc-950/80 border border-zinc-800/80 text-center overflow-x-auto scrollbar-none text-zinc-100">
+                      {/* KaTeX Math Problem Display */}
+                      <div className="rounded-lg border border-zinc-800/80 bg-zinc-950 p-4 overflow-x-auto">
                         <MathView math={prob.latex} displayMode={true} />
                       </div>
 
-                      {/* Method of Work Explanation with Inline KaTeX */}
+                      {/* Method of Work */}
                       <div className="text-xs text-zinc-400 leading-relaxed pt-1">
-                        <span className="text-zinc-200 font-medium">Method of Work: </span>
+                        <span className="font-semibold text-zinc-300">Method of Work: </span>
                         <FormattedMathText text={prob.methodOfWork} />
                       </div>
                     </div>
 
-                    {/* Completion Action */}
-                    <div className="shrink-0 pt-1">
-                      <button
-                        onClick={() => toggleSolved(prob.id)}
-                        className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors flex items-center gap-1.5 ${
-                          isSolved
-                            ? "bg-zinc-800 text-zinc-200 border border-zinc-700"
-                            : "bg-white text-zinc-950 hover:bg-zinc-200"
-                        }`}
-                      >
-                        <CheckCircle2 className="h-3.5 w-3.5" />
-                        <span>{isSolved ? "Completed" : "Mark Done"}</span>
-                      </button>
-                    </div>
+                    {/* Solve Toggle */}
+                    <button
+                      onClick={() => toggleSolved(prob.id)}
+                      className={`shrink-0 flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold transition-colors ${
+                        isSolved
+                          ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                          : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200 border border-zinc-700"
+                      }`}
+                    >
+                      <CheckCircle2 className={`h-3.5 w-3.5 ${isSolved ? "text-emerald-400" : "text-zinc-500"}`} />
+                      <span>{isSolved ? "Completed" : "Mark Done"}</span>
+                    </button>
                   </div>
                 </div>
               )
             })}
+
+            {/* Authentic Empty State */}
+            {displayedProblems.length === 0 && (
+              <div className="rounded-2xl border border-dashed border-zinc-800 bg-zinc-950/40 p-8 text-center space-y-3">
+                <BookOpen className="h-8 w-8 text-zinc-600 mx-auto" />
+                <div className="space-y-1">
+                  <h4 className="text-sm font-semibold text-white">No Homework Logged Yet</h4>
+                  <p className="text-xs text-zinc-400 max-w-sm mx-auto">
+                    Click &ldquo;+ Homework&rdquo; to add problems or use the Post-Class Banner on your Dashboard.
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => setShowHomeworkModal(true)}
+                  className="bg-white text-zinc-950 hover:bg-zinc-200 text-xs font-semibold"
+                >
+                  <Plus className="h-3.5 w-3.5 mr-1" /> Log Homework
+                </Button>
+              </div>
+            )}
           </div>
 
-          {/* Modal 1: Method of Work Reference (KaTeX Typeset) */}
+          {/* Modal: Method of Work Guide */}
           <AnimatePresence>
             {showMethodModal && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.96 }}
+                  initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.96 }}
-                  className="w-full max-w-lg rounded-2xl bg-zinc-950 border border-zinc-800 p-5 space-y-4 shadow-2xl"
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="w-full max-w-lg rounded-2xl border border-zinc-800 bg-zinc-900 p-6 shadow-2xl space-y-4"
                 >
                   <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-                    <div>
+                    <div className="flex items-center gap-2">
+                      <BookMarked className="h-4 w-4 text-white" />
                       <h3 className="text-sm font-semibold text-white">
-                        Method of Work: Multivariable Calculus &amp; Partial Derivatives
+                        Standard Solution Methodologies
                       </h3>
-                      <p className="text-[11px] text-zinc-400 mt-0.5">
-                        Thomas&apos; Calculus (11th Edition) — Chapters 12–16
-                      </p>
                     </div>
                     <button
                       onClick={() => setShowMethodModal(false)}
@@ -415,32 +500,35 @@ export function SubjectWorkflowSuite({
                     </button>
                   </div>
 
-                  <div className="space-y-3 text-xs text-zinc-300">
-                    <div className="p-3 rounded-lg bg-zinc-900/60 border border-zinc-800 text-center space-y-2">
-                      <div className="text-[11px] text-zinc-400">1. Two-Path Test for Limits in Higher Dimensions:</div>
-                      <MathView math="\\lim_{(x,y) \\to (0,0)} f(x,y) \\quad \\text{along } y=mx \\neq \\text{along } x=0 \\implies \\text{Limit DNE}" displayMode={true} />
-                      <div className="text-[11px] text-zinc-400 pt-2">2. Multivariable Chain Rule (Parametric Path):</div>
-                      <MathView math="\\frac{dw}{dt} = \\frac{\\partial w}{\\partial x}\\frac{dx}{dt} + \\frac{\\partial w}{\\partial y}\\frac{dy}{dt}" displayMode={true} />
+                  <div className="space-y-3 text-xs text-zinc-300 max-h-[60vh] overflow-y-auto pr-1">
+                    <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3.5 space-y-1.5">
+                      <div className="font-semibold text-white flex items-center gap-1.5">
+                        <span className="h-1.5 w-1.5 rounded-full bg-blue-400" />
+                        Multivariable Limits &amp; Continuity
+                      </div>
+                      <p className="text-zinc-400 leading-relaxed">
+                        To prove non-existence, test two distinct straight paths $y=mx$ or parabolic paths $y=kx^2$. If limits differ, the limit does not exist.
+                      </p>
                     </div>
 
-                    <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 text-[11px]">
-                      <div className="p-2.5 rounded-lg bg-zinc-900 border border-zinc-800">
-                        <strong className="text-white block mb-0.5">Two-Path Limit Test</strong>
-                        Test different approach curves like <span className="font-mono">y = mx</span> and <span className="font-mono">x = my²</span>. If the limit depends on m, the limit does not exist.
+                    <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3.5 space-y-1.5">
+                      <div className="font-semibold text-white flex items-center gap-1.5">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                        Partial Derivatives &amp; Chain Rule
                       </div>
-                      <div className="p-2.5 rounded-lg bg-zinc-900 border border-zinc-800">
-                        <strong className="text-white block mb-0.5">Partial Differentiation</strong>
-                        Treat all other variables as constants when taking first-order partial derivatives <MathView math="\partial f / \partial x" /> and <MathView math="\partial f / \partial y" />.
-                      </div>
+                      <p className="text-zinc-400 leading-relaxed">
+                        Treat independent variables as constants. Apply tree diagrams for composite multivariable functions $w = f(x(t), y(t))$.
+                      </p>
                     </div>
                   </div>
 
-                  <div className="flex justify-end pt-2">
+                  <div className="flex justify-end pt-2 border-t border-zinc-800">
                     <Button
+                      size="sm"
                       onClick={() => setShowMethodModal(false)}
-                      className="h-8 bg-zinc-800 hover:bg-zinc-700 text-xs text-white"
+                      className="h-8 bg-white text-zinc-950 hover:bg-zinc-200 text-xs font-semibold"
                     >
-                      Close
+                      Done
                     </Button>
                   </div>
                 </motion.div>
@@ -448,22 +536,22 @@ export function SubjectWorkflowSuite({
             )}
           </AnimatePresence>
 
-          {/* Modal 2: Edit Homework (Voice & Shorthand) */}
+          {/* Modal: Shorthand Voice/Text Homework Logger */}
           <AnimatePresence>
             {showHomeworkModal && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.96 }}
+                  initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.96 }}
-                  className="w-full max-w-md rounded-2xl bg-zinc-950 border border-zinc-800 p-5 space-y-4 shadow-2xl"
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 p-6 shadow-2xl space-y-4"
                 >
                   <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
-                    <div>
-                      <h3 className="text-sm font-semibold text-white">Update Math III Homework</h3>
-                      <p className="text-[11px] text-zinc-500 mt-0.5">
-                        Type shorthand (e.g. <code>14.2 3 5, 14.3 2, 14.4 1</code>) or speak
-                      </p>
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="h-4 w-4 text-white" />
+                      <h3 className="text-sm font-semibold text-white">
+                        Log Homework Problems
+                      </h3>
                     </div>
                     <button
                       onClick={() => setShowHomeworkModal(false)}
@@ -473,13 +561,7 @@ export function SubjectWorkflowSuite({
                     </button>
                   </div>
 
-                  <form
-                    onSubmit={(e) => {
-                      handleParseShorthand(e)
-                      setShowHomeworkModal(false)
-                    }}
-                    className="space-y-3"
-                  >
+                  <form onSubmit={handleParseShorthand} className="space-y-3">
                     <div className="space-y-1.5">
                       <div className="flex gap-2">
                         <Input
@@ -488,12 +570,14 @@ export function SubjectWorkflowSuite({
                           placeholder="e.g. 14.2 3 5, 14.3 2, 14.4 1"
                           className="bg-zinc-900 border-zinc-800 text-xs font-mono flex-1 h-9"
                           required
+                          disabled={isSubmitting}
                         />
 
                         <Button
                           type="button"
                           onClick={handleToggleVoiceInput}
                           variant="outline"
+                          disabled={isSubmitting}
                           className={`h-9 px-3 text-xs font-medium gap-1.5 border-zinc-700 ${
                             isListening ? "bg-zinc-800 text-white" : "text-zinc-300"
                           }`}
@@ -519,20 +603,33 @@ export function SubjectWorkflowSuite({
                       )}
                     </div>
 
+                    <div className="text-[11px] text-zinc-400 leading-relaxed">
+                      💡 Tip: Type or speak shorthand numbers like <code className="text-zinc-200">14.2 3 5</code> for Exercise 14.2 Questions 3 and 5.
+                    </div>
+
                     <div className="flex items-center justify-end gap-2 pt-2">
                       <Button
                         type="button"
                         variant="ghost"
                         onClick={() => setShowHomeworkModal(false)}
                         className="h-8 text-xs text-zinc-400"
+                        disabled={isSubmitting}
                       >
                         Cancel
                       </Button>
                       <Button
                         type="submit"
-                        className="h-8 bg-white text-zinc-950 hover:bg-zinc-200 text-xs font-semibold"
+                        disabled={isSubmitting}
+                        className="h-8 bg-white text-zinc-950 hover:bg-zinc-200 text-xs font-semibold gap-1.5"
                       >
-                        Save &amp; Parse
+                        {isSubmitting ? (
+                          <>
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            <span>Processing...</span>
+                          </>
+                        ) : (
+                          <span>Save &amp; Parse</span>
+                        )}
                       </Button>
                     </div>
                   </form>
@@ -598,16 +695,6 @@ export function SubjectWorkflowSuite({
                       prompt: `Act as a senior university professor teaching ${courseName}. Break down the essential syllabus topics, fundamental principles, and key equations step-by-step with intuitive analogies and practical examples.`,
                     },
                     {
-                      key: "midsem-quiz",
-                      label: "❓ Quiz Me on High-Yield Midsem Exam Questions",
-                      prompt: `Generate 4 challenging conceptual and analytical exam questions for ${courseName}. Present one question at a time, wait for my response, and give detailed grading with model answers.`,
-                    },
-                    {
-                      key: "pitfalls",
-                      label: "💡 Explain Tricky Exam Traps & Common Misconceptions",
-                      prompt: `What are the most difficult concepts and common exam pitfalls in ${courseName}? Explain subtle edge cases and how top students approach them.`,
-                    },
-                    {
                       key: "flashcards-gen",
                       label: "📝 Generate 5 Flashcards for SuperMemo SM-2",
                       prompt: `Extract 5 high-yield question-and-answer flashcard pairs covering fundamental definitions and formulas in ${courseName} for spaced repetition review.`,
@@ -669,14 +756,10 @@ export function SubjectWorkflowSuite({
                         <p className="text-xs text-zinc-400 leading-relaxed whitespace-pre-line">
                           {selectedMaterial.description}
                         </p>
-                      ) : (
-                        <p className="text-xs text-zinc-500 italic">
-                          Live material from Google Classroom. Use prompts below to study in NotebookLM or Gemini.
-                        </p>
-                      )}
+                      ) : null}
                     </div>
 
-                    <div className="space-y-2 pt-2 border-t border-zinc-800">
+                    <div className="pt-2 border-t border-zinc-800/80 space-y-2">
                       <div className="text-xs font-medium text-zinc-300">
                         Contextual AI Study Prompts:
                       </div>
