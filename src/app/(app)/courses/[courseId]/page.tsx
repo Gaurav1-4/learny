@@ -22,20 +22,22 @@ import {
   BookOpen,
   User,
   Layers,
-  AlertCircle
+  AlertCircle,
+  Calculator,
 } from 'lucide-react';
 import { format, formatDistanceToNow, isPast } from 'date-fns';
 import { ClassroomCourse, ClassroomCourseWork, ClassroomAnnouncement, ClassroomStudentSubmission } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { BorderBeam } from '@/components/ui/border-beam';
+import { SubjectWorkflowSuite } from '@/components/courses/subject-workflow-suite';
 
 export default function CourseDetailPage({ params }: { params: Promise<{ courseId: string }> }) {
   const resolvedParams = use(params);
   const courseId = resolvedParams.courseId;
   const router = useRouter();
 
-  const [activeTab, setActiveTab] = useState<'assignments' | 'announcements'>('assignments');
+  const [activeTab, setActiveTab] = useState<'suite' | 'assignments' | 'announcements'>('suite');
   const [loading, setLoading] = useState(true);
   const [course, setCourse] = useState<ClassroomCourse | null>(null);
   const [coursework, setCoursework] = useState<ClassroomCourseWork[]>([]);
@@ -236,7 +238,27 @@ export default function CourseDetailPage({ params }: { params: Promise<{ courseI
       </div>
 
       {/* Modern Animated Tabs Header */}
-      <div className="flex items-center gap-3 border-b border-zinc-800 pb-2">
+      <div className="flex items-center gap-3 border-b border-zinc-800 pb-2 flex-wrap">
+        <button
+          onClick={() => setActiveTab('suite')}
+          className={`relative flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold transition-all ${
+            activeTab === 'suite' ? 'text-white' : 'text-zinc-400 hover:text-zinc-200'
+          }`}
+        >
+          <Sparkles className="h-4 w-4 text-emerald-400" />
+          <span>Academic Study Suite</span>
+          <span className="ml-1.5 rounded-full bg-emerald-500/20 text-emerald-300 px-2 py-0.5 text-[10px] font-bold">
+            Live
+          </span>
+          {activeTab === 'suite' && (
+            <motion.div
+              layoutId="activeCourseTab"
+              className="absolute inset-0 -z-10 rounded-xl bg-zinc-800/90 border border-zinc-700/60 shadow-sm"
+              transition={{ type: 'spring', stiffness: 450, damping: 35 }}
+            />
+          )}
+        </button>
+
         <button
           onClick={() => setActiveTab('assignments')}
           className={`relative flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-bold transition-all ${
@@ -280,7 +302,21 @@ export default function CourseDetailPage({ params }: { params: Promise<{ courseI
 
       {/* Content Area */}
       <AnimatePresence mode="wait">
-        {activeTab === 'assignments' ? (
+        {activeTab === 'suite' ? (
+          <motion.div
+            key="suite-tab"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+          >
+            <SubjectWorkflowSuite
+              courseId={course.id}
+              courseName={course.name}
+              courseSection={course.section}
+            />
+          </motion.div>
+        ) : activeTab === 'assignments' ? (
           <motion.div
             key="assignments-tab"
             initial={{ opacity: 0, y: 8 }}
