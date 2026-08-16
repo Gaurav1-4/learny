@@ -270,6 +270,42 @@ export function SubjectWorkflowSuite({
     setSolvedQuestions(solvedMap)
   }, [courseId, courseName, coursework])
 
+  // Automatically trigger Gemini AI if raw homework text exists but problem suite is empty
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    if (parsedProblems.length === 0 && !isReprocessing) {
+      let foundRawText = ""
+      const directKey = localStorage.getItem(`learny-hw-input-${courseId}`)
+      if (directKey && directKey.trim()) {
+        foundRawText = directKey.trim()
+      } else {
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i)
+          if (key && key.startsWith("learny-backlog-hw-")) {
+            try {
+              const raw = localStorage.getItem(key)
+              if (raw) {
+                const item = JSON.parse(raw)
+                if (item && item.rawInput && item.rawInput.trim()) {
+                  const itemCode = item.courseCode || key.split("-").slice(3).join("-")
+                  const itemName = item.courseName || ""
+                  if (isMatchingCourse(itemCode, itemName, courseId, courseName)) {
+                    foundRawText = item.rawInput.trim()
+                    break
+                  }
+                }
+              }
+            } catch {}
+          }
+        }
+      }
+
+      if (foundRawText) {
+        handleReprocessWithAI()
+      }
+    }
+  }, [parsedProblems.length, courseId, courseName])
+
   useEffect(() => {
     if (materials.length > 0 && !selectedMaterialId) {
       setSelectedMaterialId(materials[0].id)

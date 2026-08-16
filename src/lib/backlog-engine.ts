@@ -162,11 +162,26 @@ export function saveLectureHomework(
 
   // 3. Save problems to Course Ledger if any
   if (payload.problems.length > 0) {
-    const courseKey = `learny-problems-${lecture.courseId}`;
-    const existingProbsRaw = localStorage.getItem(courseKey);
-    const existingProbs = existingProbsRaw ? JSON.parse(existingProbsRaw) : [];
-    const mergedProbs = [...existingProbs, ...payload.problems];
-    localStorage.setItem(courseKey, JSON.stringify(mergedProbs));
+    const enrichedProblems = payload.problems.map((p: any) => ({
+      ...p,
+      rawInput,
+    }));
+    payload.problems = enrichedProblems;
+
+    const targetCourseKeys = [`learny-problems-${lecture.courseId}`];
+    if (lecture.courseCode.toLowerCase().includes("mth") || lecture.courseName.toLowerCase().includes("math")) {
+      targetCourseKeys.push("learny-problems-mth203", "learny-problems-mth201", "learny-problems-math");
+      localStorage.setItem("learny-hw-input-mth203", rawInput);
+      localStorage.setItem("learny-hw-input-mth201", rawInput);
+    }
+    localStorage.setItem(`learny-hw-input-${lecture.courseId}`, rawInput);
+
+    targetCourseKeys.forEach((courseKey) => {
+      const existingProbsRaw = localStorage.getItem(courseKey);
+      const existingProbs = existingProbsRaw ? JSON.parse(existingProbsRaw) : [];
+      const mergedProbs = [...existingProbs, ...enrichedProblems];
+      localStorage.setItem(courseKey, JSON.stringify(mergedProbs));
+    });
   }
 
   // 4. Inject Scheduled Event into Calendar if homework was entered
@@ -198,6 +213,10 @@ export function saveLectureHomework(
     try {
       pushToFirestore({
         backlogHomeworkMap: { [lecture.id]: payload },
+        problemsMap: {
+          [lecture.courseId]: payload.problems,
+          mth203: payload.problems,
+        },
       });
       fetch("/api/homework/sync", {
         method: "POST",
