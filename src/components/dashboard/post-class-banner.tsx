@@ -16,6 +16,7 @@ import {
   dismissClassPrompt,
   simulateEndedClass,
   ActiveClassPrompt,
+  MONSOON_2026_TIMETABLE,
 } from '@/lib/homework-prompt-engine';
 import { HomeworkLoggerModal } from '@/components/homework/homework-logger-modal';
 
@@ -23,6 +24,7 @@ export function PostClassBanner() {
   const [activePrompt, setActivePrompt] = useState<ActiveClassPrompt | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [successToast, setSuccessToast] = useState<string | null>(null);
+  const [showClassPicker, setShowClassPicker] = useState(false);
 
   const checkClassStatus = () => {
     const prompt = getRecentlyEndedClass();
@@ -43,9 +45,10 @@ export function PostClassBanner() {
     setActivePrompt(null);
   };
 
-  const handleSimulateTest = () => {
-    simulateEndedClass('MTH201');
+  const handleSimulateClass = (classId: string) => {
+    simulateEndedClass(classId);
     checkClassStatus();
+    setShowClassPicker(false);
   };
 
   return (
@@ -114,17 +117,51 @@ export function PostClassBanner() {
 
         {/* Quick Simulation Trigger Pill when no active banner */}
         {!activePrompt && (
-          <div className="flex items-center justify-between py-1 px-1">
-            <div className="text-[11px] text-zinc-500">
-              Timetable schedule active: checks for ended lectures automatically.
+          <div className="space-y-2 py-1 px-1">
+            <div className="flex items-center justify-between text-[11px] text-zinc-500">
+              <span>Automatic notification &amp; banner schedule active.</span>
+              <button
+                onClick={() => setShowClassPicker(!showClassPicker)}
+                className="inline-flex items-center gap-1 text-zinc-400 hover:text-white font-medium transition-colors"
+              >
+                <FlaskConical className="h-3 w-3" />
+                <span>Test Notification for Any Class ({showClassPicker ? "Hide" : "Select"})</span>
+              </button>
             </div>
-            <button
-              onClick={handleSimulateTest}
-              className="inline-flex items-center gap-1 text-[11px] text-zinc-400 hover:text-white transition-colors"
-            >
-              <FlaskConical className="h-3 w-3" />
-              <span>Simulate Class Ended</span>
-            </button>
+
+            {showClassPicker && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="rounded-xl border border-zinc-800 bg-zinc-950 p-3 space-y-2 text-xs"
+              >
+                <div className="font-semibold text-white text-[11px]">
+                  Select a class to trigger its post-lecture notification &amp; dashboard banner:
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+                  {MONSOON_2026_TIMETABLE.map((c) => (
+                    <button
+                      key={c.id}
+                      onClick={() => handleSimulateClass(c.id)}
+                      className="p-2 rounded-lg border border-zinc-800 bg-zinc-900/60 hover:bg-zinc-800 hover:border-zinc-700 text-left transition-colors flex items-center justify-between gap-2"
+                    >
+                      <div className="truncate">
+                        <div className="font-semibold text-zinc-200 text-xs truncate">
+                          {c.dayName}: {c.courseCode}
+                        </div>
+                        <div className="text-[10px] text-zinc-400 truncate">
+                          {c.courseName} • {c.startTime}
+                        </div>
+                      </div>
+                      <span className="shrink-0 text-[10px] font-medium text-zinc-500 border border-zinc-800 px-1.5 py-0.5 rounded">
+                        {c.room}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
           </div>
         )}
       </AnimatePresence>

@@ -213,18 +213,19 @@ export function triggerPostClassNotification(prompt: ActiveClassPrompt) {
 }
 
 /**
- * Sets a simulated class prompt for on-demand testing
+ * Sets a simulated class prompt for any specific class by ID or courseCode
  */
-export function simulateEndedClass(courseCode: "MTH201" | "CSE231" | "CSE201" = "MTH201") {
+export function simulateEndedClass(courseCodeOrId: string = "mth-mon") {
   if (typeof window === "undefined") return;
 
   const targetClass =
-    MONSOON_2026_TIMETABLE.find((c) => c.courseCode === courseCode) ||
-    MONSOON_2026_TIMETABLE[0];
+    MONSOON_2026_TIMETABLE.find(
+      (c) => c.id === courseCodeOrId || c.courseCode === courseCodeOrId || c.courseId === courseCodeOrId
+    ) || MONSOON_2026_TIMETABLE[0];
 
   const payload = {
     classItem: targetClass,
-    endedAgoText: "Just now (Test Simulation)",
+    endedAgoText: `Just now (${targetClass.dayName} lecture)`,
   };
 
   localStorage.setItem("learny-simulated-class-prompt", JSON.stringify(payload));
