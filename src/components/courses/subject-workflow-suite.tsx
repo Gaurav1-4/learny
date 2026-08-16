@@ -144,6 +144,25 @@ export function SubjectWorkflowSuite({
   const [copiedPrompt, setCopiedPrompt] = useState("")
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedProbs = localStorage.getItem(`learny-problems-${courseId}`);
+      if (savedProbs) {
+        try {
+          const parsed = JSON.parse(savedProbs);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setParsedProblems(parsed);
+          }
+        } catch {}
+      }
+
+      const savedInput = localStorage.getItem(`learny-hw-input-${courseId}`);
+      if (savedInput) {
+        setShorthandInput(savedInput);
+      }
+    }
+  }, [courseId]);
+
+  useEffect(() => {
     if (materials.length > 0 && !selectedMaterialId) {
       setSelectedMaterialId(materials[0].id)
     }

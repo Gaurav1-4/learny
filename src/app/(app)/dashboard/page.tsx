@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { PostClassBanner } from '@/components/dashboard/post-class-banner';
 
 export default function DashboardPage() {
   const { data: session } = useSession();
@@ -171,6 +172,9 @@ export default function DashboardPage() {
         </div>
       ) : !error ? (
         <>
+          {/* Post-Class Timetable Homework Check-In Banner */}
+          <PostClassBanner />
+
           {/* Actionable Today's Summary Card */}
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">

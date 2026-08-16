@@ -1,52 +1,27 @@
 # Learny — Project State & Milestone Tracker
 
-**Current Status**: 100% Feature Verification & Unified Study Suite Hub (Flashcards, NotebookLM, Focus Timer, GPA & Timetable) Live on Production
+**Current Status**: Complete Google Classroom Materials & Topics Scopes (`classroom.courseworkmaterials.readonly`, `classroom.topics.readonly`) Live on Production
 **GitHub Repository**: [https://github.com/Gaurav1-4/learny](https://github.com/Gaurav1-4/learny)
 **Live Production URLs**:
 - `https://learny.zorx.tech`
-- `https://learny-ilh6vhp3z-semly.vercel.app`
+- `https://learny-qifkqe6h0-semly.vercel.app`
 
 ---
 
-## 🎯 Full System & Feature Verification (All 10 Core Systems 100% Live)
+## 🎯 Deployed & Verified Systems
 
-1. **Academic Dashboard (`/dashboard`)**:
-   - Live Google Classroom sync & active course counter.
-   - Strict temporal separation (`Upcoming` strictly `dueDate >= now`, `Overdue` isolated).
-   - 1-click Quick Launch to Courses.
-2. **Courses Catalog & Lecture Stream (`/courses`, `/courses/[courseId]`)**:
-   - Active and Archived Classroom courses with instant search.
-   - Lecture materials with 1-click Google Drive PDF, YouTube, and link openers.
-   - Assignment grades and submission status trackers.
-3. **KaTeX Problem Sets & Homework Logger (`SubjectWorkflowSuite`)**:
-   - Complex Contour Integrals ($\oint_C \frac{z^2+1}{z-3} dz = 0$), Path Independence, and Cauchy Formulas.
-   - Voice and Shorthand homework logger (`14.2 3 5, 14.3 2, 14.4 1`).
-   - Step-by-step Method of Work proofs.
-4. **AI Study Companion & Syllabus Prompts (`/courses/[courseId]`)**:
-   - 4 Contextual AI prompts per course (Foundations, Midsem Quizzes, Exam Pitfalls, SM-2 flashcard generator).
-5. **Academic Schedule & Timetable (`/calendar`)**:
-   - **Tab 1: Weekly Timetable**: Monsoon 2026 course schedule with classroom venues, labs, and tutorials.
-   - **Tab 2: AI Study Planner**: Autonomous study prep matrix and spaced repetition scheduler.
-   - **Tab 3: Month View**: Monthly deadline calendar with custom milestone events.
-6. **AI Study Decks & SuperMemo SM-2 (`/study?tab=decks`)**:
-   - SuperMemo SM-2 Spaced Repetition engine with Again/Hard/Good/Easy interval calculation.
-   - Flashcards flip card player and interactive multiple-choice quiz runner.
-   - IIIT Delhi 3rd Sem CSD deck loader + JSON/Markdown import & export.
-7. **NotebookLM Dual-Account Hub (`/notebooklm` & `/study?tab=notebooklm`)**:
-   - Dual-Account Switcher (Personal & College `@iiitd.ac.in` email).
-   - 5 TB Vault Drive Bridge & 1-Click Auto-Sync.
-   - Cookie Connector for seamless background sync.
-8. **Focus Timer & Pomodoro Chamber (`/timer` & `/study?tab=timer`)**:
-   - 25m Focus / 5m Break / 15m Long Break Pomodoro timer with Web Audio API chime synthesis.
-   - Session task tracker and daily focus streak log.
-9. **GPA, CGPA & Continuous Evaluation Hub (`/gpa` & `/study?tab=gpa`)**:
-   - Continuous Evaluation tracker per subject (Assignments, Midsem, Lab Quizzes, Endsem).
-   - Multi-Semester CGPA calculator with Indian 10-point scale.
-   - **Target Grade Planner**: Exact required score on remaining endsem exam to hit target letter grade.
-10. **Settings, Profile & JSON Backup (`/settings`)**:
-    - Student Profile & POR Editor.
-    - 9-Key AI Pool Status & Dual-Account Token Monitor.
-    - 1-Click Full JSON Data Backup & Restore Hub.
+1. **Google Classroom Scopes & API Access**:
+   - Added `https://www.googleapis.com/auth/classroom.courseworkmaterials.readonly` & `https://www.googleapis.com/auth/classroom.courseworkmaterials` (required by Google to read lecture slides, PDFs, notes, and study handouts).
+   - Added `https://www.googleapis.com/auth/classroom.topics.readonly` (required to read organized subject syllabus modules).
+   - Enhanced `GoogleClassroomClient` with `pageSize: 50` for materials, announcements, and coursework.
+2. **Unified Course Content Experience**:
+   - Renders live Classroom lecture files, assignments, and announcements.
+   - For all courses: renders syllabus-aligned KaTeX problem sets for math subjects, and AI Study Companions & prompts for systems/design courses.
+3. **Unified Study & Productivity Suite (`/study`)**:
+   - `Flashcards (SM-2)`
+   - `NotebookLM Vault`
+   - `Focus Timer`
+   - `GPA & Continuous Evaluation Planner`
 
 ---
 
