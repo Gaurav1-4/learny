@@ -28,6 +28,7 @@ import { format, formatDistanceToNow, isPast } from 'date-fns';
 import { ClassroomCourse, ClassroomCourseWork, ClassroomAnnouncement, ClassroomStudentSubmission } from '@/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { BorderBeam } from '@/components/ui/border-beam';
 
 export default function CourseDetailPage({ params }: { params: Promise<{ courseId: string }> }) {
   const resolvedParams = use(params);
@@ -154,6 +155,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ courseI
 
       {/* Hero Banner with Glassmorphism & Ambient Glow */}
       <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-indigo-950/70 via-zinc-900/90 to-purple-950/40 p-8 shadow-2xl backdrop-blur-2xl">
+        <BorderBeam size={300} duration={14} delay={0} colorFrom="#818cf8" colorTo="#c084fc" />
         {/* Glow Spheres */}
         <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-indigo-500/20 blur-3xl pointer-events-none" />
         <div className="absolute -left-20 -bottom-20 h-64 w-64 rounded-full bg-purple-500/15 blur-3xl pointer-events-none" />
