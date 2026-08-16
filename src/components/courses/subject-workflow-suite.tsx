@@ -267,84 +267,58 @@ export function SubjectWorkflowSuite({
     materials.find((m) => m.id === selectedMaterialId) || materials[0] || null
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       {/* 1. MATH III: Dynamic Homework Ledger & Real KaTeX Typesetting */}
       {isMath3 ? (
-        <div className="space-y-4">
-          {/* Top Clean Header & Actions Toolbar */}
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 sm:p-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-mono text-zinc-400">iiitd-mth201-lec02</span>
-                  <span className="text-zinc-500">•</span>
-                  <span className="text-[11px] text-zinc-400">Erwin Kreyszig Chapter 14</span>
-                </div>
-                <h2 className="text-base sm:text-lg font-bold text-white tracking-tight mt-0.5">
-                  Math III Homework &amp; Practice Ledger
-                </h2>
-                <div className="text-xs text-zinc-400 mt-1">
-                  Assigned Homework: <code className="text-zinc-200 font-mono">{shorthandInput}</code>
-                  <span className="text-zinc-500 mx-2">•</span>
-                  Completed <span className="font-semibold text-white">{mandatorySolved} / {mandatoryCount}</span> mandatory
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => setShowMethodModal(true)}
-                  className="h-8 text-xs font-medium border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 gap-1.5"
-                >
-                  <BookMarked className="h-3.5 w-3.5" />
-                  <span>Method of Work</span>
-                </Button>
-
-                <Button
-                  size="sm"
-                  onClick={() => setShowHomeworkModal(true)}
-                  className="h-8 text-xs font-medium bg-white text-zinc-950 hover:bg-zinc-200 gap-1.5"
-                >
-                  <Mic className="h-3.5 w-3.5" />
-                  <span>Update Homework</span>
-                </Button>
-              </div>
+        <div className="space-y-3">
+          {/* Minimalist Top Action Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-2 pb-1">
+            <div className="flex items-center gap-1 rounded-lg bg-zinc-950 p-0.5 border border-zinc-800 text-xs">
+              <button
+                onClick={() => setFilterMode("all")}
+                className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                  filterMode === "all" ? "bg-zinc-800 text-white font-semibold" : "text-zinc-400 hover:text-zinc-200"
+                }`}
+              >
+                All ({parsedProblems.length})
+              </button>
+              <button
+                onClick={() => setFilterMode("mandatory")}
+                className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                  filterMode === "mandatory" ? "bg-zinc-800 text-white font-semibold" : "text-zinc-400 hover:text-zinc-200"
+                }`}
+              >
+                Mandatory ({mandatoryCount})
+              </button>
+              <button
+                onClick={() => setFilterMode("similar")}
+                className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                  filterMode === "similar" ? "bg-zinc-800 text-white font-semibold" : "text-zinc-400 hover:text-zinc-200"
+                }`}
+              >
+                Similar ({parsedProblems.length - mandatoryCount})
+              </button>
             </div>
 
-            {/* Segmented Filter Control */}
-            <div className="flex items-center justify-between border-t border-zinc-800/80 pt-3 mt-4 text-xs">
-              <div className="flex items-center gap-1 rounded-lg bg-zinc-950/60 p-1 border border-zinc-800">
-                <button
-                  onClick={() => setFilterMode("all")}
-                  className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
-                    filterMode === "all" ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-zinc-200"
-                  }`}
-                >
-                  All ({parsedProblems.length})
-                </button>
-                <button
-                  onClick={() => setFilterMode("mandatory")}
-                  className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
-                    filterMode === "mandatory" ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-zinc-200"
-                  }`}
-                >
-                  Mandatory ({mandatoryCount})
-                </button>
-                <button
-                  onClick={() => setFilterMode("similar")}
-                  className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
-                    filterMode === "similar" ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-zinc-200"
-                  }`}
-                >
-                  Similar Practice ({parsedProblems.length - mandatoryCount})
-                </button>
-              </div>
+            <div className="flex items-center gap-1.5">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowMethodModal(true)}
+                className="h-7 text-[11px] font-medium border-zinc-800 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 gap-1 px-2.5"
+              >
+                <BookMarked className="h-3 w-3" />
+                <span>Method</span>
+              </Button>
 
-              <div className="text-[11px] text-zinc-500 hidden sm:block">
-                Assigned in class &amp; textbook similar exercises
-              </div>
+              <Button
+                size="sm"
+                onClick={() => setShowHomeworkModal(true)}
+                className="h-7 text-[11px] font-medium bg-white text-zinc-950 hover:bg-zinc-200 gap-1 px-2.5"
+              >
+                <Mic className="h-3 w-3" />
+                <span>+ Homework</span>
+              </Button>
             </div>
           </div>
 
