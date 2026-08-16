@@ -32,6 +32,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { MathView, FormattedMathText } from "@/components/ui/math-view"
 
 interface SubjectWorkflowSuiteProps {
   courseId: string
@@ -68,6 +69,8 @@ export function SubjectWorkflowSuite({ courseId, courseName, courseSection }: Su
   const [solvedQuestions, setSolvedQuestions] = useState<Record<string, boolean>>({ "14.2-3": true, "14.3-2": true })
   const [okfStatus, setOkfStatus] = useState<string>("LOGGED")
   const [okfTopic, setOkfTopic] = useState<string>("Lecture 2: Cauchy's Integral Theorem & Path Independence (via NotebookLM)")
+  const [showHomeworkModal, setShowHomeworkModal] = useState(false)
+  const [showMethodModal, setShowMethodModal] = useState(false)
 
   // Pre-loaded Real Lecture 2 & Lecture 1 Problems (Sections 14.2, 14.3, 14.4)
   const [parsedProblems, setParsedProblems] = useState<MathProblem[]>([
@@ -329,134 +332,57 @@ export function SubjectWorkflowSuite({ courseId, courseName, courseSection }: Su
 
   return (
     <div className="space-y-6">
-      {/* 1. MATH III WORKFLOW: Shorthand & Voice Parser, Homework Ledger, Similar Practice */}
+      {/* 1. MATH III WORKFLOW: Zero-Clutter, Real KaTeX Mathematical Typesetting */}
       {isMath3 && (
-        <Card className="border-indigo-500/30 bg-zinc-950/80 shadow-xl overflow-hidden backdrop-blur-xl">
-          <CardHeader className="p-6 border-b border-zinc-800 bg-zinc-900/40">
-            <div className="flex items-center justify-between flex-wrap gap-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-400">
-                  <Calculator className="h-5 w-5" />
+        <div className="space-y-4">
+          {/* Top Clean Header & Actions Toolbar */}
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 sm:p-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-mono text-zinc-400">iiitd-mth201-lec02</span>
+                  <span className="text-zinc-500">•</span>
+                  <span className="text-[11px] text-zinc-400">Erwin Kreyszig Chapter 14</span>
                 </div>
-                <div>
-                  <CardTitle className="text-base font-semibold text-white">
-                    Math III Homework &amp; Practice Ledger
-                  </CardTitle>
-                  <CardDescription className="text-xs text-zinc-500 mt-0.5">
-                    Erwin Kreyszig • Mandatory problem sets &amp; similar practice
-                  </CardDescription>
-                </div>
-              </div>
-
-              {/* Solved Count */}
-              <div className="text-right text-xs">
-                <div className="text-zinc-400">
-                  Completed: <span className="font-semibold text-white">{mandatorySolved} / {mandatoryCount}</span>
+                <h2 className="text-base sm:text-lg font-bold text-white tracking-tight mt-0.5">
+                  Lecture 2: Cauchy&apos;s Integral Theorem &amp; Formulas
+                </h2>
+                <div className="text-xs text-zinc-400 mt-1">
+                  Homework: <code className="text-zinc-200 font-mono">{shorthandInput}</code>
+                  <span className="text-zinc-500 mx-2">•</span>
+                  Completed <span className="font-semibold text-white">{mandatorySolved} / {mandatoryCount}</span> mandatory
                 </div>
               </div>
-            </div>
-          </CardHeader>
 
-          <CardContent className="p-4 sm:p-5 space-y-4">
-            {/* Minimal OKF Manifest Strip */}
-            <div className="p-3 rounded-lg bg-zinc-900/60 border border-zinc-800 space-y-1 text-xs">
-              <div className="flex items-center justify-between text-[11px] text-zinc-400">
-                <span className="font-mono text-zinc-300">iiitd-mth201-lec02</span>
-                <span className="text-zinc-300">🟢 Logged</span>
-              </div>
-              <div className="font-medium text-zinc-200">
-                Lecture 2: Cauchy&apos;s Integral Theorem, Path Independence &amp; Formulas
-              </div>
-            </div>
-
-            {/* Collapsible Method of Work Recipe */}
-            <details className="rounded-lg border border-zinc-800 bg-zinc-900/30 p-3 text-xs group">
-              <summary className="font-medium text-zinc-300 cursor-pointer flex items-center justify-between">
-                <span>Method of Work: Cauchy&apos;s Theorem &amp; Integral Formula</span>
-                <span className="text-zinc-500 text-[11px] group-open:rotate-180 transition-transform">▼</span>
-              </summary>
-
-              <div className="pt-3 space-y-2">
-                <div className="p-2.5 rounded-md bg-zinc-950 border border-zinc-800/80 font-mono text-xs text-zinc-300 overflow-x-auto scrollbar-none">
-                  <div className="whitespace-nowrap">{"\\oint_C f(z) \\, dz = 0 \\quad (\\text{Cauchy's Theorem for Analytic } f(z))"}</div>
-                  <div className="text-[11px] text-zinc-400 whitespace-nowrap pt-1">{"f(z_0) = \\frac{1}{2\\pi i} \\oint_C \\frac{f(z)}{z - z_0} \\, dz \\quad (\\text{Cauchy's Integral Formula})"}</div>
-                </div>
-
-                <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 text-[11px] text-zinc-400 pt-1">
-                  <div className="p-2 rounded bg-zinc-900 border border-zinc-800">
-                    <strong className="text-zinc-200 block">1. Check Domain &amp; Poles:</strong>
-                    Find denominator roots $z_0$. Verify whether $z_0$ lies inside contour $C$.
-                  </div>
-                  <div className="p-2 rounded bg-zinc-900 border border-zinc-800">
-                    <strong className="text-zinc-200 block">2. Apply Integral Rule:</strong>
-                    If outside $\to 0$. If inside $\to 2\pi i f(z_0)$.
-                  </div>
-                </div>
-              </div>
-            </details>
-
-            {/* Input Options: Voice Input + Shorthand Form */}
-            <form onSubmit={handleParseShorthand} className="p-3 rounded-lg bg-zinc-900/40 border border-zinc-800 space-y-2">
-              <div className="flex items-center justify-between text-xs text-zinc-400">
-                <span className="font-medium text-zinc-300">
-                  Enter Homework
-                </span>
-                <span className="text-[10px] text-zinc-500 font-mono">
-                  e.g. <code>14.2 3 5, 14.3 2, 14.4 1</code>
-                </span>
-              </div>
-
-              <div className="flex gap-2">
-                <Input
-                  value={shorthandInput}
-                  onChange={(e) => setShorthandInput(e.target.value)}
-                  placeholder="e.g. 14.2 3 5, 14.3 2, 14.4 1"
-                  className="bg-zinc-950 border-zinc-800 text-xs font-mono flex-1"
-                />
-
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
                 <Button
-                  type="button"
-                  onClick={handleToggleVoiceInput}
-                  className={`h-9 px-3 text-xs font-bold gap-1.5 transition-all ${
-                    isListening
-                      ? "bg-rose-600 hover:bg-rose-500 text-white animate-pulse"
-                      : "bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700"
-                  }`}
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowMethodModal(true)}
+                  className="h-8 text-xs font-medium border-zinc-700 bg-zinc-900 hover:bg-zinc-800 text-zinc-200 gap-1.5"
                 >
-                  {isListening ? (
-                    <>
-                      <MicOff className="h-3.5 w-3.5" />
-                      <span className="hidden sm:inline">Listening...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Mic className="h-3.5 w-3.5 text-indigo-400" />
-                      <span className="hidden sm:inline">Voice</span>
-                    </>
-                  )}
+                  <BookMarked className="h-3.5 w-3.5" />
+                  <span>Method of Work</span>
                 </Button>
 
                 <Button
-                  type="submit"
-                  className="h-9 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-3 sm:px-4"
+                  size="sm"
+                  onClick={() => setShowHomeworkModal(true)}
+                  className="h-8 text-xs font-medium bg-white text-zinc-950 hover:bg-zinc-200 gap-1.5"
                 >
-                  Update
+                  <Mic className="h-3.5 w-3.5" />
+                  <span>Update Homework</span>
                 </Button>
               </div>
+            </div>
 
-              {speechTranscript && (
-                <div className="text-[11px] text-indigo-300/90 font-mono italic">
-                  🎙️ Transcribed: &quot;{speechTranscript}&quot;
-                </div>
-              )}
-            </form>
-
-            {/* Filter Tabs: All vs Mandatory vs Similar Practice */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-zinc-800 pb-2 gap-2">
-              <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-none flex-nowrap -mx-3.5 px-3.5 sm:mx-0 sm:px-0">
+            {/* Segmented Filter Control */}
+            <div className="flex items-center justify-between border-t border-zinc-800/80 pt-3 mt-4 text-xs">
+              <div className="flex items-center gap-1 rounded-lg bg-zinc-950/60 p-1 border border-zinc-800">
                 <button
                   onClick={() => setFilterMode("all")}
-                  className={`shrink-0 px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                  className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
                     filterMode === "all" ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-zinc-200"
                   }`}
                 >
@@ -464,7 +390,7 @@ export function SubjectWorkflowSuite({ courseId, courseName, courseSection }: Su
                 </button>
                 <button
                   onClick={() => setFilterMode("mandatory")}
-                  className={`shrink-0 px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                  className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
                     filterMode === "mandatory" ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-zinc-200"
                   }`}
                 >
@@ -472,71 +398,232 @@ export function SubjectWorkflowSuite({ courseId, courseName, courseSection }: Su
                 </button>
                 <button
                   onClick={() => setFilterMode("similar")}
-                  className={`shrink-0 px-3 py-1 rounded-md text-xs font-medium transition-colors ${
+                  className={`rounded-md px-3 py-1 text-xs font-medium transition-colors ${
                     filterMode === "similar" ? "bg-zinc-800 text-white" : "text-zinc-400 hover:text-zinc-200"
                   }`}
                 >
-                  Similar ({parsedProblems.length - mandatoryCount})
+                  Similar Practice ({parsedProblems.length - mandatoryCount})
                 </button>
               </div>
 
-              <span className="text-[11px] text-zinc-500">
-                Mandatory homework + optional similar practice
-              </span>
+              <div className="text-[11px] text-zinc-500 hidden sm:block">
+                Assigned in class &amp; textbook similar exercises
+              </div>
             </div>
+          </div>
 
-            {/* Problem Ledger Grid */}
-            <div className="grid gap-2.5">
-              {displayedProblems.map((prob) => {
-                const isSolved = solvedQuestions[prob.id]
-                return (
-                  <div
-                    key={prob.id}
-                    className="p-3.5 rounded-lg border border-zinc-800 bg-zinc-900/40 space-y-2 transition-colors hover:border-zinc-700"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="space-y-1 flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono text-xs font-semibold text-white">
-                            {prob.exercise} — Q{prob.qNum}
-                          </span>
-                          <span className="text-[10px] text-zinc-500">
-                            {prob.isMandatory ? "Mandatory" : "Similar Practice"}
-                          </span>
-                        </div>
-
-                        <h4 className="text-xs font-medium text-zinc-200">{prob.title}</h4>
-
-                        <div className="p-2.5 rounded bg-zinc-950 border border-zinc-800 font-mono text-xs text-zinc-200 overflow-x-auto scrollbar-none">
-                          <div className="whitespace-nowrap">{prob.latex}</div>
-                        </div>
-
-                        <div className="text-[11px] text-zinc-400 leading-relaxed pt-0.5">
-                          <span className="text-zinc-300 font-medium">Method: </span>
-                          {prob.methodOfWork}
-                        </div>
+          {/* Clean Problem Cards with KaTeX Math Typesetting */}
+          <div className="space-y-3">
+            {displayedProblems.map((prob) => {
+              const isSolved = solvedQuestions[prob.id]
+              return (
+                <div
+                  key={prob.id}
+                  className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 sm:p-5 transition-colors hover:border-zinc-700"
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="space-y-2 flex-1 min-w-0">
+                      {/* Problem Header */}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-mono text-xs font-semibold text-white">
+                          {prob.exercise} — Question {prob.qNum}
+                        </span>
+                        <span className="text-zinc-600">•</span>
+                        <span className="text-[11px] text-zinc-400 font-medium">
+                          {prob.isMandatory ? "Mandatory Homework" : "Similar Practice"}
+                        </span>
                       </div>
 
-                      <div className="shrink-0 flex items-center gap-2">
-                        <button
-                          onClick={() => toggleSolved(prob.id)}
-                          className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors flex items-center gap-1 ${
-                            isSolved
-                              ? "bg-zinc-800 text-zinc-200 border border-zinc-700"
-                              : "bg-white text-zinc-950 hover:bg-zinc-200"
-                          }`}
-                        >
-                          <CheckCircle2 className="h-3.5 w-3.5" />
-                          <span>{isSolved ? "Completed" : "Mark Done"}</span>
-                        </button>
+                      {/* Problem Title */}
+                      <h3 className="text-xs sm:text-sm font-medium text-zinc-200">
+                        {prob.title}
+                      </h3>
+
+                      {/* Beautiful KaTeX Typeset Formula Block */}
+                      <div className="my-2.5 p-3 rounded-lg bg-zinc-950/80 border border-zinc-800/80 text-center overflow-x-auto scrollbar-none text-zinc-100">
+                        <MathView math={prob.latex} displayMode={true} />
+                      </div>
+
+                      {/* Method of Work Explanation with Inline KaTeX */}
+                      <div className="text-xs text-zinc-400 leading-relaxed pt-1">
+                        <span className="text-zinc-200 font-medium">Method of Work: </span>
+                        <FormattedMathText text={prob.methodOfWork} />
+                      </div>
+                    </div>
+
+                    {/* Completion Action */}
+                    <div className="shrink-0 pt-1">
+                      <button
+                        onClick={() => toggleSolved(prob.id)}
+                        className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors flex items-center gap-1.5 ${
+                          isSolved
+                            ? "bg-zinc-800 text-zinc-200 border border-zinc-700"
+                            : "bg-white text-zinc-950 hover:bg-zinc-200"
+                        }`}
+                      >
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        <span>{isSolved ? "Completed" : "Mark Done"}</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Modal 1: Method of Work Reference (KaTeX Typeset) */}
+          <AnimatePresence>
+            {showMethodModal && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.96 }}
+                  className="w-full max-w-lg rounded-2xl bg-zinc-950 border border-zinc-800 p-5 space-y-4 shadow-2xl"
+                >
+                  <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+                    <div>
+                      <h3 className="text-sm font-semibold text-white">
+                        Method of Work: Cauchy&apos;s Theorem &amp; Formulas
+                      </h3>
+                      <p className="text-[11px] text-zinc-500 mt-0.5">
+                        Erwin Kreyszig Sections 14.2, 14.3, 14.4
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setShowMethodModal(false)}
+                      className="text-xs text-zinc-400 hover:text-white p-1"
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  <div className="space-y-3 text-xs text-zinc-300">
+                    <div className="p-3 rounded-lg bg-zinc-900/60 border border-zinc-800 text-center space-y-2">
+                      <div className="text-[11px] text-zinc-400">1. Cauchy&apos;s Theorem (Analytic function along closed contour):</div>
+                      <MathView math="\\oint_C f(z) \\, dz = 0" displayMode={true} />
+                      <div className="text-[11px] text-zinc-400 pt-2">2. Cauchy&apos;s Integral Formula (Pole inside contour):</div>
+                      <MathView math="f(z_0) = \\frac{1}{2\\pi i} \\oint_C \\frac{f(z)}{z - z_0} \\, dz" displayMode={true} />
+                    </div>
+
+                    <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 text-[11px]">
+                      <div className="p-2.5 rounded-lg bg-zinc-900 border border-zinc-800">
+                        <strong className="text-white block mb-0.5">Step 1: Check Domain &amp; Poles</strong>
+                        Find denominator roots <MathView math="z_0" />. Determine whether <MathView math="z_0" /> is strictly inside or outside contour <MathView math="C" />.
+                      </div>
+                      <div className="p-2.5 rounded-lg bg-zinc-900 border border-zinc-800">
+                        <strong className="text-white block mb-0.5">Step 2: Apply Integral Rule</strong>
+                        If pole is outside <MathView math="C" /> $\to$ integral is $0$. If pole is inside $\to$ evaluate <MathView math="2\\pi i f(z_0)" />.
                       </div>
                     </div>
                   </div>
-                )
-              })}
-            </div>
-          </CardContent>
-        </Card>
+
+                  <div className="flex justify-end pt-2">
+                    <Button
+                      onClick={() => setShowMethodModal(false)}
+                      className="h-8 bg-zinc-800 hover:bg-zinc-700 text-xs text-white"
+                    >
+                      Close
+                    </Button>
+                  </div>
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>
+
+          {/* Modal 2: Edit Homework (Voice & Shorthand) */}
+          <AnimatePresence>
+            {showHomeworkModal && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.96 }}
+                  className="w-full max-w-md rounded-2xl bg-zinc-950 border border-zinc-800 p-5 space-y-4 shadow-2xl"
+                >
+                  <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+                    <div>
+                      <h3 className="text-sm font-semibold text-white">Update Math III Homework</h3>
+                      <p className="text-[11px] text-zinc-500 mt-0.5">
+                        Type shorthand (e.g. <code>14.2 3 5, 14.3 2, 14.4 1</code>) or speak
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setShowHomeworkModal(false)}
+                      className="text-xs text-zinc-400 hover:text-white p-1"
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  <form
+                    onSubmit={(e) => {
+                      handleParseShorthand(e)
+                      setShowHomeworkModal(false)
+                    }}
+                    className="space-y-3"
+                  >
+                    <div className="space-y-1.5">
+                      <div className="flex gap-2">
+                        <Input
+                          value={shorthandInput}
+                          onChange={(e) => setShorthandInput(e.target.value)}
+                          placeholder="e.g. 14.2 3 5, 14.3 2, 14.4 1"
+                          className="bg-zinc-900 border-zinc-800 text-xs font-mono flex-1 h-9"
+                          required
+                        />
+
+                        <Button
+                          type="button"
+                          onClick={handleToggleVoiceInput}
+                          variant="outline"
+                          className={`h-9 px-3 text-xs font-medium gap-1.5 border-zinc-700 ${
+                            isListening ? "bg-zinc-800 text-white" : "text-zinc-300"
+                          }`}
+                        >
+                          {isListening ? (
+                            <>
+                              <MicOff className="h-3.5 w-3.5" />
+                              <span>Listening</span>
+                            </>
+                          ) : (
+                            <>
+                              <Mic className="h-3.5 w-3.5" />
+                              <span>Voice</span>
+                            </>
+                          )}
+                        </Button>
+                      </div>
+
+                      {speechTranscript && (
+                        <div className="text-[11px] text-zinc-400 font-mono italic">
+                          &quot;{speechTranscript}&quot;
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-end gap-2 pt-2">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => setShowHomeworkModal(false)}
+                        className="h-8 text-xs text-zinc-400"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        className="h-8 bg-white text-zinc-950 hover:bg-zinc-200 text-xs font-semibold"
+                      >
+                        Save &amp; Parse
+                      </Button>
+                    </div>
+                  </form>
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>
+        </div>
       )}
 
       {/* 2. OPERATING SYSTEMS & AP WORKFLOW: Conversational Lecture Tutor */}
