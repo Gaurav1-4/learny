@@ -96,7 +96,7 @@ export function getBacklogStatus(): BacklogStatus {
 }
 
 /**
- * Gets user-entered homework for a specific backlog lecture
+ * Gets user-entered homework for a specific backlog lecture (with legacy fake data filter)
  */
 export function getLoggedHomeworkForLecture(lectureId: string): {
   rawInput?: string;
@@ -109,7 +109,23 @@ export function getLoggedHomeworkForLecture(lectureId: string): {
   const raw = localStorage.getItem(`learny-backlog-hw-${lectureId}`);
   if (!raw) return null;
   try {
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+
+    // Sanity check: If a non-math course has legacy math integrals or "14.2" saved by accident, purge it
+    const isMathId = lectureId.includes("mth") || lectureId.includes("m3");
+    if (!isMathId && (parsed.rawInput === "14.2 3 5" || parsed.rawInput === "14.2 3 5, 14.3 2, 14.4 1" || JSON.stringify(parsed.problems || []).includes("\\oint"))) {
+      localStorage.removeItem(`learny-backlog-hw-${lectureId}`);
+      // Also remove from logged IDs so it resets
+      const rawLogged = localStorage.getItem("learny-backlog-logged-ids");
+      if (rawLogged) {
+        const ids: string[] = JSON.parse(rawLogged);
+        const filtered = ids.filter((id) => id !== lectureId);
+        localStorage.setItem("learny-backlog-logged-ids", JSON.stringify(filtered));
+      }
+      return null;
+    }
+
+    return parsed;
   } catch {
     return null;
   }

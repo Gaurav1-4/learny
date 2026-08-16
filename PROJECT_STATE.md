@@ -1,29 +1,23 @@
 # Learny — Project State & Milestone Tracker
 
-**Current Status**: 100% Zero-Fake-Data Backlog Resolver & Clean User Input Logger Live on Production
+**Current Status**: Prescribed Textbook Locked to Thomas' Calculus (11th Edition) Chapters 12–16 Live on Production
 **GitHub Repository**: [https://github.com/Gaurav1-4/learny](https://github.com/Gaurav1-4/learny)
 **Live Production URLs**:
 - `https://learny.zorx.tech`
-- `https://learny-pbxghlu2a-semly.vercel.app`
+- `https://learny-hcqhdqqpm-semly.vercel.app`
 
 ---
 
-## 🛡️ STRICT SYSTEM RULE: ZERO FAKE DATA
+## 🎯 Official Prescribed Textbook for Math III (MTH203 Multivariate Calculus)
 
-> [!IMPORTANT]
-> **RULE: ZERO FAKE DATA**:
-> All timetable slots, lecture times, course codes, and venues across the entire application MUST strictly derive from `TIMETABLE_CLASSES` in `src/components/calendar/weekly-timetable.tsx`.
-> All synthetic homework questions, placeholder formulas, and fake mock assignments have been 100% eradicated.
-> Lectures start with clean input fields where the student types their actual homework assigned by their instructor, or marks "No Homework".
-
----
-
-## 🎯 1-Week Backlog Resolver (Clean User Logger)
-
-- Displays each authentic class from the Monsoon 2026 timetable (Day, Time, Venue, Course).
-- Zero pre-populated fake questions or formulas.
-- Input box: **"Enter homework assigned by your professor:"** (with **[No Homework]** and **[⚡ Save & Sync to Calendar]**).
-- Real entered homework is formatted with Gemini and synchronized to `/calendar` and the student's Google Drive OKF registry.
+- **Book**: **Thomas' Calculus (11th Edition)** by George B. Thomas, Maurice D. Weir, Joel Hass, Frank R. Giordano.
+- **Prescribed Scope**: **Chapters 12 – 16**:
+  - **Chapter 12**: Vectors and the Geometry of Space
+  - **Chapter 13**: Vector-Valued Functions and Motion in Space
+  - **Chapter 14**: Partial Derivatives (Limits, Directional Derivatives, Gradient, Tangent Planes, Lagrange Multipliers)
+  - **Chapter 15**: Multiple Integrals (Double/Triple Integrals, Polar, Cylindrical, Spherical Substitutions)
+  - **Chapter 16**: Integration in Vector Fields (Line Integrals, Green's Theorem, Surface Integrals, Stokes' Theorem, Divergence Theorem)
+- **AI Anchoring**: All homework problem parsers, KaTeX renderers, and NotebookLM study prompts are locked 100% to this textbook and syllabus.
 
 ---
 

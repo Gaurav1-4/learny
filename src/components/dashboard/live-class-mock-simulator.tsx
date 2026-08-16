@@ -24,14 +24,14 @@ export function LiveClassMockSimulator({ onSuccess }: LiveClassMockSimulatorProp
   const [isOpen, setIsOpen] = useState(false)
   const [activeStep, setActiveStep] = useState<"alert" | "processing" | "completed">("alert")
   const [lectureToSimulate, setLectureToSimulate] = useState<"lec-1" | "lec-2">("lec-1")
-  const [homeworkInput, setHomeworkInput] = useState("4.1 3 4 5, 13.1 1 5")
+  const [homeworkInput, setHomeworkInput] = useState("")
   const [isListening, setIsListening] = useState(false)
   const [speechTranscript, setSpeechTranscript] = useState("")
   const [executionLogs, setExecutionLogs] = useState<string[]>([])
 
   const handleStartSimulation = (lec: "lec-1" | "lec-2") => {
     setLectureToSimulate(lec)
-    setHomeworkInput(lec === "lec-1" ? "4.1 3 4 5, 13.1 1 5" : "14.2 3 5, 14.3 2, 14.4 1")
+    setHomeworkInput("")
     setActiveStep("alert")
     setIsOpen(true)
     setExecutionLogs([])

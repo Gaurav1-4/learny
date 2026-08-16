@@ -30,7 +30,7 @@ export function HomeworkLoggerModal({
   onClose,
   onSaved,
 }: HomeworkLoggerModalProps) {
-  const [inputText, setInputText] = useState('14.2 3 5, 14.3 2, 14.4 1');
+  const [inputText, setInputText] = useState('');
   const [loading, setLoading] = useState(false);
   const [previewData, setPreviewData] = useState<any | null>(null);
   const [savedSuccess, setSavedSuccess] = useState(false);
@@ -145,7 +145,15 @@ export function HomeworkLoggerModal({
                   <Input
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
-                    placeholder="e.g. 14.2 3 5, 14.3 2, 14.4 1"
+                    placeholder={
+                      classItem.courseCode.includes('MTH')
+                        ? 'e.g. 14.2 3 5, 14.3 2 (Thomas Calculus)'
+                        : classItem.courseCode.includes('CSE231')
+                        ? 'e.g. CPU Scheduling sheet Q1-4, Lab 1'
+                        : classItem.courseCode.includes('CSE201')
+                        ? 'e.g. Lab 1 Polymorphic hierarchy, Design Patterns'
+                        : 'e.g. Reading summary 1, Activity 1'
+                    }
                     className="bg-zinc-900 border-zinc-800 text-xs font-mono flex-1 h-9"
                     required
                   />
@@ -164,7 +172,7 @@ export function HomeworkLoggerModal({
                   </Button>
                 </div>
                 <div className="text-[11px] text-zinc-500">
-                  Examples: <code>14.2 3 5, 14.3 2</code> or <code>Chapter 3 questions 4 to 8</code>
+                  Type what was assigned in {classItem.courseCode} ({classItem.courseName})
                 </div>
               </div>
             </form>

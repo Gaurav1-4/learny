@@ -11,46 +11,42 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No homework text provided" }, { status: 400 });
     }
 
-    const systemPrompt = `You are an expert university STEM professor and mathematical formatting engine for IIIT Delhi.
-Given a student's raw typed or spoken homework input (e.g. "14.2 3 5, 14.3 2, 14.4 1" or "Problems 3 and 5 from section 14.2 on Limits and Continuity in Higher Dimensions"), you must parse and structure it into a complete list of homework problems with authentic LaTeX statements and step-by-step methods of work.
+    const isMath =
+      (courseCode || "").toLowerCase().includes("mth") ||
+      (courseName || "").toLowerCase().includes("math") ||
+      (courseName || "").toLowerCase().includes("calculus");
 
-Course Context: ${courseName || "Multivariate Calculus"} (${courseCode || "MTH203"})
-Prescribed Textbook for Calculus / Math: Thomas' Calculus - 11th Edition (George B. Thomas, Maurice D. Weir, Joel Hass). Scope: Chapters 12–16 (Vectors, Vector Functions, Partial Derivatives, Multiple Integrals, Vector Integration / Green's & Stokes' Theorems).
+    const systemPrompt = `You are an expert university professor and assignment formatting engine for IIIT Delhi.
+Given a student's raw typed homework input, parse it into structured homework items with accurate titles, topics, and methods of work.
 
-Return ONLY a valid JSON object with the following schema:
+Course Context: ${courseName || "Academic Course"} (${courseCode || "CSE"})
+${
+  isMath
+    ? "Prescribed Textbook: Thomas' Calculus - 11th Edition (George B. Thomas, Maurice D. Weir, Joel Hass). Scope: Chapters 12–16 (Multivariable Calculus, Partial Derivatives, Multiple Integrals, Vector Calculus)."
+    : "Subject Domain: Computer Science / Engineering / Design. Do NOT generate complex integrals or math formulas unless the student explicitly entered mathematical equations."
+}
+
+Return ONLY a valid JSON object matching this schema:
 {
-  "summary": "Short readable summary of assigned homework from Thomas' Calculus 11th Ed",
+  "summary": "Clear, concise 1-line summary of what the student typed",
   "problems": [
     {
-      "id": "exercise-qNum (e.g. 14.2-3)",
-      "exercise": "Ex 14.2",
-      "qNum": 3,
+      "id": "item-identifier",
+      "exercise": "Assignment / Exercise / Question label",
+      "qNum": 1,
       "isMandatory": true,
-      "title": "Clear descriptive title of problem from Thomas' Calculus 11th Ed",
-      "latex": "Authentic mathematical LaTeX string for KaTeX (e.g. \\\\lim_{(x,y) \\\\to (0,0)} \\\\frac{x^2 - y^2}{x^2 + y^2})",
-      "topic": "Topic name (e.g. Multivariable Limits & Path Tests)",
+      "title": "Clear descriptive title derived directly from what the student typed",
+      "latex": "KaTeX LaTeX string ONLY if mathematical, otherwise simple formatted text or definition",
+      "topic": "Specific course topic",
       "difficulty": "Easy" | "Medium" | "Hard",
-      "methodOfWork": "Clear 2-sentence step-by-step mathematical method explaining how to solve it."
+      "methodOfWork": "Clear 2-sentence explanation of how to complete this task / solve this problem."
     }
   ],
-  "similarPractice": [
-    {
-      "id": "exercise-similarNum",
-      "exercise": "Ex 14.2",
-      "qNum": 4,
-      "isMandatory": false,
-      "similarTo": 3,
-      "title": "Similar Practice: Descriptive title",
-      "latex": "Similar mathematical LaTeX formula",
-      "topic": "Topic name",
-      "difficulty": "Medium",
-      "methodOfWork": "Similar method of work."
-    }
-  ],
-  "okfMarkdown": "OKF formatted markdown block containing metadata frontmatter and LaTeX problem equations for Google Drive storage"
+  "similarPractice": [],
+  "okfMarkdown": "OKF formatted markdown block for Google Drive storage"
 }`;
 
-    const userPrompt = `Parse and format the following homework input:
+    const userPrompt = `Parse and format this homework assignment for ${courseCode || "Course"}:
 "${rawInput}"`;
 
     const rawResponse = await geminiPool.generateContent({
@@ -59,7 +55,6 @@ Return ONLY a valid JSON object with the following schema:
       temperature: 0.2,
     });
 
-    // Extract JSON from response
     const jsonMatch = rawResponse.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       throw new Error("Could not parse JSON response from Gemini");
@@ -74,9 +69,12 @@ Return ONLY a valid JSON object with the following schema:
   } catch (error: any) {
     console.error("AI Homework formatting error:", error);
 
-    // Fallback deterministic regex parser
-    const { rawInput, courseCode } = await request.json().catch(() => ({ rawInput: "14.2 3 5" }));
-    const fallbackProblems = parseDeterministicHomework(rawInput, courseCode);
+    const body = await request.json().catch(() => ({ rawInput: "" }));
+    const rawInput = body.rawInput || "";
+    const courseCode = body.courseCode || "CSE";
+    const courseName = body.courseName || "Course";
+
+    const fallbackProblems = parseDeterministicHomework(rawInput, courseCode, courseName);
 
     return NextResponse.json({
       success: true,
@@ -86,54 +84,60 @@ Return ONLY a valid JSON object with the following schema:
   }
 }
 
-function parseDeterministicHomework(rawInput: string, courseCode?: string) {
+function parseDeterministicHomework(rawInput: string, courseCode: string = "CSE", courseName: string = "Course") {
+  const isMath =
+    courseCode.toLowerCase().includes("mth") ||
+    courseName.toLowerCase().includes("math") ||
+    courseName.toLowerCase().includes("calculus");
+
   const segments = rawInput.split(/[,;\n]+/).map((s) => s.trim()).filter(Boolean);
   const problems: any[] = [];
-  const similarPractice: any[] = [];
 
-  segments.forEach((seg) => {
+  segments.forEach((seg, idx) => {
     const tokens = seg.split(/\s+/);
     if (tokens.length === 0) return;
 
-    const exercise = tokens[0];
-    const questionNums = tokens.slice(1).map((n) => parseInt(n, 10)).filter((n) => !isNaN(n));
+    const first = tokens[0];
+    const rest = tokens.slice(1).join(" ");
 
-    if (questionNums.length === 0) {
-      questionNums.push(1);
-    }
+    if (isMath && /^\d+\.\d+$/.test(first)) {
+      // Thomas Calculus section format e.g. 14.2 3 5
+      const qNums = tokens.slice(1).map((n) => parseInt(n, 10)).filter((n) => !isNaN(n));
+      const questions = qNums.length > 0 ? qNums : [1];
 
-    questionNums.forEach((qNum) => {
+      questions.forEach((q) => {
+        problems.push({
+          id: `thomas-${first}-${q}`,
+          exercise: `Section ${first}`,
+          qNum: q,
+          isMandatory: true,
+          title: `Thomas' Calculus 11th Ed — Section ${first}, Question ${q}`,
+          latex: `\\text{Thomas' Calculus 11th Ed: Section } ${first}, \\text{ Question } ${q}`,
+          topic: `Multivariable Calculus (Chapter ${first.split(".")[0]})`,
+          difficulty: "Medium",
+          methodOfWork: `Solve Problem ${q} in Section ${first} following standard multivariable methods from Thomas' Calculus 11th Edition.`,
+        });
+      });
+    } else {
+      // Computer Science, Design, or general assignments
       problems.push({
-        id: `${exercise}-${qNum}`,
-        exercise: `Ex ${exercise}`,
-        qNum,
+        id: `task-${idx + 1}`,
+        exercise: `Task ${idx + 1}`,
+        qNum: idx + 1,
         isMandatory: true,
-        title: `Section ${exercise} — Question ${qNum}`,
-        latex: `\\oint_C f(z) \\, dz \\quad (\\text{Section } ${exercise}, \\text{ Question } ${qNum})`,
-        topic: `Section ${exercise} Problem Set`,
+        title: seg,
+        latex: `\\text{${courseCode} Assignment: } \\text{${seg.replace(/[^a-zA-Z0-9\s_-]/g, "")}}`,
+        topic: `${courseName} Practice`,
         difficulty: "Medium",
-        methodOfWork: `Apply standard fundamental theorems and evaluate boundary conditions for Section ${exercise}.`,
+        methodOfWork: `Complete ${seg} as instructed by the course professor.`,
       });
-
-      similarPractice.push({
-        id: `${exercise}-${qNum + 1}-sim`,
-        exercise: `Ex ${exercise}`,
-        qNum: qNum + 1,
-        isMandatory: false,
-        similarTo: qNum,
-        title: `Similar Practice: Section ${exercise} Q${qNum + 1}`,
-        latex: `\\oint_C g(z) \\, dz \\quad (\\text{Practice } ${exercise}.${qNum + 1})`,
-        topic: `Section ${exercise} Practice`,
-        difficulty: "Medium",
-        methodOfWork: `Use identical boundary analysis as Question ${qNum}.`,
-      });
-    });
+    }
   });
 
   return {
-    summary: `Assigned: ${rawInput}`,
+    summary: rawInput ? `Assigned: ${rawInput}` : "No homework assigned",
     problems,
-    similarPractice,
-    okfMarkdown: `# OKF Homework Manifest: ${courseCode || "MTH201"}\nRaw Input: ${rawInput}\nDate: ${new Date().toISOString()}`,
+    similarPractice: [],
+    okfMarkdown: `# OKF Homework Manifest: ${courseCode}\nAssignment: ${rawInput}\nDate: ${new Date().toISOString()}`,
   };
 }

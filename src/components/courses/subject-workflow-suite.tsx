@@ -401,10 +401,10 @@ export function SubjectWorkflowSuite({
                   <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
                     <div>
                       <h3 className="text-sm font-semibold text-white">
-                        Method of Work: Cauchy&apos;s Theorem &amp; Formulas
+                        Method of Work: Multivariable Calculus &amp; Partial Derivatives
                       </h3>
-                      <p className="text-[11px] text-zinc-500 mt-0.5">
-                        Erwin Kreyszig Sections 14.2, 14.3, 14.4
+                      <p className="text-[11px] text-zinc-400 mt-0.5">
+                        Thomas&apos; Calculus (11th Edition) — Chapters 12–16
                       </p>
                     </div>
                     <button
@@ -417,20 +417,20 @@ export function SubjectWorkflowSuite({
 
                   <div className="space-y-3 text-xs text-zinc-300">
                     <div className="p-3 rounded-lg bg-zinc-900/60 border border-zinc-800 text-center space-y-2">
-                      <div className="text-[11px] text-zinc-400">1. Cauchy&apos;s Theorem (Analytic function along closed contour):</div>
-                      <MathView math="\\oint_C f(z) \\, dz = 0" displayMode={true} />
-                      <div className="text-[11px] text-zinc-400 pt-2">2. Cauchy&apos;s Integral Formula (Pole inside contour):</div>
-                      <MathView math="f(z_0) = \\frac{1}{2\\pi i} \\oint_C \\frac{f(z)}{z - z_0} \\, dz" displayMode={true} />
+                      <div className="text-[11px] text-zinc-400">1. Two-Path Test for Limits in Higher Dimensions:</div>
+                      <MathView math="\\lim_{(x,y) \\to (0,0)} f(x,y) \\quad \\text{along } y=mx \\neq \\text{along } x=0 \\implies \\text{Limit DNE}" displayMode={true} />
+                      <div className="text-[11px] text-zinc-400 pt-2">2. Multivariable Chain Rule (Parametric Path):</div>
+                      <MathView math="\\frac{dw}{dt} = \\frac{\\partial w}{\\partial x}\\frac{dx}{dt} + \\frac{\\partial w}{\\partial y}\\frac{dy}{dt}" displayMode={true} />
                     </div>
 
                     <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 text-[11px]">
                       <div className="p-2.5 rounded-lg bg-zinc-900 border border-zinc-800">
-                        <strong className="text-white block mb-0.5">Step 1: Check Domain &amp; Poles</strong>
-                        Find denominator roots <MathView math="z_0" />. Determine whether <MathView math="z_0" /> is strictly inside or outside contour <MathView math="C" />.
+                        <strong className="text-white block mb-0.5">Two-Path Limit Test</strong>
+                        Test different approach curves like <span className="font-mono">y = mx</span> and <span className="font-mono">x = my²</span>. If the limit depends on m, the limit does not exist.
                       </div>
                       <div className="p-2.5 rounded-lg bg-zinc-900 border border-zinc-800">
-                        <strong className="text-white block mb-0.5">Step 2: Apply Integral Rule</strong>
-                        If pole is outside <MathView math="C" /> $\to$ integral is $0$. If pole is inside $\to$ evaluate <MathView math="2\\pi i f(z_0)" />.
+                        <strong className="text-white block mb-0.5">Partial Differentiation</strong>
+                        Treat all other variables as constants when taking first-order partial derivatives <MathView math="\partial f / \partial x" /> and <MathView math="\partial f / \partial y" />.
                       </div>
                     </div>
                   </div>
