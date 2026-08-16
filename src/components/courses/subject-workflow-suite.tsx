@@ -562,12 +562,73 @@ export function SubjectWorkflowSuite({
 
           <CardContent className="p-4 sm:p-5 space-y-4">
             {materials.length === 0 ? (
-              <div className="rounded-xl border border-zinc-800 border-dashed bg-zinc-900/20 p-8 text-center">
-                <BookOpen className="mx-auto mb-2 h-8 w-8 text-zinc-600" />
-                <h4 className="text-sm font-semibold text-zinc-300">No Lecture Materials Uploaded Yet</h4>
-                <p className="text-xs text-zinc-500 mt-1 max-w-sm mx-auto">
-                  When your professor uploads lecture slides, notes, or PDFs to Google Classroom, AI study prompts will be generated automatically.
-                </p>
+              <div className="space-y-4">
+                <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-medium text-zinc-400">
+                      Syllabus &amp; Exam Prep Prompts
+                    </span>
+                    <span className="text-[10px] text-zinc-500">
+                      Ready to use in NotebookLM / Gemini
+                    </span>
+                  </div>
+                  <h4 className="text-xs sm:text-sm font-semibold text-white">
+                    {courseName} AI Study Companion
+                  </h4>
+                  <p className="text-xs text-zinc-400">
+                    Use these verified prompts to study core topics, solve practice problems, and generate flashcards.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  {[
+                    {
+                      key: "foundations",
+                      label: "🎓 Teach Core Subject Foundations Step-by-Step",
+                      prompt: `Act as a senior university professor teaching ${courseName}. Break down the essential syllabus topics, fundamental principles, and key equations step-by-step with intuitive analogies and practical examples.`,
+                    },
+                    {
+                      key: "midsem-quiz",
+                      label: "❓ Quiz Me on High-Yield Midsem Exam Questions",
+                      prompt: `Generate 4 challenging conceptual and analytical exam questions for ${courseName}. Present one question at a time, wait for my response, and give detailed grading with model answers.`,
+                    },
+                    {
+                      key: "pitfalls",
+                      label: "💡 Explain Tricky Exam Traps & Common Misconceptions",
+                      prompt: `What are the most difficult concepts and common exam pitfalls in ${courseName}? Explain subtle edge cases and how top students approach them.`,
+                    },
+                    {
+                      key: "flashcards-gen",
+                      label: "📝 Generate 5 Flashcards for SuperMemo SM-2",
+                      prompt: `Extract 5 high-yield question-and-answer flashcard pairs covering fundamental definitions and formulas in ${courseName} for spaced repetition review.`,
+                    },
+                  ].map((p) => (
+                    <div
+                      key={p.key}
+                      className="p-3 rounded-xl bg-zinc-950 border border-zinc-800 flex items-center justify-between gap-3 text-xs"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium text-zinc-200">{p.label}</div>
+                        <div className="text-[10px] text-zinc-500 mt-0.5 truncate font-mono">
+                          {p.prompt}
+                        </div>
+                      </div>
+
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleCopyPrompt(p.prompt, `course-prompt-${p.key}`)}
+                        className="h-7 text-[10px] font-medium border-zinc-800 hover:bg-zinc-800 text-zinc-200 shrink-0"
+                      >
+                        {copiedPrompt === `course-prompt-${p.key}` ? (
+                          <span className="text-white font-semibold">Copied!</span>
+                        ) : (
+                          <span>Copy</span>
+                        )}
+                      </Button>
+                    </div>
+                  ))}
+                </div>
               </div>
             ) : (
               <>

@@ -8,14 +8,14 @@ import {
   ArrowLeft,
   ExternalLink,
   FileText,
-  Megaphone,
   BookOpen,
   AlertCircle,
   Video,
   Globe,
-  Plus,
+  Sparkles,
+  Layers,
 } from 'lucide-react';
-import { format, formatDistanceToNow, isPast } from 'date-fns';
+import { format, isPast } from 'date-fns';
 import {
   ClassroomCourse,
   ClassroomCourseWork,
@@ -90,7 +90,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ courseI
   const [materials, setMaterials] = useState<ClassroomCourseWorkMaterial[]>([]);
   const [announcements, setAnnouncements] = useState<ClassroomAnnouncement[]>([]);
   const [submissions, setSubmissions] = useState<ClassroomStudentSubmission[]>([]);
-  const [activeTab, setActiveTab] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState<string>('study-suite');
 
   useEffect(() => {
     async function fetchCourseData() {
@@ -105,40 +105,42 @@ export default function CourseDetailPage({ params }: { params: Promise<{ courseI
             fetch(`/api/classroom/courses/${courseId}/submissions`),
           ]);
 
+        let hasClassroomItems = false;
+
         if (courseRes.ok) {
           const courseData = await courseRes.json();
           const crs = courseData.course || courseData;
           setCourse(crs);
-
-          // Only default to problem sets if this is specifically Math III (MTH201)
-          const cName = (crs.name || '').toLowerCase();
-          const isMath3Course =
-            (cName.includes('math') && cName.includes('iii')) ||
-            cName.includes('mth201') ||
-            courseId.includes('mth201');
-
-          setActiveTab(isMath3Course ? 'practice' : 'all');
         }
 
         if (courseworkRes.ok) {
           const cwData = await courseworkRes.json();
-          setCoursework(Array.isArray(cwData) ? cwData : cwData.coursework || []);
+          const cw = Array.isArray(cwData) ? cwData : cwData.coursework || [];
+          setCoursework(cw);
+          if (cw.length > 0) hasClassroomItems = true;
         }
 
         if (materialsRes.ok) {
           const matData = await materialsRes.json();
-          setMaterials(Array.isArray(matData) ? matData : matData.materials || []);
+          const mats = Array.isArray(matData) ? matData : matData.materials || [];
+          setMaterials(mats);
+          if (mats.length > 0) hasClassroomItems = true;
         }
 
         if (announcementsRes.ok) {
           const annData = await announcementsRes.json();
-          setAnnouncements(Array.isArray(annData) ? annData : annData.announcements || []);
+          const anns = Array.isArray(annData) ? annData : annData.announcements || [];
+          setAnnouncements(anns);
+          if (anns.length > 0) hasClassroomItems = true;
         }
 
         if (submissionsRes.ok) {
           const subData = await submissionsRes.json();
           setSubmissions(Array.isArray(subData) ? subData : subData.submissions || []);
         }
+
+        // If there are Classroom items, default to 'classroom-stream', otherwise default to 'study-suite'
+        setActiveTab(hasClassroomItems ? 'classroom-stream' : 'study-suite');
       } catch (error) {
         console.error('Failed to fetch course data', error);
       } finally {
@@ -186,13 +188,13 @@ export default function CourseDetailPage({ params }: { params: Promise<{ courseI
     }
   });
 
+  const totalClassroomItems = coursework.length + materials.length + announcements.length;
   const cName = (course.name || '').toLowerCase();
-  const isMath3Course =
-    (cName.includes('math') && cName.includes('iii')) ||
-    cName.includes('mth201') ||
-    courseId.includes('mth201');
-
-  const totalItems = coursework.length + materials.length + announcements.length;
+  const isMathCourse =
+    cName.includes('math') ||
+    cName.includes('mth') ||
+    cName.includes('calculus') ||
+    cName.includes('algebra');
 
   return (
     <motion.div
@@ -201,7 +203,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ courseI
       transition={{ duration: 0.15 }}
       className="space-y-4 max-w-4xl"
     >
-      {/* Compact Top Navigation Bar */}
+      {/* Top Navigation Bar */}
       <div className="flex items-center justify-between gap-3 border-b border-zinc-800 pb-3">
         <Link
           href="/courses"
@@ -218,13 +220,13 @@ export default function CourseDetailPage({ params }: { params: Promise<{ courseI
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 text-[11px] font-medium text-zinc-300 hover:text-white bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1 transition-colors"
           >
-            <span>Classroom</span>
+            <span>Open in Classroom</span>
             <ExternalLink className="h-3 w-3 text-zinc-500" />
           </a>
         )}
       </div>
 
-      {/* Minimal Header Title */}
+      {/* Course Title Header */}
       <div className="space-y-0.5">
         <div className="flex items-center gap-2">
           <span className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider">
@@ -240,14 +242,25 @@ export default function CourseDetailPage({ params }: { params: Promise<{ courseI
       {/* Segmented Tab Filter */}
       <div className="flex items-center gap-1 border-b border-zinc-800/80 pb-2 overflow-x-auto scrollbar-none flex-nowrap text-xs">
         <button
-          onClick={() => setActiveTab('all')}
+          onClick={() => setActiveTab('study-suite')}
           className={`shrink-0 rounded-md px-3 py-1 text-xs font-medium transition-colors ${
-            activeTab === 'all'
+            activeTab === 'study-suite'
               ? 'bg-zinc-800 text-white font-semibold'
               : 'text-zinc-400 hover:text-zinc-200'
           }`}
         >
-          All ({totalItems})
+          {isMathCourse ? 'Problem Sets & Practice' : 'Study Tutor & Prompts'}
+        </button>
+
+        <button
+          onClick={() => setActiveTab('classroom-stream')}
+          className={`shrink-0 rounded-md px-3 py-1 text-xs font-medium transition-colors ${
+            activeTab === 'classroom-stream'
+              ? 'bg-zinc-800 text-white font-semibold'
+              : 'text-zinc-400 hover:text-zinc-200'
+          }`}
+        >
+          Classroom Stream ({totalClassroomItems})
         </button>
 
         {materials.length > 0 && (
@@ -275,39 +288,14 @@ export default function CourseDetailPage({ params }: { params: Promise<{ courseI
             Assignments ({coursework.length})
           </button>
         )}
-
-        {announcements.length > 0 && (
-          <button
-            onClick={() => setActiveTab('announcements')}
-            className={`shrink-0 rounded-md px-3 py-1 text-xs font-medium transition-colors ${
-              activeTab === 'announcements'
-                ? 'bg-zinc-800 text-white font-semibold'
-                : 'text-zinc-400 hover:text-zinc-200'
-            }`}
-          >
-            Notices ({announcements.length})
-          </button>
-        )}
-
-        {isMath3Course && (
-          <button
-            onClick={() => setActiveTab('practice')}
-            className={`shrink-0 rounded-md px-3 py-1 text-xs font-medium transition-colors ${
-              activeTab === 'practice'
-                ? 'bg-zinc-800 text-white font-semibold'
-                : 'text-zinc-400 hover:text-zinc-200'
-            }`}
-          >
-            Problem Sets (KaTeX)
-          </button>
-        )}
       </div>
 
       {/* Content Area */}
       <AnimatePresence mode="wait">
-        {activeTab === 'practice' && isMath3Course ? (
+        {/* 1. Study & Practice Lab */}
+        {activeTab === 'study-suite' ? (
           <motion.div
-            key="practice-tab"
+            key="study-tab"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -323,6 +311,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ courseI
             />
           </motion.div>
         ) : activeTab === 'materials' ? (
+          /* 2. Lecture Materials */
           <motion.div
             key="materials-tab"
             initial={{ opacity: 0 }}
@@ -367,6 +356,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ courseI
             ))}
           </motion.div>
         ) : activeTab === 'assignments' ? (
+          /* 3. Assignments */
           <motion.div
             key="assignments-tab"
             initial={{ opacity: 0 }}
@@ -456,135 +446,120 @@ export default function CourseDetailPage({ params }: { params: Promise<{ courseI
             })}
           </motion.div>
         ) : (
-          /* Unified "All Content" Timeline */
+          /* 4. Unified Classroom Stream */
           <motion.div
-            key="all-tab"
+            key="stream-tab"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="space-y-3"
           >
-            {totalItems === 0 ? (
-              <div className="rounded-xl border border-zinc-800 border-dashed bg-zinc-900/20 p-8 text-center">
-                <BookOpen className="mx-auto mb-2 h-7 w-7 text-zinc-600" />
-                <h3 className="text-xs sm:text-sm font-semibold text-zinc-300">
-                  No Classroom Content Posted Yet
+            {totalClassroomItems === 0 ? (
+              <div className="rounded-xl border border-zinc-800 bg-zinc-900/20 p-6 text-center space-y-2">
+                <BookOpen className="mx-auto h-6 w-6 text-zinc-500" />
+                <h3 className="text-xs sm:text-sm font-semibold text-zinc-200">
+                  0 Classroom Stream Posts Yet
                 </h3>
-                <p className="text-[11px] text-zinc-500 mt-1 max-w-sm mx-auto">
-                  When your instructor uploads lecture slides, assignments, or notices to Google Classroom, they will appear here.
+                <p className="text-[11px] text-zinc-400 max-w-md mx-auto">
+                  Your instructor has not uploaded lecture notes, assignments, or notices to this Google Classroom stream yet. You can use the practice sets and AI study tutor above.
                 </p>
                 {course.alternateLink && (
-                  <a
-                    href={course.alternateLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 mt-4 rounded-lg bg-white text-zinc-950 px-3 py-1.5 text-xs font-semibold hover:bg-zinc-200 transition-colors"
-                  >
-                    <span>Open in Google Classroom</span>
-                    <ExternalLink className="h-3 w-3" />
-                  </a>
+                  <div className="pt-2">
+                    <a
+                      href={course.alternateLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-zinc-800 border border-zinc-700 hover:bg-zinc-700 text-zinc-200 px-3 py-1.5 text-xs font-medium transition-colors"
+                    >
+                      <span>Open in Google Classroom</span>
+                      <ExternalLink className="h-3 w-3 text-zinc-400" />
+                    </a>
+                  </div>
                 )}
               </div>
             ) : (
               <>
-                {/* 1. Materials */}
-                {materials.length > 0 && (
-                  <div className="space-y-1.5">
-                    <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 px-1">
-                      Lecture Slides &amp; Notes
-                    </div>
-                    {materials.map((mat) => (
-                      <div
-                        key={mat.id}
-                        className="rounded-lg border border-zinc-800 bg-zinc-900/40 p-3 space-y-1.5"
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <h4 className="text-xs sm:text-sm font-semibold text-white">{mat.title}</h4>
-                          {mat.alternateLink && (
-                            <a
-                              href={mat.alternateLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-zinc-400 hover:text-white p-0.5"
-                            >
-                              <ExternalLink className="h-3 w-3" />
-                            </a>
-                          )}
-                        </div>
-                        {mat.description && (
-                          <p className="text-xs text-zinc-400 line-clamp-2">{mat.description}</p>
-                        )}
-                        {mat.materials && mat.materials.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5 pt-1.5 border-t border-zinc-800/60">
-                            {mat.materials.map((item, idx) => (
-                              <AttachmentBadge key={idx} item={item} />
-                            ))}
-                          </div>
-                        )}
+                {materials.map((mat) => (
+                  <div
+                    key={mat.id}
+                    className="rounded-lg border border-zinc-800 bg-zinc-900/40 p-3 space-y-1.5"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="space-y-0.5">
+                        <span className="text-[10px] font-medium text-zinc-500">Lecture Material</span>
+                        <h4 className="text-xs sm:text-sm font-semibold text-white">{mat.title}</h4>
                       </div>
-                    ))}
+                      {mat.alternateLink && (
+                        <a
+                          href={mat.alternateLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-zinc-400 hover:text-white p-0.5"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      )}
+                    </div>
+                    {mat.description && (
+                      <p className="text-xs text-zinc-400 line-clamp-2">{mat.description}</p>
+                    )}
+                    {mat.materials && mat.materials.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 pt-1.5 border-t border-zinc-800/60">
+                        {mat.materials.map((item, idx) => (
+                          <AttachmentBadge key={idx} item={item} />
+                        ))}
+                      </div>
+                    )}
                   </div>
-                )}
+                ))}
 
-                {/* 2. Coursework */}
-                {coursework.length > 0 && (
-                  <div className="space-y-1.5 pt-2">
-                    <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 px-1">
-                      Assignments
-                    </div>
-                    {coursework.map((item) => (
-                      <div
-                        key={item.id}
-                        className="rounded-lg border border-zinc-800 bg-zinc-900/40 p-3 space-y-1.5"
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <h4 className="text-xs sm:text-sm font-semibold text-white">{item.title}</h4>
-                          {item.alternateLink && (
-                            <a
-                              href={item.alternateLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-zinc-400 hover:text-white p-0.5"
-                            >
-                              <ExternalLink className="h-3 w-3" />
-                            </a>
-                          )}
-                        </div>
-                        {item.materials && item.materials.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5 pt-1.5 border-t border-zinc-800/60">
-                            {item.materials.map((mat, idx) => (
-                              <AttachmentBadge key={idx} item={mat} />
-                            ))}
-                          </div>
-                        )}
+                {coursework.map((item) => (
+                  <div
+                    key={item.id}
+                    className="rounded-lg border border-zinc-800 bg-zinc-900/40 p-3 space-y-1.5"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="space-y-0.5">
+                        <span className="text-[10px] font-medium text-zinc-500">Assignment</span>
+                        <h4 className="text-xs sm:text-sm font-semibold text-white">{item.title}</h4>
                       </div>
-                    ))}
+                      {item.alternateLink && (
+                        <a
+                          href={item.alternateLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-zinc-400 hover:text-white p-0.5"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                        </a>
+                      )}
+                    </div>
+                    {item.materials && item.materials.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 pt-1.5 border-t border-zinc-800/60">
+                        {item.materials.map((mat, idx) => (
+                          <AttachmentBadge key={idx} item={mat} />
+                        ))}
+                      </div>
+                    )}
                   </div>
-                )}
+                ))}
 
-                {/* 3. Announcements */}
-                {announcements.length > 0 && (
-                  <div className="space-y-1.5 pt-2">
-                    <div className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 px-1">
-                      Notices
-                    </div>
-                    {announcements.map((ann) => (
-                      <div
-                        key={ann.id}
-                        className="rounded-lg border border-zinc-800 bg-zinc-900/40 p-3 space-y-1"
-                      >
-                        <p className="text-xs text-zinc-300 leading-relaxed">{ann.text}</p>
-                        {ann.materials && ann.materials.length > 0 && (
-                          <div className="flex flex-wrap gap-1.5 pt-1.5 border-t border-zinc-800/60">
-                            {ann.materials.map((mat, idx) => (
-                              <AttachmentBadge key={idx} item={mat} />
-                            ))}
-                          </div>
-                        )}
+                {announcements.map((ann) => (
+                  <div
+                    key={ann.id}
+                    className="rounded-lg border border-zinc-800 bg-zinc-900/40 p-3 space-y-1"
+                  >
+                    <span className="text-[10px] font-medium text-zinc-500">Notice</span>
+                    <p className="text-xs text-zinc-300 leading-relaxed">{ann.text}</p>
+                    {ann.materials && ann.materials.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 pt-1.5 border-t border-zinc-800/60">
+                        {ann.materials.map((mat, idx) => (
+                          <AttachmentBadge key={idx} item={mat} />
+                        ))}
                       </div>
-                    ))}
+                    )}
                   </div>
-                )}
+                ))}
               </>
             )}
           </motion.div>
