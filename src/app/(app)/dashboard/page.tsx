@@ -285,6 +285,34 @@ export default function DashboardPage() {
             ))}
           </div>
 
+          {/* Today's Classes & AI Prep Quick Strip */}
+          <div className="rounded-3xl border border-indigo-500/30 bg-gradient-to-r from-indigo-950/40 via-zinc-900/80 to-purple-950/40 p-5 shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-300">
+                <CalendarIcon className="h-5 w-5" />
+              </div>
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-white">Weekly Class Timetable & AI Prep</span>
+                  <span className="rounded-full bg-emerald-500/20 px-2 py-0.5 text-[10px] font-bold text-emerald-400">
+                    Math III Tuesday Test Prep Active
+                  </span>
+                </div>
+                <p className="text-xs text-zinc-400">
+                  Room coordinates, lecture times & automated revision slots mapped for all 5 CSD subjects.
+                </p>
+              </div>
+            </div>
+
+            <Link
+              href="/calendar"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-500 shadow-md shadow-indigo-600/20 shrink-0 self-start md:self-auto"
+            >
+              <span>Open Full Timetable</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+
           {/* Main Dashboard Layout */}
           <div className="grid gap-8 lg:grid-cols-3">
             {/* Active Courses Section (2 Cols) */}
