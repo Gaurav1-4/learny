@@ -1,22 +1,20 @@
 # Learny — Project State & Milestone Tracker
 
-**Current Status**: Real-Time Cloud Firestore Multi-Device Backend Sync Engine Live & Deployed to Production
+**Current Status**: Math Homework Reset & Cleared on Production; 1-Click Clear & Fresh Workspace Live
 **GitHub Repository**: [https://github.com/Gaurav1-4/learny](https://github.com/Gaurav1-4/learny)
 **Live Production URLs**:
 - `https://learny.zorx.tech`
-- `https://learny-hb0r4exm6-semly.vercel.app`
+- `https://learny-ptp4i55nj-semly.vercel.app`
 
 ---
 
-## ⚡ Firebase Cloud Firestore Backend Sync Pipeline (Live)
+## 🧹 Math Homework Workspace Reset (Live)
 
-1. **True Cross-Device External Database Sync (MacBook <-> iPhone)**:
-   - Installed `firebase` & `firebase-admin` and provisioned **Learny Web** app on Google Firebase project `indiasgotlatent-be0ed`.
-   - Built `src/lib/firebase/firestore-sync.ts` & `src/lib/firebase/server-sync.ts`:
-     - **Real-Time Client Listener (`listenToFirestoreSync`)**: Automatically detects changes made on any other device (iPhone, iPad, MacBook) without page refresh.
-     - **Automatic Hydration (`CloudSyncHydrator`)**: Mounted at the root `Providers` tree to synchronize all academic state (backlog homework, solved questions, flashcards, GPA, calendar events).
-     - **Instant Mutation Sync (`pushToFirestore`)**: Fired whenever you solve a problem, mark a question Done/Pending, save homework, or rewrite with Gemini AI.
-2. **Server & Apple Calendar Integration**:
-   - `src/app/api/calendar/feed.ics` and `src/app/api/sync/all` query Firestore directly so that Apple Calendar on your iPhone/Mac receives real-time homework deadlines and test alarms even before opening the web app.
-3. **Multi-User Isolation**:
-   - Cloud state keys off authenticated Google Classroom email (`students/{studentEmail}`).
+1. **Previous Homework Cleared**:
+   - Stripped all legacy/pre-detected math questions from client and cloud Firestore states.
+   - Initial problem ledger starts completely clean `[]` with an authentic empty state.
+2. **1-Click "Clear" Action**:
+   - Added a red-accented `Clear` button in the top toolbar of course workspaces.
+   - Clears all cached problems, backlog mappings, and pending/done flags in both `localStorage` and `Cloud Firestore`.
+3. **Ready for Real Homework**:
+   - Click `+ Homework` or paste your homework message in chat to have the Gemini LLM decompose it into authentic KaTeX LaTeX equations, method guides, and scheduled calendar blocks.

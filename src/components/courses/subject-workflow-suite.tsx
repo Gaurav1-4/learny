@@ -357,12 +357,44 @@ export function SubjectWorkflowSuite({
           difficulty: p.difficulty || "Medium",
           methodOfWork: p.methodOfWork || "Follow lecture steps and textbook guidelines.",
           dueDate: llmDueDate,
+          rawInput: shorthandInput,
         }))
 
         const updated = [...llmProblems, ...parsedProblems]
         setParsedProblems(updated)
-        localStorage.setItem(`learny-problems-${courseId}`, JSON.stringify(updated))
-        showToast("Gemini LLM processed your homework with step-by-step LaTeX!")
+        
+        const targetKeys = [`learny-problems-${courseId}`]
+        if (isMath3 || courseName.toLowerCase().includes("math")) {
+          targetKeys.push("learny-problems-mth203", "learny-problems-mth201", "learny-problems-math")
+        }
+        targetKeys.forEach((k) => localStorage.setItem(k, JSON.stringify(updated)))
+        localStorage.setItem(`learny-hw-input-${courseId}`, shorthandInput)
+
+        pushToFirestore({
+          problemsMap: { [courseId]: updated, mth203: updated },
+        })
+
+        // Inject smart schedule if available
+        if (json.data.smartSchedule) {
+          const calendarKey = "learny-calendar-custom-events"
+          const existingEventsRaw = localStorage.getItem(calendarKey)
+          const existingEvents = existingEventsRaw ? JSON.parse(existingEventsRaw) : []
+          const newEvt = {
+            id: `hw-${courseId}-${Date.now()}`,
+            title: `📝 ${courseName} Homework: ${json.data.summary || shorthandInput}`,
+            courseName,
+            date: llmDueDate,
+            time: json.data.smartSchedule.dueTime || "11:59 PM",
+            type: "homework",
+            category: "submission",
+            description: `Auto-scheduled via Gemini AI: ${shorthandInput}`,
+          }
+          const filtered = existingEvents.filter((e: any) => e.id !== newEvt.id)
+          filtered.push(newEvt)
+          localStorage.setItem(calendarKey, JSON.stringify(filtered))
+        }
+
+        showToast("✨ Gemini AI formatted your homework with KaTeX equations!")
       } else {
         // Fallback parser
         const segments = shorthandInput.split(/[,;\n]+/).map((s) => s.trim()).filter(Boolean)
@@ -385,6 +417,7 @@ export function SubjectWorkflowSuite({
               difficulty: "Medium",
               methodOfWork: "Complete assignment according to lecture notes.",
               dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+              rawInput: shorthandInput,
             })
           } else {
             questionNums.forEach((qNum) => {
@@ -399,6 +432,7 @@ export function SubjectWorkflowSuite({
                 difficulty: "Medium",
                 methodOfWork: `Solve using Chapter ${exercise.split(".")[0]} formula.`,
                 dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+                rawInput: shorthandInput,
               })
             })
           }
@@ -408,6 +442,8 @@ export function SubjectWorkflowSuite({
           const updated = [...newProblems, ...parsedProblems]
           setParsedProblems(updated)
           localStorage.setItem(`learny-problems-${courseId}`, JSON.stringify(updated))
+          localStorage.setItem(`learny-hw-input-${courseId}`, shorthandInput)
+          pushToFirestore({ problemsMap: { [courseId]: updated } })
           showToast("Homework added and synced!")
         }
       }
@@ -426,10 +462,13 @@ export function SubjectWorkflowSuite({
         difficulty: "Medium",
         methodOfWork: "Complete problem set.",
         dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+        rawInput: shorthandInput,
       }
       const updated = [newProb, ...parsedProblems]
       setParsedProblems(updated)
       localStorage.setItem(`learny-problems-${courseId}`, JSON.stringify(updated))
+      localStorage.setItem(`learny-hw-input-${courseId}`, shorthandInput)
+      pushToFirestore({ problemsMap: { [courseId]: updated } })
       setShorthandInput("")
       setShowHomeworkModal(false)
       showToast("Homework saved locally!")
@@ -553,8 +592,23 @@ export function SubjectWorkflowSuite({
         rawInputsToProcess.push(shorthandInput.trim())
       }
 
+      // 4. From direct course homework input keys
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i)
+        if (key && key.startsWith("learny-hw-input-")) {
+          const storedCourseId = key.replace("learny-hw-input-", "")
+          if (isMatchingCourse(storedCourseId, storedCourseId, courseId, courseName)) {
+            const rawVal = localStorage.getItem(key)
+            if (rawVal && rawVal.trim() && !rawInputsToProcess.includes(rawVal.trim())) {
+              rawInputsToProcess.push(rawVal.trim())
+            }
+          }
+        }
+      }
+
       if (rawInputsToProcess.length === 0) {
-        showToast("No saved homework text found. Click '+ Homework' to log your assignment!")
+        setShowHomeworkModal(true)
+        showToast("Open homework modal to log your assignment with Gemini AI.")
         setIsReprocessing(false)
         return
       }

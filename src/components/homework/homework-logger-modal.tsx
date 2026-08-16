@@ -19,6 +19,8 @@ import { MathView } from '@/components/ui/math-view';
 import { ClassScheduleItem } from '@/lib/homework-prompt-engine';
 import { OKFRegistry } from '@/lib/okf-indexer';
 
+import { pushToFirestore } from '@/lib/firebase/firestore-sync';
+
 interface HomeworkLoggerModalProps {
   isOpen: boolean;
   classItem: ClassScheduleItem;
@@ -72,16 +74,40 @@ export function HomeworkLoggerModal({
   const handleConfirmSave = () => {
     if (!previewData && !inputText) return;
 
-    const problems = previewData?.problems || [];
+    const rawProblems = previewData?.problems || [];
     const summary = previewData?.summary || inputText;
     const smartSchedule = previewData?.smartSchedule;
 
-    // 1. Save to Course Problem Ledger
-    const courseProblemsKey = `learny-problems-${classItem.courseId}`;
-    localStorage.setItem(courseProblemsKey, JSON.stringify(problems));
+    const problems = rawProblems.map((p: any) => ({
+      ...p,
+      rawInput: inputText,
+    }));
 
-    // 2. Save to Course Homework Shorthand Input
+    // 1. Save to Course Problem Ledger across matching course aliases
+    const targetCourseKeys = [
+      `learny-problems-${classItem.courseId}`,
+      `learny-problems-${classItem.courseCode.toLowerCase()}`,
+    ];
+
+    if (classItem.courseCode.toLowerCase().includes('mth') || classItem.courseName.toLowerCase().includes('math')) {
+      targetCourseKeys.push('learny-problems-mth203', 'learny-problems-mth201', 'learny-problems-math');
+    }
+
+    targetCourseKeys.forEach((key) => {
+      localStorage.setItem(key, JSON.stringify(problems));
+    });
+
+    // 2. Save to Course Homework Shorthand Input & Lecture Backlog
     localStorage.setItem(`learny-hw-input-${classItem.courseId}`, inputText);
+    localStorage.setItem(`learny-backlog-hw-${classItem.id}`, JSON.stringify({
+      rawInput: inputText,
+      summary,
+      problems,
+      dueDate: smartSchedule?.dueDate || new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+      savedAt: new Date().toISOString(),
+      courseCode: classItem.courseCode,
+      courseName: classItem.courseName,
+    }));
 
     // 3. Mark class as logged for today & dismiss prompt
     const today = new Date().toISOString().split('T')[0];
@@ -133,7 +159,21 @@ export function HomeworkLoggerModal({
 
     localStorage.setItem(calendarKey, JSON.stringify(updatedEvents));
 
-    // 6. Sync to server ledger across all devices
+    // 6. Push to Cloud Firestore & Server Ledger
+    pushToFirestore({
+      problemsMap: { [classItem.courseId]: problems, mth203: problems },
+      backlogHomeworkMap: {
+        [classItem.id]: {
+          rawInput: inputText,
+          summary,
+          problems,
+          dueDate,
+          courseCode: classItem.courseCode,
+          courseName: classItem.courseName,
+        },
+      },
+    });
+
     try {
       fetch('/api/homework/sync', {
         method: 'POST',
