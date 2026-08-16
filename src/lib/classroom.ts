@@ -89,6 +89,7 @@ export class GoogleClassroomClient {
     try {
       const response = await this.classroom.courses.courseWork.list({
         courseId,
+        pageSize: 50,
       });
       return (response.data.courseWork as unknown as ClassroomCourseWork[]) || [];
     } catch (error) {
@@ -101,6 +102,7 @@ export class GoogleClassroomClient {
     try {
       const response = await this.classroom.courses.courseWorkMaterials.list({
         courseId,
+        pageSize: 50,
       });
       return (response.data.courseWorkMaterial as unknown as ClassroomCourseWorkMaterial[]) || [];
     } catch (error) {
@@ -130,10 +132,24 @@ export class GoogleClassroomClient {
     try {
       const response = await this.classroom.courses.announcements.list({
         courseId,
+        pageSize: 50,
       });
       return (response.data.announcements as unknown as ClassroomAnnouncement[]) || [];
     } catch (error) {
       console.warn(`Error fetching announcements for ${courseId}:`, error);
+      return [];
+    }
+  }
+
+  async getTopics(courseId: string): Promise<any[]> {
+    try {
+      const response = await this.classroom.courses.topics.list({
+        courseId,
+        pageSize: 50,
+      });
+      return response.data.topic || [];
+    } catch (error) {
+      console.warn(`Error fetching topics for ${courseId}:`, error);
       return [];
     }
   }
