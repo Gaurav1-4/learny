@@ -1,7 +1,7 @@
 // 1-Week Backlog Engine for Learny (Zero Fake Data)
 // Source of truth: TIMETABLE_CLASSES from weekly-timetable.tsx
 
-import { TIMETABLE_CLASSES, ClassSlot } from "@/components/calendar/weekly-timetable";
+import { TIMETABLE_CLASSES, ClassSlot } from "@/lib/timetable-data";
 import { OKFRegistry } from "@/lib/okf-indexer";
 
 export interface BacklogLecture {

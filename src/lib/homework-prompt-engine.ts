@@ -1,7 +1,7 @@
 // Timetable-driven Post-Class Homework Prompt & Notification Engine for Learny
 // Source of truth: TIMETABLE_CLASSES from weekly-timetable.tsx
 
-import { TIMETABLE_CLASSES, ClassSlot } from "@/components/calendar/weekly-timetable";
+import { TIMETABLE_CLASSES, ClassSlot } from "@/lib/timetable-data";
 
 export interface TimetableClass {
   id: string;

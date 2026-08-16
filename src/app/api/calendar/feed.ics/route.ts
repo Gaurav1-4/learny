@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
-import { TIMETABLE_CLASSES } from "@/components/calendar/weekly-timetable";
+import { TIMETABLE_CLASSES } from "@/lib/timetable-data";
 
 export const dynamic = "force-dynamic";
 
