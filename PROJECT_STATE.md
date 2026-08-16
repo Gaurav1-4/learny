@@ -1,21 +1,27 @@
 # Learny — Project State & Milestone Tracker
 
-**Status**: Production Complete • OAuth Token Auto-Refresh & Re-Authentication Implemented
-**Tech Stack**: Next.js 15 App Router + TypeScript + Tailwind CSS + Google Classroom API + NextAuth v5 + SuperMemo SM-2 + Web Audio API + LocalStorage
+**Status**: Deployed to Production on Vercel (Live & Verified)
+**Production URLs**: 
+- `https://learny-delta.vercel.app`
+- `https://learny-3718yrqw5-semly.vercel.app`
+- Target Custom Subdomain: `https://learny.zorx.tech`
 
 ---
 
-## 1. Verified Deliverables & Build Status
+## 1. Deployment Details
 
-- **OAuth 2.0 Auto-Refresh & Token Validation Fix**:
-  - `src/lib/auth.ts`: Implemented automatic token refresh via Google's `https://oauth2.googleapis.com/token` endpoint when the 1-hour access token approaches expiration.
-  - `src/lib/classroom.ts`: Configured `new google.auth.OAuth2(clientId, clientSecret)` with token validation.
-  - `src/app/(app)/dashboard/page.tsx`: Added one-click **"Sign in Again with Google Classroom"** action that clears stale previous sessions and fetches live tokens with full classroom scopes.
-- **Build Verification**: Compiled with **0 errors, 0 warnings across all 17 production routes/endpoints**.
+- **Vercel Project**: `semly/learny`
+- **Environment Variables Injected**:
+  - `AUTH_SECRET`
+  - `NEXTAUTH_SECRET`
+  - `NEXTAUTH_URL` (`https://learny.zorx.tech` / `https://learny-delta.vercel.app`)
+  - `GOOGLE_CLIENT_ID`
+  - `GOOGLE_CLIENT_SECRET`
+- **Git State**: Local repository committed cleanly on `main` branch.
 
 ---
 
-## 2. All 17 Production Routes
+## 2. All 17 Live Routes
 
 - `GET /`: Landing page with authentic Google Classroom sign-in.
 - `GET /dashboard`: Student dashboard with real stats, active courses grid, and upcoming deadlines.
@@ -37,11 +43,3 @@
 - `GET /api/classroom/courses/[courseId]/submissions`: Student submissions and grades API.
 - `GET /api/classroom/coursework?state=...`: Aggregated coursework API.
 - `GET /api/classroom/search?q=...`: Multi-course search API.
-
----
-
-## 3. How to Run
-```bash
-npm run dev
-```
-Open [http://localhost:3000](http://localhost:3000) and sign in!
