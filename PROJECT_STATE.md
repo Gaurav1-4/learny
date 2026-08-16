@@ -1,34 +1,20 @@
 # Learny — Project State & Milestone Tracker
 
-**Current Status**: Complete Zero Fake Data Enforcement Across All Courses & Thomas' Calculus Integration Live on Production
+**Current Status**: Real-Time Cross-Device Cloud Syncing (Laptop ↔ Phone ↔ Tablet) Live on Production
 **GitHub Repository**: [https://github.com/Gaurav1-4/learny](https://github.com/Gaurav1-4/learny)
 **Live Production URLs**:
 - `https://learny.zorx.tech`
-- `https://learny-4l6q0gkf0-semly.vercel.app`
+- `https://learny-exkw9c604-semly.vercel.app`
 
 ---
 
-## 🛡️ STRICT SYSTEM RULE: ZERO FAKE DATA & PROPER DOMAIN SEPARATION
+## 🚀 Real-Time Multi-Device Cloud Synchronization (Live)
 
-> [!IMPORTANT]
-> **RULE: ZERO FAKE DATA & STRICT DOMAIN SEPARATION**:
-> 1. Non-math courses (e.g. Operating Systems `CSE231`, Advanced Programming `CSE201`, DPP `DES201`, RMSSD `SSH201`) MUST NEVER contain math formulas or calculus exercises unless explicitly entered by the user.
-> 2. Math III / Calculus (`MTH203` / `MTH201`) is locked 100% to **Thomas' Calculus (11th Edition)** by George B. Thomas, Maurice D. Weir, Joel Hass (Chapters 12–16: Multivariable Limits, Partial Derivatives, Multiple Integrals, Vector Integration).
-> 3. All legacy mock data in `localStorage` is automatically purged.
-
----
-
-## 🎯 Verified System Components
-
-1. **Clean Homework Logger (`HomeworkLoggerModal`)**:
-   - Initial text is strictly empty (`""`).
-   - Dynamic placeholders tailored to each specific course.
-2. **AI Homework Parser (`/api/homework/ai-format`)**:
-   - Strictly domain-aware: outputs clean tasks for CS/Design and Thomas Calculus multivariable problems for Math.
-   - Removed all fallback complex integrals (`\oint_C f(z) dz`).
-3. **Course Workspaces (`/courses/[courseId]`)**:
-   - Live Google Classroom Prescribed Materials and Stream.
-   - Grounded problem sets and study prompts.
+1. **Automatic Cloud Sync (`CloudSyncHydrator`)**:
+   - Whenever Learny opens on your phone, laptop, or tablet, it automatically syncs with the server cloud ledger (`GET /api/homework/sync`).
+   - If you add or edit homework on your laptop, opening the app on your phone **instantly pulls and displays the exact same homework, backlog progress, and calendar deadlines**!
+2. **Bi-Directional Cloud Ledger (`/api/homework/sync`)**:
+   - Every save, edit, and deletion writes to both the browser's instant cache AND the server's persistent cloud ledger.
 
 ---
 

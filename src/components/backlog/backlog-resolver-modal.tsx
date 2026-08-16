@@ -65,8 +65,11 @@ export function BacklogResolverModal({
       : MONSOON_2026_BACKLOG_LECTURES.filter((l) => l.dayName === selectedDay);
 
   const handleSaveHomework = async (lecture: BacklogLecture) => {
-    const rawInput = customInputMap[lecture.id] || '';
-    if (!rawInput.trim()) {
+    // Get text from state or previous logged value
+    const existing = getLoggedHomeworkForLecture(lecture.id);
+    const rawInput = (customInputMap[lecture.id] !== undefined ? customInputMap[lecture.id] : (existing?.rawInput || '')).trim();
+
+    if (!rawInput) {
       markLectureNoHomework(lecture);
       setActiveEditingId(null);
       refreshStatus();
@@ -87,7 +90,7 @@ export function BacklogResolverModal({
         }),
       });
 
-      let formattedData: any = { summary: rawInput };
+      let formattedData: any = { summary: rawInput, problems: [] };
       if (res.ok) {
         const json = await res.json();
         if (json.data) formattedData = json.data;
@@ -98,7 +101,7 @@ export function BacklogResolverModal({
       refreshStatus();
     } catch (err) {
       console.error('Failed to format homework', err);
-      saveLectureHomework(lecture, rawInput);
+      saveLectureHomework(lecture, rawInput, { summary: rawInput });
       setActiveEditingId(null);
       refreshStatus();
     } finally {
@@ -109,6 +112,7 @@ export function BacklogResolverModal({
   const handleReset = () => {
     resetBacklogState();
     setCustomInputMap({});
+    setActiveEditingId(null);
     refreshStatus();
   };
 
@@ -250,12 +254,12 @@ export function BacklogResolverModal({
                   </div>
                 </div>
 
-                {/* Logged Homework Display (Zero Fake Data) */}
+                {/* Logged Homework Display */}
                 {isLogged && !isEditing && loggedHw && (
                   <div className="rounded-lg bg-zinc-950 border border-zinc-800/80 p-3 space-y-2 text-xs">
                     <div className="flex items-center justify-between text-[11px] text-zinc-400 border-b border-zinc-800/80 pb-1.5">
                       <span className="font-semibold text-white">
-                        {loggedHw.summary || 'No homework assigned'}
+                        {loggedHw.summary || loggedHw.rawInput || 'No homework assigned'}
                       </span>
                       <span className="text-emerald-400 font-medium flex items-center gap-1">
                         <CheckCircle2 className="h-3 w-3" />
@@ -276,9 +280,11 @@ export function BacklogResolverModal({
                               </span>
                             </div>
 
-                            <div className="py-1 px-2 rounded bg-zinc-900 text-center text-xs overflow-x-auto scrollbar-none">
-                              <MathView math={p.latex} displayMode={true} />
-                            </div>
+                            {p.latex && (
+                              <div className="py-1 px-2 rounded bg-zinc-900 text-center text-xs overflow-x-auto scrollbar-none">
+                                <MathView math={p.latex} displayMode={true} />
+                              </div>
+                            )}
 
                             {p.methodOfWork && (
                               <p className="text-[11px] text-zinc-400 leading-relaxed">
@@ -293,12 +299,18 @@ export function BacklogResolverModal({
                   </div>
                 )}
 
-                {/* Homework Input Form (User Types Real Data) */}
+                {/* Homework Input Form */}
                 {isEditing && (
-                  <div className="rounded-lg bg-zinc-950 border border-zinc-800 p-3 space-y-3">
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handleSaveHomework(lec);
+                    }}
+                    className="rounded-lg bg-zinc-950 border border-zinc-800 p-3 space-y-3"
+                  >
                     <div className="space-y-1">
                       <label className="text-[11px] font-medium text-zinc-300">
-                        Enter homework assigned by your professor:
+                        Enter homework assigned in this class:
                       </label>
                       <Input
                         value={customInputMap[lec.id] ?? (loggedHw?.rawInput || '')}
@@ -308,7 +320,15 @@ export function BacklogResolverModal({
                             [lec.id]: e.target.value,
                           }))
                         }
-                        placeholder="e.g. Exercise 14.2 Q3, Q5 or Lab 1 questions (leave empty if none)"
+                        placeholder={
+                          lec.courseCode.includes('MTH')
+                            ? 'e.g. 14.2 3 5, 14.3 2 (Thomas Calculus)'
+                            : lec.courseCode.includes('CSE231')
+                            ? 'e.g. CPU Scheduling questions 1-4, Lab 1'
+                            : lec.courseCode.includes('DES')
+                            ? 'e.g. Activity 1 Needfinding interviews'
+                            : 'e.g. Reading summary 1, Assignment 1'
+                        }
                         className="bg-zinc-900 border-zinc-800 text-xs h-8"
                       />
                     </div>
@@ -319,20 +339,20 @@ export function BacklogResolverModal({
                         variant="ghost"
                         size="sm"
                         onClick={() => {
+                          setCustomInputMap((prev) => ({ ...prev, [lec.id]: '' }));
                           markLectureNoHomework(lec);
                           setActiveEditingId(null);
                           refreshStatus();
                         }}
-                        className="h-7 text-[11px] text-zinc-400"
+                        className="h-7 text-[11px] text-zinc-400 hover:text-white"
                       >
                         No Homework
                       </Button>
 
                       <Button
-                        type="button"
+                        type="submit"
                         size="sm"
                         disabled={isLoading}
-                        onClick={() => handleSaveHomework(lec)}
                         className="h-7 bg-white text-zinc-950 hover:bg-zinc-200 text-[11px] font-semibold px-3 gap-1"
                       >
                         {isLoading ? (
@@ -343,7 +363,7 @@ export function BacklogResolverModal({
                         <span>Save &amp; Sync to Calendar</span>
                       </Button>
                     </div>
-                  </div>
+                  </form>
                 )}
               </div>
             );
