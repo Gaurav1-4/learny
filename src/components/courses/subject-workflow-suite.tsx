@@ -59,98 +59,87 @@ export function SubjectWorkflowSuite({ courseId, courseName, courseSection }: Su
   const isDPP = courseName.toLowerCase().includes("dpp") || courseName.toLowerCase().includes("design") || courseId.includes("dpp")
   const isRMSSD = courseName.toLowerCase().includes("rmssd") || courseName.toLowerCase().includes("research") || courseId.includes("rmssd")
 
-  // --- Math III State (Shorthand Parser, Voice Input & Similar Practice) ---
-  const [shorthandInput, setShorthandInput] = useState("14.1 1")
+  // --- Math III State (Shorthand Parser, Voice Input, Similar Practice & OKF Manifest) ---
+  const [shorthandInput, setShorthandInput] = useState("14.2 3 5, 14.3 2, 14.4 1")
   const [selectedM3Lecture, setSelectedM3Lecture] = useState<"lec-2" | "lec-1">("lec-2")
   const [filterMode, setFilterMode] = useState<"all" | "mandatory" | "similar">("all")
   const [isListening, setIsListening] = useState(false)
   const [speechTranscript, setSpeechTranscript] = useState("")
-  const [solvedQuestions, setSolvedQuestions] = useState<Record<string, boolean>>({ "14.1-1": true, "4.1-3": true })
+  const [solvedQuestions, setSolvedQuestions] = useState<Record<string, boolean>>({ "14.2-3": true, "14.3-2": true })
+  const [okfStatus, setOkfStatus] = useState<string>("LOGGED")
+  const [okfTopic, setOkfTopic] = useState<string>("Lecture 2: Cauchy's Integral Theorem & Path Independence (via NotebookLM)")
 
-  // Pre-loaded Lecture 2 & Lecture 1 Problems (Erwin Kreyszig Advanced Engineering Math)
+  // Pre-loaded Real Lecture 2 & Lecture 1 Problems (Sections 14.2, 14.3, 14.4)
   const [parsedProblems, setParsedProblems] = useState<MathProblem[]>([
-    // Lecture 2: Complex Line Integrals (Section 14.1 & 14.2)
+    // Real Lecture 2: Cauchy's Integral Theorem & Formulas (Sections 14.2, 14.3, 14.4)
     {
-      id: "14.1-1",
-      exercise: "Ex 14.1",
+      id: "14.2-3",
+      exercise: "Ex 14.2",
+      qNum: 3,
+      isMandatory: true,
+      title: "Cauchy's Integral Theorem on Simply Connected Contour",
+      latex: "\\oint_C \\frac{z^2 + 1}{z - 3} \\, dz = 0, \\quad C: |z| = 1",
+      topic: "Cauchy's Integral Theorem & Path Independence",
+      difficulty: "Medium",
+      methodOfWork: "Identify pole at z=3. Since z=3 lies strictly outside contour |z|=1, the integrand is analytic everywhere inside C. By Cauchy's Theorem, the closed contour integral is 0.",
+    },
+    {
+      id: "14.2-5",
+      exercise: "Ex 14.2",
+      qNum: 5,
+      isMandatory: true,
+      title: "Path Independence Evaluation of Exponential Integral",
+      latex: "\\int_{0}^{1+i\\pi} e^{2z} \\, dz = \\left[ \\frac{e^{2z}}{2} \\right]_0^{1+i\\pi} = \\frac{e^{2+2i\\pi}-1}{2} = \\frac{e^2 - 1}{2}",
+      topic: "Path Independence & Complex Antiderivative",
+      difficulty: "Easy",
+      methodOfWork: "Because e^{2z} is entire (analytic everywhere in C), its integral is strictly path-independent. Integrate using the standard fundamental theorem of calculus.",
+    },
+    {
+      id: "14.3-2",
+      exercise: "Ex 14.3",
+      qNum: 2,
+      isMandatory: true,
+      title: "Cauchy's Integral Formula with Singularity at Interior Pole",
+      latex: "\\oint_C \\frac{e^z}{z - i} \\, dz = 2\\pi i f(i) = 2\\pi i e^i, \\quad C: |z| = 2",
+      topic: "Cauchy's Integral Formula",
+      difficulty: "Medium",
+      methodOfWork: "Interior pole z_0 = i is inside |z|=2. Apply Cauchy's Integral Formula: \\oint_C \\frac{f(z)}{z - z_0} dz = 2\\pi i f(z_0) with f(z) = e^z.",
+    },
+    {
+      id: "14.4-1",
+      exercise: "Ex 14.4",
       qNum: 1,
       isMandatory: true,
-      title: "Line Integral on Parabolic Path in Complex Plane",
-      latex: "\\int_C \\text{Re}(z) \\, dz, \\quad C: z(t) = t + i t^2, \\quad 0 \\le t \\le 1",
-      topic: "Complex Line Integrals & Parametrization",
-      difficulty: "Medium",
-      methodOfWork: "Parametrize z(t) = x(t) + i y(t), compute dz = z'(t)dt = (1 + 2it)dt, substitute Re(z)=t, and integrate \\int_0^1 t(1+2it)dt.",
-    },
-    {
-      id: "14.1-2",
-      exercise: "Ex 14.1",
-      qNum: 2,
-      isMandatory: false,
-      similarTo: 1,
-      title: "Line Integral along Straight Line Segment (Similar to Q1)",
-      latex: "\\int_C z^2 \\, dz, \\quad C: \\text{Straight line from } z=0 \\text{ to } z=1+i",
-      topic: "Complex Line Integrals & Parametrization",
-      difficulty: "Easy",
-      methodOfWork: "Parametrize line z(t) = t(1+i) for 0 \\le t \\le 1, compute dz = (1+i)dt, integrate \\int_0^1 t^2(1+i)^3 dt.",
-    },
-    {
-      id: "14.1-3",
-      exercise: "Ex 14.1",
-      qNum: 3,
-      isMandatory: false,
-      similarTo: 1,
-      title: "Line Integral along Semicircle |z|=1 (Similar to Q1)",
-      latex: "\\int_C \\bar{z} \\, dz, \\quad C: z(\\theta) = e^{i\\theta}, \\quad 0 \\le \\theta \\le \\pi",
-      topic: "Polar / Exponential Parametrization",
-      difficulty: "Medium",
-      methodOfWork: "Substitute z = e^{i\\theta}, \\bar{z} = e^{-i\\theta}, dz = i e^{i\\theta} d\\theta. Integral becomes \\int_0^\\pi e^{-i\\theta} (i e^{i\\theta}) d\\theta = i\\pi.",
-    },
-    {
-      id: "14.1-4",
-      exercise: "Ex 14.1",
-      qNum: 4,
-      isMandatory: false,
-      similarTo: 1,
-      title: "Line Integral with Non-Analytic Conjugate Function",
-      latex: "\\int_C (x - 2iy) \\, dz, \\quad C: z(t) = 2t + it, \\quad 0 \\le t \\le 2",
-      topic: "Complex Line Integrals",
+      title: "Higher-Order Derivative Formula on Contour",
+      latex: "\\oint_C \\frac{\\cos z}{(z - \\pi)^2} \\, dz = 2\\pi i f'(\\pi) = 2\\pi i (-\\sin \\pi) = 0, \\quad C: |z| = 4",
+      topic: "Derivatives of Analytic Functions",
       difficulty: "Hard",
-      methodOfWork: "Express in terms of parameter t, split into real and imaginary differential parts, and integrate linearly.",
+      methodOfWork: "Apply Cauchy's Derivative Formula: f'(z_0) = \\frac{1}{2\\pi i} \\oint_C \\frac{f(z)}{(z - z_0)^2} dz with f(z) = \\cos z, f'(z) = -\\sin z.",
     },
-    // Lecture 1: ODEs with Constant Coefficients (Section 4.1)
+    // Similar Practice Generated from Sections 14.2 & 14.3 (Same Method of Work)
     {
-      id: "4.1-3",
-      exercise: "Ex 4.1",
-      qNum: 3,
-      isMandatory: true,
-      title: "Homogeneous Linear ODE with Constant Coefficients",
-      latex: "y'' - 4y' + 4y = 0, \\quad y(0) = 3, \\, y'(0) = 1",
-      topic: "Higher-Order Linear ODEs",
-      difficulty: "Medium",
-      methodOfWork: "Characteristic equation r^2 - 4r + 4 = 0 \\implies (r-2)^2 = 0. General solution y = (c_1 + c_2 x)e^{2x}. Apply initial values.",
-    },
-    {
-      id: "4.1-4",
-      exercise: "Ex 4.1",
+      id: "14.2-4",
+      exercise: "Ex 14.2",
       qNum: 4,
-      isMandatory: true,
-      title: "Wronskian Determinant & Linear Independence Proof",
-      latex: "W(y_1, y_2) = \\begin{vmatrix} e^{2x} & x e^{2x} \\\\ 2e^{2x} & (1+2x)e^{2x} \\end{vmatrix} = e^{4x} \\neq 0",
-      topic: "Wronskian Determinant",
-      difficulty: "Medium",
-      methodOfWork: "Compute the determinant of the 2x2 matrix containing solutions and their first derivatives. If W != 0, solutions form a fundamental basis.",
-    },
-    {
-      id: "4.1-5",
-      exercise: "Ex 4.1",
-      qNum: 5,
       isMandatory: false,
       similarTo: 3,
-      title: "Distinct Real Roots Initial Value Problem (Similar to Q3)",
-      latex: "y'' + 5y' + 6y = 0, \\quad y(0) = 2, \\, y'(0) = -1",
-      topic: "Characteristic Roots",
+      title: "Similar Practice: Contour Integral around Triangle (Same Method as 14.2 Q3)",
+      latex: "\\oint_C (z^3 + 2z) \\, dz = 0, \\quad C: \\text{Triangle with vertices at } 0, 1, i",
+      topic: "Cauchy's Theorem Practice",
       difficulty: "Easy",
-      methodOfWork: "Factor characteristic equation (r+2)(r+3)=0 \\implies y = c_1 e^{-2x} + c_2 e^{-3x}. Solve for constants.",
+      methodOfWork: "Polynomials are entire functions (analytic everywhere). By Cauchy's Theorem, the integral along any closed path is 0.",
+    },
+    {
+      id: "14.3-3",
+      exercise: "Ex 14.3",
+      qNum: 3,
+      isMandatory: false,
+      similarTo: 2,
+      title: "Similar Practice: Cauchy Formula with Rational Pole (Same Method as 14.3 Q2)",
+      latex: "\\oint_C \\frac{z^2 + 4}{z - 1} \\, dz = 2\\pi i (1^2 + 4) = 10\\pi i, \\quad C: |z| = 3",
+      topic: "Cauchy Formula Practice",
+      difficulty: "Medium",
+      methodOfWork: "Pole z_0 = 1 lies inside contour |z|=3. Apply 2\\pi i f(1) with f(z) = z^2 + 4.",
     },
   ])
 
@@ -380,38 +369,66 @@ export function SubjectWorkflowSuite({ courseId, courseName, courseSection }: Su
           </CardHeader>
 
           <CardContent className="p-6 space-y-6">
-            {/* Textbook 'Method of Work' Recipe Card (Erwin Kreyszig) */}
+            {/* OKF Semantic Manifest Banner (NotebookLM Topic + User Homework) */}
+            <div className="p-4 rounded-2xl bg-zinc-900/90 border border-indigo-500/40 space-y-2">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-indigo-600 text-white font-mono text-[10px] font-bold">
+                    🏷️ OKF Semantic Manifest
+                  </Badge>
+                  <span className="font-mono text-xs text-indigo-300 font-bold">
+                    iiitd-mth201-lec02
+                  </span>
+                </div>
+                <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/40 text-[10px] font-bold">
+                  Status: 🟢 Homework Logged (14.2, 14.3, 14.4)
+                </Badge>
+              </div>
+
+              <div className="text-xs text-zinc-200 font-medium">
+                <span className="text-zinc-400">NotebookLM Extracted Topic: </span>
+                <span className="text-indigo-300 font-bold">
+                  Lecture 2: Cauchy&apos;s Integral Theorem, Path Independence &amp; Cauchy Formulas (Sections 14.2, 14.3, 14.4)
+                </span>
+              </div>
+              <div className="text-[11px] text-zinc-400">
+                Storage: <span className="font-mono text-zinc-300">Learny Vault / Sem 3 / Math III / Notes / Lecture2_ComplexLineIntegrals.pdf</span>
+              </div>
+            </div>
+
+            {/* Textbook 'Method of Work' Recipe Card (Erwin Kreyszig Chapter 14) */}
             <div className="p-4 rounded-2xl bg-indigo-950/30 border border-indigo-500/30 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-xs font-bold text-indigo-300">
                   <BookMarked className="h-4 w-4 text-indigo-400" />
-                  <span>Textbook Bible Method of Work (Chapter 14: Complex Line Integrals)</span>
+                  <span>Textbook Bible Method of Work (Chapter 14: Cauchy&apos;s Theorem &amp; Formula)</span>
                 </div>
                 <Badge className="bg-indigo-600/30 text-indigo-200 text-[9px] font-mono">
-                  Kreyszig Section 14.1
+                  Kreyszig Section 14.2 &amp; 14.3
                 </Badge>
               </div>
 
-              <div className="p-3 rounded-xl bg-zinc-950/80 border border-zinc-800 font-mono text-xs text-indigo-300">
-                \int_C f(z) \, dz = \int_a^b f(z(t)) \, z&apos;(t) \, dt
+              <div className="p-3 rounded-xl bg-zinc-950/80 border border-zinc-800 font-mono text-xs text-indigo-300 space-y-1">
+                <div>{"\\oint_C f(z) \\, dz = 0 \\quad (\\text{Cauchy's Theorem for Analytic } f(z))"}</div>
+                <div className="text-[11px] text-zinc-400">{"f(z_0) = \\frac{1}{2\\pi i} \\oint_C \\frac{f(z)}{z - z_0} \\, dz \\quad (\\text{Cauchy's Integral Formula})"}</div>
               </div>
 
               <div className="grid gap-2 sm:grid-cols-4 text-xs text-zinc-300">
                 <div className="p-2.5 rounded-lg bg-zinc-900/80 border border-zinc-800">
-                  <span className="font-bold text-white block mb-0.5">Step 1: Parametrize</span>
-                  <span className="text-[11px] text-zinc-400">Express path C as z(t) = x(t) + i y(t) for a ≤ t ≤ b.</span>
+                  <span className="font-bold text-white block mb-0.5">Step 1: Check Domain</span>
+                  <span className="text-[11px] text-zinc-400">Verify if contour C is simple, closed, and simply connected.</span>
                 </div>
                 <div className="p-2.5 rounded-lg bg-zinc-900/80 border border-zinc-800">
-                  <span className="font-bold text-white block mb-0.5">Step 2: Differential</span>
-                  <span className="text-[11px] text-zinc-400">Compute derivative z&apos;(t) = x&apos;(t) + i y&apos;(t) dt.</span>
+                  <span className="font-bold text-white block mb-0.5">Step 2: Locate Singularities</span>
+                  <span className="text-[11px] text-zinc-400">Find denominator roots z_0. Determine if inside or outside C.</span>
                 </div>
                 <div className="p-2.5 rounded-lg bg-zinc-900/80 border border-zinc-800">
-                  <span className="font-bold text-white block mb-0.5">Step 3: Substitute</span>
-                  <span className="text-[11px] text-zinc-400">Substitute z(t) into f(z) to form f(z(t)) z&apos;(t).</span>
+                  <span className="font-bold text-white block mb-0.5">Step 3: Apply Theorem</span>
+                  <span className="text-[11px] text-zinc-400">If pole is outside C → Integral is 0 (by Cauchy&apos;s Theorem).</span>
                 </div>
                 <div className="p-2.5 rounded-lg bg-zinc-900/80 border border-zinc-800">
-                  <span className="font-bold text-white block mb-0.5">Step 4: Integrate</span>
-                  <span className="text-[11px] text-zinc-400">Evaluate real & imaginary definite integrals from a to b.</span>
+                  <span className="font-bold text-white block mb-0.5">Step 4: Integral Formula</span>
+                  <span className="text-[11px] text-zinc-400">If pole is inside C → Evaluate 2\pi i f(z_0).</span>
                 </div>
               </div>
             </div>
