@@ -26,18 +26,18 @@ export class GmailClient {
     try {
       const gmail = google.gmail({ version: "v1", auth: this.auth });
 
-      // Query academic keywords
+      // Fetch all recent inbox emails without overly restrictive keyword filtering
       const response = await gmail.users.messages.list({
         userId: "me",
-        maxResults: 15,
-        q: "quiz OR test OR exam OR \"room change\" OR \"rescheduled\" OR cancelled OR assignment OR deadline OR tutorial OR lecture OR slides OR iiitd",
+        maxResults: 25,
+        q: "in:inbox",
       });
 
       const messages = response.data.messages || [];
-      const notices: AcademicNotice[] = [];
+      if (messages.length === 0) return [];
 
-      for (const msg of messages.slice(0, 8)) {
-        if (!msg.id) continue;
+      const noticePromises = messages.map(async (msg) => {
+        if (!msg.id) return null;
         try {
           const detail = await gmail.users.messages.get({
             userId: "me",
@@ -47,16 +47,16 @@ export class GmailClient {
           });
 
           const headers = detail.data.payload?.headers || [];
-          const fromHeader = headers.find((h) => h.name?.toLowerCase() === "from")?.value || "Professor / TA";
-          const subjectHeader = headers.find((h) => h.name?.toLowerCase() === "subject")?.value || "Academic Notice";
+          const fromHeader = headers.find((h) => h.name?.toLowerCase() === "from")?.value || "College Notice";
+          const subjectHeader = headers.find((h) => h.name?.toLowerCase() === "subject")?.value || "Untitled Email";
           const dateHeader = headers.find((h) => h.name?.toLowerCase() === "date")?.value || new Date().toISOString();
           const snippet = detail.data.snippet || "";
 
-          // Extract sender name from "Name <email@domain>"
+          // Extract clean sender name
           const senderNameMatch = fromHeader.match(/^([^<]+)/);
           const senderName = senderNameMatch ? senderNameMatch[1].trim().replace(/['"]/g, "") : fromHeader;
 
-          // Classify Category, Urgency & Subject
+          // Heuristic classification
           const lowerText = `${subjectHeader} ${snippet}`.toLowerCase();
 
           let category: AcademicNotice["category"] = "General Academic Notice";
@@ -65,22 +65,22 @@ export class GmailClient {
           if (lowerText.includes("room") || lowerText.includes("shift") || lowerText.includes("venue") || lowerText.includes("rescheduled")) {
             category = "Room Change";
             urgency = "Urgent";
-          } else if (lowerText.includes("quiz") || lowerText.includes("surprise") || lowerText.includes("pop quiz") || lowerText.includes("test")) {
+          } else if (lowerText.includes("quiz") || lowerText.includes("surprise") || lowerText.includes("pop quiz") || lowerText.includes("test") || lowerText.includes("exam")) {
             category = "Surprise Quiz Alert";
             urgency = "Urgent";
-          } else if (lowerText.includes("deadline") || lowerText.includes("extended") || lowerText.includes("extension")) {
+          } else if (lowerText.includes("deadline") || lowerText.includes("extended") || lowerText.includes("extension") || lowerText.includes("due")) {
             category = "Deadline Extension";
             urgency = "High";
-          } else if (lowerText.includes("cancel") || lowerText.includes("no class") || lowerText.includes("suspended")) {
+          } else if (lowerText.includes("cancel") || lowerText.includes("no class") || lowerText.includes("suspended") || lowerText.includes("holiday")) {
             category = "Class Cancellation";
             urgency = "Urgent";
-          } else if (lowerText.includes("slides") || lowerText.includes("notes") || lowerText.includes("material")) {
+          } else if (lowerText.includes("slides") || lowerText.includes("notes") || lowerText.includes("material") || lowerText.includes("lecture")) {
             category = "New Lecture Notes";
             urgency = "Normal";
           }
 
           let subjectCode: AcademicNotice["subjectCode"] = "General";
-          if (lowerText.includes("math") || lowerText.includes("mth") || lowerText.includes("calculus")) {
+          if (lowerText.includes("math") || lowerText.includes("mth") || lowerText.includes("calculus") || lowerText.includes("mth201")) {
             subjectCode = "Math III";
           } else if (lowerText.includes("os") || lowerText.includes("operating") || lowerText.includes("cse231")) {
             subjectCode = "OS";
@@ -92,7 +92,7 @@ export class GmailClient {
             subjectCode = "RMSSD";
           }
 
-          notices.push({
+          return {
             id: msg.id,
             sender: fromHeader,
             senderName,
@@ -103,16 +103,18 @@ export class GmailClient {
             urgency,
             subjectCode,
             actionableSummary: snippet.slice(0, 180),
-          });
+          };
         } catch (e) {
-          console.error("Error reading message details:", e);
+          console.error("Error reading message detail:", e);
+          return null;
         }
-      }
+      });
 
-      return notices;
+      const results = await Promise.all(noticePromises);
+      return results.filter((n): n is AcademicNotice => n !== null);
     } catch (error) {
       console.error("Error in GmailClient.getAcademicNotices:", error);
-      throw error;
+      return [];
     }
   }
 }

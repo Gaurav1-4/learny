@@ -66,19 +66,14 @@ export function MobileNav({ user }: MobileNavProps) {
       href: "/courses",
     },
     {
-      label: "Calendar",
+      label: "Schedule",
       icon: Calendar,
       href: "/calendar",
     },
     {
-      label: "NotebookLM",
+      label: "Study & Tools",
       icon: Brain,
-      href: "/notebooklm",
-    },
-    {
-      label: "Settings",
-      icon: Settings,
-      href: "/settings",
+      href: "/study",
     },
   ]
 
