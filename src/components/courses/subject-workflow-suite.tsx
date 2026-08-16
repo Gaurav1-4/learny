@@ -317,7 +317,7 @@ export function SubjectWorkflowSuite({
     }
   }
 
-  // Parse and save new homework
+  // Parse and save new homework using full LLM reasoning
   const handleParseShorthand = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
     if (!shorthandInput.trim()) return
@@ -336,50 +336,74 @@ export function SubjectWorkflowSuite({
       })
 
       const json = await res.json()
-      const segments = shorthandInput.split(/[,;\n]+/).map((s) => s.trim()).filter(Boolean)
-      const newProblems: MathProblem[] = []
 
-      segments.forEach((seg, sIdx) => {
-        const tokens = seg.split(/\s+/)
-        const exercise = tokens[0]
-        const questionNums = tokens.slice(1).map((n) => parseInt(n, 10)).filter((n) => !isNaN(n))
+      // Ingest rich LLM-generated problems if available
+      if (json.data && Array.isArray(json.data.problems) && json.data.problems.length > 0) {
+        const llmDueDate = json.data.smartSchedule?.dueDate || new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+        const llmProblems: MathProblem[] = json.data.problems.map((p: any, idx: number) => ({
+          id: p.id || `llm-${Date.now()}-${idx}`,
+          exercise: p.exercise || "HW",
+          qNum: p.qNum || idx + 1,
+          isMandatory: p.isMandatory !== undefined ? p.isMandatory : true,
+          title: p.title || p.exercise || "Homework Problem",
+          latex: p.latex || "\\text{" + (p.title || "Problem") + "}",
+          topic: p.topic || `${courseName} Practice`,
+          difficulty: p.difficulty || "Medium",
+          methodOfWork: p.methodOfWork || "Follow lecture steps and textbook guidelines.",
+          dueDate: llmDueDate,
+        }))
 
-        if (questionNums.length === 0) {
-          newProblems.push({
-            id: `hw-${Date.now()}-${sIdx}`,
-            exercise: "HW",
-            qNum: sIdx + 1,
-            isMandatory: true,
-            title: seg,
-            latex: "\\text{" + seg.replace(/[^a-zA-Z0-9\s+=()/-]/g, "") + "}",
-            topic: `${courseName} Assignment`,
-            difficulty: "Medium",
-            methodOfWork: json.formattedText || "Solve problems according to lecture methodology.",
-            dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-          })
-        } else {
-          questionNums.forEach((qNum) => {
-            newProblems.push({
-              id: `${exercise}-${qNum}-${Date.now()}`,
-              exercise: `Ex ${exercise}`,
-              qNum,
-              isMandatory: true,
-              title: `Exercise ${exercise} — Question ${qNum}`,
-              latex: `\\text{Solve Exercise } ${exercise} \\text{ Question } ${qNum}`,
-              topic: `Chapter ${exercise.split(".")[0]} Homework`,
-              difficulty: "Medium",
-              methodOfWork: `Solve using Chapter ${exercise.split(".")[0]} standard formula and evaluate integral limits.`,
-              dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-            })
-          })
-        }
-      })
-
-      if (newProblems.length > 0) {
-        const updated = [...newProblems, ...parsedProblems]
+        const updated = [...llmProblems, ...parsedProblems]
         setParsedProblems(updated)
         localStorage.setItem(`learny-problems-${courseId}`, JSON.stringify(updated))
-        showToast("Homework added and synced!")
+        showToast("Gemini LLM processed your homework with step-by-step LaTeX!")
+      } else {
+        // Fallback parser
+        const segments = shorthandInput.split(/[,;\n]+/).map((s) => s.trim()).filter(Boolean)
+        const newProblems: MathProblem[] = []
+
+        segments.forEach((seg, sIdx) => {
+          const tokens = seg.split(/\s+/)
+          const exercise = tokens[0]
+          const questionNums = tokens.slice(1).map((n) => parseInt(n, 10)).filter((n) => !isNaN(n))
+
+          if (questionNums.length === 0) {
+            newProblems.push({
+              id: `hw-${Date.now()}-${sIdx}`,
+              exercise: "HW",
+              qNum: sIdx + 1,
+              isMandatory: true,
+              title: seg,
+              latex: "\\text{" + seg.replace(/[^a-zA-Z0-9\s+=()/-]/g, "") + "}",
+              topic: `${courseName} Assignment`,
+              difficulty: "Medium",
+              methodOfWork: "Complete assignment according to lecture notes.",
+              dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+            })
+          } else {
+            questionNums.forEach((qNum) => {
+              newProblems.push({
+                id: `${exercise}-${qNum}-${Date.now()}`,
+                exercise: `Ex ${exercise}`,
+                qNum,
+                isMandatory: true,
+                title: `Exercise ${exercise} — Question ${qNum}`,
+                latex: `\\text{Solve Exercise } ${exercise} \\text{ Question } ${qNum}`,
+                topic: `Chapter ${exercise.split(".")[0]} Homework`,
+                difficulty: "Medium",
+                methodOfWork: `Solve using Chapter ${exercise.split(".")[0]} formula.`,
+                dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+              })
+            })
+          }
+        })
+
+        if (newProblems.length > 0) {
+          const updated = [...newProblems, ...parsedProblems]
+          setParsedProblems(updated)
+          localStorage.setItem(`learny-problems-${courseId}`, JSON.stringify(updated))
+          showToast("Homework added and synced!")
+        }
       }
 
       setShorthandInput("")
