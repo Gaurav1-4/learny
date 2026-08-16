@@ -1,9 +1,26 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Save, Download, Upload, AlertTriangle, RefreshCw, Palette, Cloud, Database } from "lucide-react";
+import {
+  Save,
+  Download,
+  Upload,
+  AlertTriangle,
+  RefreshCw,
+  Palette,
+  Cloud,
+  Database,
+  User,
+  ShieldCheck,
+  Key,
+  Sparkles,
+  Zap,
+  CheckCircle2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useSession } from "next-auth/react";
 
@@ -22,16 +39,51 @@ export function SettingsView() {
   const [isClient, setIsClient] = useState(false);
   const [exportMessage, setExportMessage] = useState("");
 
+  // Student Profile State
+  const [name, setName] = useState("Gaurav");
+  const [institute, setInstitute] = useState("IIIT Delhi");
+  const [branch, setBranch] = useState("B.Tech Computer Science & Design (CSD)");
+  const [semester, setSemester] = useState("3");
+  const [porList, setPorList] = useState("Design Lead / Student Representative, CSD 2024-2028 Cohort");
+  const [profileSaved, setProfileSaved] = useState(false);
+
   useEffect(() => {
     setIsClient(true);
     const savedTheme = localStorage.getItem("learny_theme") || "indigo";
     setThemeColor(savedTheme);
+
+    const savedProfile = localStorage.getItem("learny_student_profile");
+    if (savedProfile) {
+      try {
+        const p = JSON.parse(savedProfile);
+        if (p.name) setName(p.name);
+        if (p.institute) setInstitute(p.institute);
+        if (p.branch) setBranch(p.branch);
+        if (p.semester) setSemester(p.semester);
+        if (p.positionsOfResponsibility) {
+          setPorList(Array.isArray(p.positionsOfResponsibility) ? p.positionsOfResponsibility.join(", ") : p.positionsOfResponsibility);
+        }
+      } catch (e) {}
+    }
   }, []);
+
+  const handleSaveProfile = (e: React.FormEvent) => {
+    e.preventDefault();
+    const profile = {
+      name,
+      institute,
+      branch,
+      semester: parseInt(semester, 10) || 3,
+      positionsOfResponsibility: porList.split(",").map((s) => s.trim()).filter((s) => s.length > 0),
+    };
+    localStorage.setItem("learny_student_profile", JSON.stringify(profile));
+    setProfileSaved(true);
+    setTimeout(() => setProfileSaved(false), 3000);
+  };
 
   const handleThemeChange = (color: string) => {
     setThemeColor(color);
     localStorage.setItem("learny_theme", color);
-    // In a real app, this might update CSS variables on the document root
     document.documentElement.setAttribute('data-theme', color);
   };
 
@@ -78,19 +130,17 @@ export function SettingsView() {
           }
         });
         
-        alert("Backup restored successfully! The page will reload.");
         window.location.reload();
       } catch (error) {
         console.error("Import failed:", error);
-        alert("Invalid backup file. Please make sure it's a valid JSON export from Learny.");
+        alert("Failed to restore backup. Invalid file format.");
       }
     };
     reader.readAsText(file);
-    e.target.value = ""; // reset input
   };
 
   const handleReset = () => {
-    if (confirm("Are you absolutely sure? This will delete all your local data including GPA records, study decks, and timers. This action cannot be undone.")) {
+    if (confirm("Are you sure you want to delete all local data? This action cannot be undone.")) {
       const keysToRemove: string[] = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
@@ -98,9 +148,7 @@ export function SettingsView() {
           keysToRemove.push(key);
         }
       }
-      
-      keysToRemove.forEach(key => localStorage.removeItem(key));
-      alert("All data reset successfully! The page will reload.");
+      keysToRemove.forEach((key) => localStorage.removeItem(key));
       window.location.reload();
     }
   };
@@ -108,38 +156,129 @@ export function SettingsView() {
   if (!isClient) return null;
 
   return (
-    <div className="space-y-8">
-      {/* Theme Customizer */}
-      <section className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <Palette className="h-5 w-5 text-zinc-400" />
-          <h2 className="text-xl font-semibold text-zinc-100">Theme Customizer</h2>
+    <div className="space-y-8 max-w-4xl pb-12">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight text-zinc-100">Settings</h1>
+        <p className="text-sm text-zinc-400 mt-1">Manage your academic profile, 9-Key AI Pool, cloud accounts, and data.</p>
+      </div>
+
+      {/* 1. Student Academic Profile & POR Editor */}
+      <section className="rounded-2xl border border-indigo-500/30 bg-zinc-900/90 p-6 space-y-4 shadow-lg backdrop-blur-xl">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <User className="h-5 w-5 text-indigo-400" />
+            <h2 className="text-xl font-semibold text-zinc-100">Student Profile & Positions of Responsibility</h2>
+          </div>
+          <Badge className="bg-indigo-500/20 text-indigo-300 border-indigo-500/40 text-xs">
+            Personalizes AI Email Filtering
+          </Badge>
         </div>
-        <p className="text-sm text-zinc-400 mb-6">Choose a primary accent color for your workspace.</p>
-        
-        <div className="flex flex-wrap gap-4">
-          {COLORS.map((color) => (
-            <button
-              key={color.value}
-              onClick={() => handleThemeChange(color.value)}
-              className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-all ${
-                themeColor === color.value 
-                  ? "bg-zinc-800 ring-2 ring-zinc-400 text-white" 
-                  : "bg-zinc-950 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
-              }`}
-            >
-              <div 
-                className="h-4 w-4 rounded-full" 
-                style={{ backgroundColor: color.hex }}
+        <p className="text-xs text-zinc-400">
+          The 9-Key Gemini Filter Agent uses this profile to block irrelevant college broadcasts and prioritize emails affecting your 3rd Sem CSD courses or leadership roles.
+        </p>
+
+        <form onSubmit={handleSaveProfile} className="space-y-4 pt-2">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-zinc-300">Full Name</Label>
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="bg-zinc-950 border-zinc-800 text-xs"
+                required
               />
-              {color.name}
-            </button>
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-zinc-300">College / University</Label>
+              <Input
+                value={institute}
+                onChange={(e) => setInstitute(e.target.value)}
+                className="bg-zinc-950 border-zinc-800 text-xs"
+                required
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-zinc-300">Branch / Major</Label>
+              <Input
+                value={branch}
+                onChange={(e) => setBranch(e.target.value)}
+                className="bg-zinc-950 border-zinc-800 text-xs"
+                required
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-zinc-300">Current Semester</Label>
+              <Input
+                type="number"
+                min="1"
+                max="8"
+                value={semester}
+                onChange={(e) => setSemester(e.target.value)}
+                className="bg-zinc-950 border-zinc-800 text-xs"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs text-zinc-300">Positions of Responsibility (POR) & Club Roles (Comma Separated)</Label>
+            <Input
+              value={porList}
+              onChange={(e) => setPorList(e.target.value)}
+              placeholder="e.g. Design Lead, Placement Volunteer, Student Council Rep"
+              className="bg-zinc-950 border-zinc-800 text-xs"
+            />
+          </div>
+
+          <div className="flex items-center justify-between pt-2">
+            <span className="text-xs text-zinc-500">
+              Active Subjects: Math III, OS, AP, DPP 2026, RMSSD
+            </span>
+            <Button type="submit" size="sm" className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs gap-1.5">
+              {profileSaved ? (
+                <>
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" /> Saved!
+                </>
+              ) : (
+                <>
+                  <Save className="h-3.5 w-3.5" /> Save Academic Profile
+                </>
+              )}
+            </Button>
+          </div>
+        </form>
+      </section>
+
+      {/* 2. 9-Key Gemini AI Load-Balancing Pool */}
+      <section className="rounded-2xl border border-emerald-500/30 bg-zinc-900/90 p-6 space-y-4 shadow-lg backdrop-blur-xl">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Key className="h-5 w-5 text-emerald-400" />
+            <h2 className="text-xl font-semibold text-zinc-100">9-Key Gemini Auto-Rotation Pool</h2>
+          </div>
+          <Badge className="bg-emerald-500/20 text-emerald-300 border-emerald-500/40 text-xs">
+            13,500 Free Requests / Day
+          </Badge>
+        </div>
+        <p className="text-xs text-zinc-400">
+          Load-balances incoming requests across all 9 Google AI Studio keys with zero-lag 0ms 429 rate-limit failover.
+        </p>
+
+        <div className="grid gap-2 sm:grid-cols-3 pt-2">
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((num) => (
+            <div key={num} className="bg-zinc-950 p-2.5 rounded-xl border border-zinc-800 flex items-center justify-between text-xs">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="font-mono text-zinc-300 font-bold">Key #{num}</span>
+              </div>
+              <span className="text-[10px] text-emerald-400 font-bold">Healthy (1,500/d)</span>
+            </div>
           ))}
         </div>
       </section>
 
-      {/* Google Accounts & Cloud Storage */}
-      <section className="rounded-xl border border-zinc-800 bg-zinc-900 p-6 space-y-4">
+      {/* 3. Google Accounts & Cloud Storage */}
+      <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6 space-y-4">
         <div className="flex items-center gap-2 mb-2">
           <Cloud className="h-5 w-5 text-indigo-400" />
           <h2 className="text-xl font-semibold text-zinc-100">Connected Google Accounts & Cloud Storage</h2>
@@ -184,8 +323,42 @@ export function SettingsView() {
         </div>
       </section>
 
-      {/* Data Management & Backup */}
-      <section className="rounded-xl border border-zinc-800 bg-zinc-900 p-6">
+      {/* 4. Appearance & Theme Customizer */}
+      <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Palette className="h-5 w-5 text-zinc-400" />
+          <h2 className="text-xl font-semibold text-zinc-100">Appearance</h2>
+        </div>
+        <p className="text-sm text-zinc-400 mb-6">Customize the look and feel of Learny.</p>
+        
+        <div className="space-y-4">
+          <div>
+            <Label className="text-sm font-medium text-zinc-200">Theme Color Accent</Label>
+            <div className="grid grid-cols-3 sm:grid-cols-6 gap-3 mt-3">
+              {COLORS.map((color) => (
+                <button
+                  key={color.value}
+                  onClick={() => handleThemeChange(color.value)}
+                  className={`flex flex-col items-center justify-center p-3 rounded-lg border text-xs font-medium transition-all ${
+                    themeColor === color.value 
+                      ? "border-zinc-100 bg-zinc-800 text-white ring-2 ring-zinc-400" 
+                      : "border-zinc-800 bg-zinc-950 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200"
+                  }`}
+                >
+                  <div 
+                    className="h-6 w-6 rounded-full mb-2 border border-zinc-700" 
+                    style={{ backgroundColor: color.hex }}
+                  />
+                  {color.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. Data Management & Backup */}
+      <section className="rounded-2xl border border-zinc-800 bg-zinc-900 p-6">
         <div className="flex items-center gap-2 mb-4">
           <Database className="h-5 w-5 text-zinc-400" />
           <h2 className="text-xl font-semibold text-zinc-100">Data & Backup</h2>

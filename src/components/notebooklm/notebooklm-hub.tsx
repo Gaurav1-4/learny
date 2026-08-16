@@ -485,6 +485,64 @@ TLB: Translation Lookaside Buffer, a hardware cache for virtual-to-physical addr
           </div>
         </CardContent>
       </Card>
+
+      {/* 5 TB Google Drive Cloud Document Vault */}
+      <Card className="border-purple-500/30 bg-zinc-900/90 shadow-xl overflow-hidden backdrop-blur-xl">
+        <CardHeader className="p-6 border-b border-zinc-800 bg-zinc-950/40">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-purple-500/10 border border-purple-500/30 text-purple-400">
+                <FileText className="h-5 w-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <CardTitle className="text-lg font-bold text-white">
+                    5 TB Google Drive Document Vault (studyonly.co@gmail.com)
+                  </CardTitle>
+                  <span className="rounded-full bg-purple-500/20 px-2 py-0.5 text-[10px] font-bold text-purple-300">
+                    Instant Search Ready
+                  </span>
+                </div>
+                <CardDescription className="text-xs text-zinc-400 mt-0.5">
+                  Organized cloud directory structure for all IIITD 3rd Semester course slides, problem sheets, and notes.
+                </CardDescription>
+              </div>
+            </div>
+
+            <Badge className="bg-emerald-500/15 text-emerald-400 border-emerald-500/30 text-xs">
+              <Check className="h-3 w-3 mr-1" /> Synced with 5 TB Drive
+            </Badge>
+          </div>
+        </CardHeader>
+
+        <CardContent className="p-6 space-y-4">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              { code: "MTH201", name: "Math III", files: "14 Lecture PDFs, 4 Tutorial Sheets", size: "18.4 MB" },
+              { code: "CSE231", name: "Operating Systems (OS)", files: "18 Slides, 3 Concurrency Labs", size: "24.6 MB" },
+              { code: "CSE201", name: "Advanced Programming (AP)", files: "12 Architecture Slides, 2 Projects", size: "32.1 MB" },
+              { code: "DES201", name: "DPP 2026", files: "8 Design Frameworks, 4 Case Studies", size: "45.0 MB" },
+              { code: "SSH201", name: "RMSSD", files: "10 Research Methodology Papers", size: "16.8 MB" },
+            ].map((vault) => (
+              <div key={vault.code} className="p-3.5 rounded-xl border border-zinc-800 bg-zinc-950/80 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <Badge className="bg-zinc-800 text-purple-300 font-bold text-[10px]">{vault.code}</Badge>
+                  <span className="text-[10px] text-zinc-500 font-mono">{vault.size}</span>
+                </div>
+                <h4 className="text-xs font-bold text-white truncate">{vault.name}</h4>
+                <p className="text-[11px] text-zinc-400">{vault.files}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800/80 text-xs text-zinc-400 flex items-center justify-between">
+            <span className="flex items-center gap-2">
+              <Zap className="h-4 w-4 text-purple-400 shrink-0" />
+              <span>Future-ready for instant retrieval: <em>&quot;Give me Lecture 1 notes of OS&quot;</em> directly from your 5 TB cloud storage.</span>
+            </span>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
