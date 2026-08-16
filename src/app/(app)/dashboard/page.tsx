@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useSession, signIn, signOut } from 'next-auth/react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { DeadlineList, Deadline } from '@/components/dashboard/deadline-list';
 import { ClassroomCourse, ClassroomCourseWork } from '@/types';
 import {
@@ -12,11 +12,13 @@ import {
   BookOpen,
   ArrowRight,
   Clock,
+  CheckCircle2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { PostClassBanner } from '@/components/dashboard/post-class-banner';
 import { BacklogActionCard } from '@/components/dashboard/backlog-action-card';
+import { triggerFullCloudSync } from '@/components/sync/cloud-sync-hydrator';
 
 export default function DashboardPage() {
   const { data: session } = useSession();
@@ -26,12 +28,16 @@ export default function DashboardPage() {
   const [coursesCount, setCoursesCount] = useState(0);
   const [deadlines, setDeadlines] = useState<Deadline[]>([]);
   const [pendingCount, setPendingCount] = useState(0);
+  const [syncToast, setSyncToast] = useState<string | null>(null);
 
   async function fetchData() {
     try {
       setLoading(true);
       setError(null);
       setErrorStatus(null);
+
+      // 0. Bi-directional cloud sync (Push & Pull across Laptop & Phone)
+      await triggerFullCloudSync();
 
       // 1. Fetch courses
       const coursesRes = await fetch('/api/classroom/courses');
@@ -127,13 +133,32 @@ export default function DashboardPage() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => fetchData()}
+          onClick={async () => {
+            await fetchData();
+            setSyncToast('Synced with Cloud & Classroom across all devices!');
+            setTimeout(() => setSyncToast(null), 3000);
+          }}
           className="h-8 gap-1.5 rounded-lg border-zinc-800 bg-zinc-900 text-xs font-medium text-zinc-300 hover:text-white"
         >
           <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
           <span>Sync</span>
         </Button>
       </div>
+
+      {/* Sync Toast */}
+      <AnimatePresence>
+        {syncToast && (
+          <motion.div
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
+            className="rounded-lg bg-zinc-900 border border-emerald-500/30 p-2.5 flex items-center gap-2 text-xs text-emerald-400 font-medium"
+          >
+            <CheckCircle2 className="h-4 w-4 shrink-0" />
+            <span>{syncToast}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Error Banner */}
       {error && (
