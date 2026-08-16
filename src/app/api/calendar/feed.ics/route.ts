@@ -13,11 +13,18 @@ const DAY_RRULE_MAP: Record<string, { byDay: string; offsetDays: number }> = {
   Friday: { byDay: "FR", offsetDays: 4 },
 };
 
-function formatUtc(d: Date): string {
-  return d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+function formatLocalIcs(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const year = d.getFullYear();
+  const month = pad(d.getMonth() + 1);
+  const day = pad(d.getDate());
+  const hours = pad(d.getHours());
+  const minutes = pad(d.getMinutes());
+  const seconds = pad(d.getSeconds());
+  return `${year}${month}${day}T${hours}${minutes}${seconds}`;
 }
 
-function parseTimeToDate(baseMondayDateStr: string, offsetDays: number, timeStr: string): Date {
+function parseTimeToLocalDate(baseMondayDateStr: string, offsetDays: number, timeStr: string): Date {
   const [hours, mins] = timeStr.split(":").map(Number);
   const base = new Date(`${baseMondayDateStr}T00:00:00+05:30`);
   base.setDate(base.getDate() + offsetDays);
@@ -48,19 +55,34 @@ export async function GET() {
     const icsLines: string[] = [
       "BEGIN:VCALENDAR",
       "VERSION:2.0",
-      "PRODID:-//Learny//IIIT Delhi Academic Calendar//EN",
+      "PRODID:-//Learny//IIIT Delhi Academic Schedule//EN",
       "CALSCALE:GREGORIAN",
       "METHOD:PUBLISH",
-      "X-WR-CALNAME:Learny Academic Schedule (IIIT Delhi)",
+      "X-WR-CALNAME:Learny Academic Schedule",
       "X-WR-TIMEZONE:Asia/Kolkata",
-      "X-WR-CALDESC:Monsoon 2026 Lectures, Graded Tutorial Tests, Labs & AI-Scheduled Homework",
+      "X-WR-CALDESC:IIIT Delhi Monsoon 2026 Academic Schedule, Classes, Tests & Homework",
+      "BEGIN:VTIMEZONE",
+      "TZID:Asia/Kolkata",
+      "TZURL:http://tzurl.org/zoneinfo-outlook/Asia/Kolkata",
+      "X-LIC-LOCATION:Asia/Kolkata",
+      "BEGIN:STANDARD",
+      "TZOFFSETFROM:+0530",
+      "TZOFFSETTO:+0530",
+      "TZNAME:IST",
+      "DTSTART:19700101T000000",
+      "END:STANDARD",
+      "END:VTIMEZONE",
     ];
+
+    // IIIT Delhi campus Apple Maps address & GPS coordinates
+    const IIITD_LOCATION = "IIIT Delhi, Okhla Industrial Estate, Phase III, Near Govind Puri Metro Station, New Delhi, Delhi 110020, India";
+    const IIITD_GEO = "28.5459;77.2732";
 
     // 1. RECURRING WEEKLY TIMETABLE CLASSES (Monsoon 2026)
     TIMETABLE_CLASSES.forEach((slot) => {
       const dayInfo = DAY_RRULE_MAP[slot.day] || { byDay: "MO", offsetDays: 0 };
-      const startDt = parseTimeToDate(baseMondayStr, dayInfo.offsetDays, slot.startTime);
-      const endDt = parseTimeToDate(baseMondayStr, dayInfo.offsetDays, slot.endTime);
+      const startDt = parseTimeToLocalDate(baseMondayStr, dayInfo.offsetDays, slot.startTime);
+      const endDt = parseTimeToLocalDate(baseMondayStr, dayInfo.offsetDays, slot.endTime);
 
       const uid = `class-${slot.id}@learny.zorx.tech`;
       const isTest = slot.isTest || slot.type === "Test";
@@ -68,13 +90,14 @@ export async function GET() {
       icsLines.push(
         "BEGIN:VEVENT",
         `UID:${uid}`,
-        `DTSTAMP:${formatUtc(new Date())}`,
-        `DTSTART:${formatUtc(startDt)}`,
-        `DTEND:${formatUtc(endDt)}`,
+        `DTSTAMP:${formatLocalIcs(new Date())}Z`,
+        `DTSTART;TZID=Asia/Kolkata:${formatLocalIcs(startDt)}`,
+        `DTEND;TZID=Asia/Kolkata:${formatLocalIcs(endDt)}`,
         `RRULE:FREQ=WEEKLY;BYDAY=${dayInfo.byDay};UNTIL=20261215T235959Z`,
         `SUMMARY:${isTest ? "🔥 " : ""}${slot.code}: ${slot.subject} (${slot.type})`,
-        `LOCATION:Room ${slot.room}`,
-        `DESCRIPTION:${slot.notes || slot.subject}\\nVenue: Room ${slot.room}\\nSemester: Monsoon 2026 (IIIT Delhi)`,
+        `LOCATION:Room ${slot.room}, ${IIITD_LOCATION}`,
+        `GEO:${IIITD_GEO}`,
+        `DESCRIPTION:${slot.notes || slot.subject}\\nRoom: ${slot.room}\\nCampus: IIIT Delhi (Monsoon 2026)`,
         "STATUS:CONFIRMED",
         "BEGIN:VALARM",
         "TRIGGER:-PT15M",
@@ -85,7 +108,7 @@ export async function GET() {
       );
     });
 
-    // 2. LOGGED HOMEWORK & AI-SCHEDULED FOCUS SESSIONS (From Backlog & Live entries)
+    // 2. LOGGED HOMEWORK & AI-SCHEDULED FOCUS SESSIONS
     Object.keys(backlogHwMap).forEach((lecId) => {
       const hw = backlogHwMap[lecId];
       if (!hw || !hw.rawInput || !hw.rawInput.trim()) return;
@@ -97,10 +120,12 @@ export async function GET() {
       icsLines.push(
         "BEGIN:VEVENT",
         `UID:hw-${lecId}-${Date.now()}@learny.zorx.tech`,
-        `DTSTAMP:${formatUtc(new Date())}`,
-        `DTSTART:${formatUtc(dueStart)}`,
-        `DTEND:${formatUtc(dueEnd)}`,
+        `DTSTAMP:${formatLocalIcs(new Date())}Z`,
+        `DTSTART;TZID=Asia/Kolkata:${formatLocalIcs(dueStart)}`,
+        `DTEND;TZID=Asia/Kolkata:${formatLocalIcs(dueEnd)}`,
         `SUMMARY:📝 ${hw.courseCode || "Course"} Homework: ${hw.summary || hw.rawInput}`,
+        `LOCATION:Room ${hw.room || "C201"}, ${IIITD_LOCATION}`,
+        `GEO:${IIITD_GEO}`,
         `DESCRIPTION:Assignment: ${hw.rawInput}\\nCourse: ${hw.courseName || hw.courseCode || ""}\\nStatus: Logged via Learny`,
         "STATUS:CONFIRMED",
         "BEGIN:VALARM",
@@ -112,7 +137,7 @@ export async function GET() {
       );
     });
 
-    // 3. CUSTOM CALENDAR EVENTS & STUDY PREP SESSIONS
+    // 3. CUSTOM CALENDAR EVENTS
     cloudCustomEvents.forEach((evt, idx) => {
       const dateStr = evt.date || "2026-08-18";
       const timeStr = evt.time || "11:59 PM";
@@ -129,10 +154,12 @@ export async function GET() {
       icsLines.push(
         "BEGIN:VEVENT",
         `UID:custom-${evt.id || idx}@learny.zorx.tech`,
-        `DTSTAMP:${formatUtc(new Date())}`,
-        `DTSTART:${formatUtc(startDt)}`,
-        `DTEND:${formatUtc(endDt)}`,
+        `DTSTAMP:${formatLocalIcs(new Date())}Z`,
+        `DTSTART;TZID=Asia/Kolkata:${formatLocalIcs(startDt)}`,
+        `DTEND;TZID=Asia/Kolkata:${formatLocalIcs(endDt)}`,
         `SUMMARY:${evt.title}`,
+        `LOCATION:${IIITD_LOCATION}`,
+        `GEO:${IIITD_GEO}`,
         `DESCRIPTION:${(evt.description || "").replace(/\n/g, "\\n")}`,
         "STATUS:CONFIRMED",
         "BEGIN:VALARM",
@@ -150,7 +177,7 @@ export async function GET() {
       status: 200,
       headers: {
         "Content-Type": "text/calendar; charset=utf-8",
-        "Content-Disposition": 'attachment; filename="learny-academic-schedule.ics"',
+        "Content-Disposition": 'inline; filename="learny-academic-schedule.ics"',
         "Cache-Control": "no-cache, no-store, must-revalidate",
       },
     });
