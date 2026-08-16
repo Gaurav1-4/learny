@@ -26,6 +26,7 @@ import {
   ChevronUp,
   Flame,
   Layers,
+  Trash2,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -610,6 +611,34 @@ export function SubjectWorkflowSuite({
     }
   }
 
+  // Clear/reset all previous homework for this course
+  const handleClearCourseHomework = () => {
+    setParsedProblems([])
+    setSolvedQuestions({})
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(`learny-problems-${courseId}`)
+      localStorage.removeItem(`learny-problems-mth203`)
+      localStorage.removeItem(`learny-problems-mth201`)
+      localStorage.removeItem(`learny-hw-input-${courseId}`)
+
+      const keysToRemove: string[] = []
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i)
+        if (key && (key.includes("m3") || key.includes("mth") || key.includes(courseId.toLowerCase()))) {
+          keysToRemove.push(key)
+        }
+      }
+      keysToRemove.forEach((k) => localStorage.removeItem(k))
+    }
+
+    pushToFirestore({
+      problemsMap: { [courseId]: [] },
+      solvedQuestions: {},
+    })
+
+    showToast("Previous math homework removed! Workspace is clean.")
+  }
+
   // Filter problems by Pending vs Done
   const pendingProblems = parsedProblems.filter((p) => !solvedQuestions[p.id])
   const doneProblems = parsedProblems.filter((p) => solvedQuestions[p.id])
@@ -796,6 +825,17 @@ export function SubjectWorkflowSuite({
               >
                 <BookMarked className="h-3 w-3" />
                 <span>Method Guide</span>
+              </Button>
+
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleClearCourseHomework}
+                className="h-7 text-[11px] font-medium border-zinc-800 bg-zinc-900 hover:bg-red-950/40 hover:text-red-300 hover:border-red-800/40 text-zinc-400 gap-1 px-2"
+                title="Remove previous homework"
+              >
+                <Trash2 className="h-3 w-3" />
+                <span>Clear</span>
               </Button>
 
               <Button
