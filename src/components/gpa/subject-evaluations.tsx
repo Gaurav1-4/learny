@@ -77,14 +77,26 @@ export function SubjectEvaluations() {
 
     if (savedSubjects) {
       try {
-        setSubjectEvals(JSON.parse(savedSubjects))
+        const parsed = JSON.parse(savedSubjects)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setSubjectEvals(parsed)
+        } else {
+          handleLoadIIITDCSDCurriculum()
+        }
       } catch (e) {
         console.error(e)
+        handleLoadIIITDCSDCurriculum()
       }
+    } else {
+      handleLoadIIITDCSDCurriculum()
     }
+
     if (savedPrevSems) {
       try {
-        setPrevSemesters(JSON.parse(savedPrevSems))
+        const parsed = JSON.parse(savedPrevSems)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setPrevSemesters(parsed)
+        }
       } catch (e) {
         console.error(e)
       }

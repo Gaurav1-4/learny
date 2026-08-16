@@ -163,16 +163,21 @@ export default function DashboardPage() {
     >
       {/* Header with Ambient Badge */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <div className="inline-flex items-center gap-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 text-xs font-bold text-indigo-400 mb-1">
-            <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-ping" />
-            Live Classroom Feed Active
+        <div className="space-y-1.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/30 px-3 py-0.5 text-[11px] font-bold text-indigo-300">
+              <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-ping" />
+              IIIT Delhi • B.Tech CSD
+            </div>
+            <span className="rounded-full bg-zinc-800/80 border border-zinc-700/60 px-2.5 py-0.5 text-[11px] font-semibold text-zinc-300">
+              3rd Semester (Monsoon)
+            </span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
-            Welcome back, {session?.user?.name?.split(' ')[0] || 'Student'} 👋
+            Welcome back, {session?.user?.name?.split(' ')[0] || 'Gaurav'} 👋
           </h1>
           <p className="text-sm text-zinc-400">
-            Here is your academic overview, coursework deadlines, and study tools for today.
+            Here is your active coursework, continuous evaluation breakdown, and AI study tools.
           </p>
         </div>
 

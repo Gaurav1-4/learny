@@ -1,27 +1,30 @@
 # Learny — Project State & Milestone Tracker
 
-**Status**: 21st.dev Custom Components & Animations Deployed to Production
+**Status**: IIITD CSD 3rd Semester & Historical Curriculum Integration Live on Vercel
 **GitHub Repository**: [https://github.com/Gaurav1-4/learny](https://github.com/Gaurav1-4/learny)
 **Live Production URLs**:
 - `https://learny.zorx.tech`
 - `https://learny-delta.vercel.app`
-- `https://learny-fwkgba5dn-semly.vercel.app`
+- `https://learny-1atobf88n-semly.vercel.app`
 
 ---
 
-## 1. 21st.dev Components & Animation Engine
+## 1. IIITD CSD 3rd Semester Data & Academic Roadmaps
 
-- **`BorderBeam` (`src/components/ui/border-beam.tsx`)**:
-  - Continuous circulating laser beam traveling around card borders with custom gradients (`#818cf8` to `#c084fc`).
-  - Active on Course Workspace Hero Banner.
-- **`SpotlightCard` (`src/components/ui/spotlight-card.tsx`)**:
-  - Interactive radial cursor spotlight effect on cards.
-- **`ShimmerButton` (`src/components/ui/shimmer-button.tsx`)**:
-  - Signature 21st.dev animated shimmering button with conic sweep and inner border sheen.
-- **Keyframe Engine in `src/app/globals.css`**:
-  - `@keyframes border-beam`
-  - `@keyframes spin-around`
-  - `@keyframes shimmer-slide`
+- **Continuous Subject Evaluations Preset (`/gpa`)**:
+  - `DPP 2026: Design Processes & Perspectives`: Critique (25%), Studio Assignments (25%), Midsem (20%), Final Portfolio (30%).
+  - `Data Structures & Algorithms (DSA)`: Lab Quizzes (15%), Programming Assignments (20%), Midsem (25%), Endsem (40%).
+  - `Advanced Programming (AP / OOP)`: OOP Labs (20%), Project (20%), Midsem (25%), Endsem (35%).
+  - `Computer Organization (CO / CA)`: Assembly Labs (20%), Assignments (15%), Midsem (25%), Endsem (40%).
+  - `Visual Design & Communication (VDC)`: Typography & Layout (30%), Prototype (35%), Final Showcase (35%).
+- **Multi-Semester CGPA Records**:
+  - `Semester 1 (Monsoon)`: IP, DC, M1, SM, COM (16 credits, 8.50 SGPA).
+  - `Semester 2 (Winter)`: DS, BE, M2, CD (16 credits, 8.65 SGPA).
+  - Dynamic degree Cumulative CGPA calculation engine.
+- **AI Study Decks & Flashcards (`/study`)**:
+  - Pre-packaged SM-2 decks with active recall cards and practice quizzes for DPP 2026 (Double Diamond, Affinity Mapping, Usability Heuristics), DSA (Dijkstra, Dynamic Programming, AVL Trees), and AP (SOLID principles, Singleton & Builder patterns).
+- **Google Classroom Live Sync**:
+  - All active and archived courses are queried live from `gaurav25212@iiitd.ac.in`.
 
 ---
 
