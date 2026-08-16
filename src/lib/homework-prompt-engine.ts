@@ -1,4 +1,7 @@
 // Timetable-driven Post-Class Homework Prompt & Notification Engine for Learny
+// Source of truth: TIMETABLE_CLASSES from weekly-timetable.tsx
+
+import { TIMETABLE_CLASSES, ClassSlot } from "@/components/calendar/weekly-timetable";
 
 export interface TimetableClass {
   id: string;
@@ -7,129 +10,35 @@ export interface TimetableClass {
   courseCode: string;
   dayOfWeek: number; // 0 = Sunday, 1 = Monday, ..., 5 = Friday
   dayName: string;
-  startTime: string; // "09:30"
-  endTime: string; // "11:00"
+  startTime: string; // "11:00"
+  endTime: string; // "12:30"
+  timeLabel: string;
   room: string;
+  type: string;
 }
 
-// Monsoon 2026 IIIT Delhi Course Schedule
-export const MONSOON_2026_TIMETABLE: TimetableClass[] = [
-  // Monday
-  {
-    id: "mth-mon",
-    courseId: "mth201",
-    courseName: "Applied Mathematics III",
-    courseCode: "MTH201",
-    dayOfWeek: 1,
-    dayName: "Monday",
-    startTime: "09:30",
-    endTime: "11:00",
-    room: "C01",
-  },
-  {
-    id: "os-mon",
-    courseId: "cse231",
-    courseName: "Operating Systems",
-    courseCode: "CSE231",
-    dayOfWeek: 1,
-    dayName: "Monday",
-    startTime: "11:30",
-    endTime: "13:00",
-    room: "B003",
-  },
-  // Tuesday
-  {
-    id: "ap-tue",
-    courseId: "cse201",
-    courseName: "Advanced Programming",
-    courseCode: "CSE201",
-    dayOfWeek: 2,
-    dayName: "Tuesday",
-    startTime: "09:30",
-    endTime: "11:00",
-    room: "C102",
-  },
-  {
-    id: "dpp-tue",
-    courseId: "des202",
-    courseName: "Design Processes & Perspectives",
-    courseCode: "DES202",
-    dayOfWeek: 2,
-    dayName: "Tuesday",
-    startTime: "14:00",
-    endTime: "15:30",
-    room: "Design Studio 2",
-  },
-  // Wednesday
-  {
-    id: "mth-wed",
-    courseId: "mth201",
-    courseName: "Applied Mathematics III (Tutorial)",
-    courseCode: "MTH201",
-    dayOfWeek: 3,
-    dayName: "Wednesday",
-    startTime: "10:00",
-    endTime: "11:00",
-    room: "C201",
-  },
-  {
-    id: "os-wed-lab",
-    courseId: "cse231",
-    courseName: "Operating Systems (Lab)",
-    courseCode: "CSE231",
-    dayOfWeek: 3,
-    dayName: "Wednesday",
-    startTime: "14:00",
-    endTime: "16:00",
-    room: "Linux Lab 1",
-  },
-  // Thursday
-  {
-    id: "mth-thu",
-    courseId: "mth201",
-    courseName: "Applied Mathematics III",
-    courseCode: "MTH201",
-    dayOfWeek: 4,
-    dayName: "Thursday",
-    startTime: "09:30",
-    endTime: "11:00",
-    room: "C01",
-  },
-  {
-    id: "os-thu",
-    courseId: "cse231",
-    courseName: "Operating Systems",
-    courseCode: "CSE231",
-    dayOfWeek: 4,
-    dayName: "Thursday",
-    startTime: "11:30",
-    endTime: "13:00",
-    room: "B003",
-  },
-  // Friday
-  {
-    id: "ap-fri",
-    courseId: "cse201",
-    courseName: "Advanced Programming",
-    courseCode: "CSE201",
-    dayOfWeek: 5,
-    dayName: "Friday",
-    startTime: "09:30",
-    endTime: "11:00",
-    room: "C102",
-  },
-  {
-    id: "rmssd-fri",
-    courseId: "soc201",
-    courseName: "Research Methods in Social Sciences",
-    courseCode: "SOC201",
-    dayOfWeek: 5,
-    dayName: "Friday",
-    startTime: "14:00",
-    endTime: "15:30",
-    room: "C21",
-  },
-];
+const DAY_MAP: Record<string, number> = {
+  Monday: 1,
+  Tuesday: 2,
+  Wednesday: 3,
+  Thursday: 4,
+  Friday: 5,
+};
+
+// Derive authentic Monsoon 2026 timetable from the calendar's single source of truth
+export const MONSOON_2026_TIMETABLE: TimetableClass[] = TIMETABLE_CLASSES.map((slot) => ({
+  id: slot.id,
+  courseId: slot.code.toLowerCase(),
+  courseName: slot.subject,
+  courseCode: slot.code,
+  dayOfWeek: DAY_MAP[slot.day] || 1,
+  dayName: slot.day,
+  startTime: slot.startTime,
+  endTime: slot.endTime,
+  timeLabel: slot.timeLabel,
+  room: slot.room,
+  type: slot.type,
+}));
 
 export interface ActiveClassPrompt {
   classItem: TimetableClass;
@@ -138,8 +47,7 @@ export interface ActiveClassPrompt {
 }
 
 /**
- * Checks if a class has recently ended (in the last 120 minutes)
- * or returns active mock prompt if triggered.
+ * Checks if an authentic class from the calendar has recently ended (in the last 90 minutes)
  */
 export function getRecentlyEndedClass(): ActiveClassPrompt | null {
   if (typeof window === "undefined") return null;
@@ -151,7 +59,7 @@ export function getRecentlyEndedClass(): ActiveClassPrompt | null {
       const parsed = JSON.parse(sim);
       return {
         classItem: parsed.classItem,
-        endedAgoText: parsed.endedAgoText || "Just now (Test Simulation)",
+        endedAgoText: parsed.endedAgoText || "Just now",
         isSimulated: true,
       };
     } catch {
@@ -197,14 +105,14 @@ export function triggerPostClassNotification(prompt: ActiveClassPrompt) {
 
   if (Notification.permission === "granted") {
     new Notification(`Lecture Ended: ${prompt.classItem.courseName}`, {
-      body: `Class finished at ${prompt.classItem.endTime} in ${prompt.classItem.room}. Click to log today's homework assignments.`,
+      body: `Class finished at ${prompt.classItem.timeLabel} in ${prompt.classItem.room}. Click to log today's homework assignments.`,
       icon: "/favicon.ico",
     });
   } else if (Notification.permission !== "denied") {
     Notification.requestPermission().then((permission) => {
       if (permission === "granted") {
         new Notification(`Lecture Ended: ${prompt.classItem.courseName}`, {
-          body: `Class finished at ${prompt.classItem.endTime}. Click to log today's homework assignments.`,
+          body: `Class finished in ${prompt.classItem.room}. Click to log today's homework assignments.`,
           icon: "/favicon.ico",
         });
       }
@@ -213,9 +121,9 @@ export function triggerPostClassNotification(prompt: ActiveClassPrompt) {
 }
 
 /**
- * Sets a simulated class prompt for any specific class by ID or courseCode
+ * Sets a simulated class prompt for any specific authentic class by ID or courseCode
  */
-export function simulateEndedClass(courseCodeOrId: string = "mth-mon") {
+export function simulateEndedClass(courseCodeOrId: string = "mon-dpp-lec") {
   if (typeof window === "undefined") return;
 
   const targetClass =
@@ -225,7 +133,7 @@ export function simulateEndedClass(courseCodeOrId: string = "mth-mon") {
 
   const payload = {
     classItem: targetClass,
-    endedAgoText: `Just now (${targetClass.dayName} lecture)`,
+    endedAgoText: `Just now (${targetClass.dayName} • ${targetClass.timeLabel})`,
   };
 
   localStorage.setItem("learny-simulated-class-prompt", JSON.stringify(payload));

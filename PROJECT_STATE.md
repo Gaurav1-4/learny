@@ -1,35 +1,30 @@
 # Learny — Project State & Milestone Tracker
 
-**Current Status**: 1-Week Backlog Resolution Hub & Interactive Lecture-by-Lecture Walkthrough (Monday to Friday Monsoon 2026 Schedule, KaTeX Problem Sets, OKF Google Drive Vault Sync & Calendar Auto-Scheduler) Live on Production
+**Current Status**: Live Post-Class Web Notifications & Multi-Class Notification Simulator Live on Production
 **GitHub Repository**: [https://github.com/Gaurav1-4/learny](https://github.com/Gaurav1-4/learny)
 **Live Production URLs**:
 - `https://learny.zorx.tech`
-- `https://learny-a35twcne7-semly.vercel.app`
+- `https://learny-37245q7h7-semly.vercel.app`
 
 ---
 
 ## 🎯 Deployed & Verified Systems
 
-1. **1-Week Backlog Resolver Engine (`src/lib/backlog-engine.ts`)**:
-   - Covers all 10 lectures across Monday–Friday (Applied Math III, OS, Advanced Programming, DPP, RMSSD).
-   - Injects KaTeX problem sets ($\oint_C \frac{z^2+1}{z-3} dz = 0$) into course ledgers (`/courses/mth201`, etc.).
-   - Auto-schedules study blocks, lab deadlines, and exam milestones directly into **Calendar & Study Planner** (`/calendar`).
-   - Syncs OKF metadata embeddings with the Google Drive 5 TB Vault registry.
-2. **Interactive Walkthrough Modal (`src/components/backlog/backlog-resolver-modal.tsx`)**:
-   - Filter by day: **Monday | Tuesday | Wednesday | Thursday | Friday | All**.
-   - Step-by-step lecture walkthrough with KaTeX math rendering, methods of work, and 1-click **"Log Homework & Schedule"**.
-   - Fast-track **"⚡ Resolve All 10 at Once"** 1-click batch logger.
-   - Live visual progress bar (`X / 10 Logged • Y% Caught Up`).
-3. **Dashboard & Calendar Action Banners**:
-   - `src/components/dashboard/backlog-action-card.tsx`: High-priority backlog resolver card on Dashboard.
-   - `src/components/calendar/calendar-view.tsx`: Header walkthrough trigger in the Calendar and Weekly Timetable.
+1. **Post-Class Timetable Notification Engine (`src/lib/homework-prompt-engine.ts`)**:
+   - Automated triggers synchronized with the Monsoon 2026 course schedule.
+   - Triggers native Web Notifications & interactive Dashboard Check-in Banners.
+   - Multi-class simulator: test notifications for any of the 10 timetable classes on demand.
+2. **1-Week Backlog Resolver Walkthrough (`src/components/backlog/backlog-resolver-modal.tsx`)**:
+   - Monday to Friday lecture-by-lecture walkthrough with KaTeX problem sets, methods of work, and auto-scheduling into the Calendar & OKF Google Drive vault.
+3. **Gemini 1.5 Flash AI KaTeX Formatter (`/api/homework/ai-format`)**:
+   - 9-Key Gemini pool parses shorthand typing into authentic mathematical LaTeX statements.
 
 ---
 
 ## 🌐 All 20 Production Routes Live
 
 - `GET /`: Landing page with authentic Google Classroom sign-in.
-- `GET /dashboard`: Student dashboard with post-class banner, 1-week backlog resolver card, and upcoming deadlines.
+- `GET /dashboard`: Student dashboard with post-class notification banner, 1-week backlog resolver, and upcoming deadlines.
 - `GET /courses`: Clean course catalog with Active Courses and Archived Vault.
 - `GET /courses/[courseId]`: Minimalist course workspace with direct content stream and KaTeX typography.
 - `GET /calendar`: 3-Tab Hub: Weekly Timetable, AI Study Planner, and Month Deadlines Calendar with 1-Week Backlog Walkthrough.
