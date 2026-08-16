@@ -7,6 +7,7 @@ import { StatsCards } from '@/components/dashboard/stats-cards';
 import { CourseCards, Course } from '@/components/dashboard/course-cards';
 import { DeadlineList, Deadline } from '@/components/dashboard/deadline-list';
 import { EmailAlertsWidget } from '@/components/dashboard/email-alerts-widget';
+import { LiveClassMockSimulator } from '@/components/dashboard/live-class-mock-simulator';
 import { ClassroomCourse, ClassroomCourseWork } from '@/types';
 import {
   AlertCircle,
@@ -255,6 +256,9 @@ export default function DashboardPage() {
         </div>
       ) : !error ? (
         <>
+          {/* Live Class End & Homework Mock Simulator */}
+          <LiveClassMockSimulator onSuccess={() => fetchData()} />
+
           {/* Stats Overview */}
           <StatsCards
             coursesCount={courses.length}
