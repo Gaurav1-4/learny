@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { StatsCards } from '@/components/dashboard/stats-cards';
 import { CourseCards, Course } from '@/components/dashboard/course-cards';
 import { DeadlineList, Deadline } from '@/components/dashboard/deadline-list';
+import { EmailAlertsWidget } from '@/components/dashboard/email-alerts-widget';
 import { ClassroomCourse, ClassroomCourseWork } from '@/types';
 import {
   AlertCircle,
@@ -351,13 +352,17 @@ export default function DashboardPage() {
               )}
             </div>
 
-            {/* Upcoming Deadlines (1 Col) */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <CalendarIcon className="h-5 w-5 text-indigo-400" />
-                <h2 className="text-lg font-bold tracking-tight text-white">Academic Radar</h2>
+            {/* Upcoming Deadlines & Email Radar (1 Col) */}
+            <div className="space-y-6">
+              <EmailAlertsWidget />
+
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <CalendarIcon className="h-5 w-5 text-indigo-400" />
+                  <h2 className="text-lg font-bold tracking-tight text-white">Classroom Deadlines</h2>
+                </div>
+                <DeadlineList deadlines={deadlines} />
               </div>
-              <DeadlineList deadlines={deadlines} />
             </div>
           </div>
         </>
