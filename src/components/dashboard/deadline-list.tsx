@@ -1,10 +1,10 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { formatDistanceToNow, isPast, format } from "date-fns"
-import { Calendar, Clock, CheckCircle2, AlertTriangle, ArrowRight } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
+import { Calendar, Clock, CheckCircle2, ArrowRight, AlertCircle } from "lucide-react"
 
 type Status = "due" | "overdue" | "submitted"
 
@@ -21,77 +21,169 @@ interface DeadlineListProps {
 }
 
 export function DeadlineList({ deadlines }: DeadlineListProps) {
-  const sortedDeadlines = [...deadlines].sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime())
+  const [filter, setFilter] = useState<"upcoming" | "overdue" | "all">("upcoming")
+  const now = new Date()
+
+  // Strict temporal filtering based on current timestamp
+  const upcomingDeadlines = deadlines.filter((d) => d.dueDate >= now)
+  const overdueDeadlines = deadlines.filter((d) => d.dueDate < now)
+
+  // Sort upcoming ascending (soonest first), overdue descending (most recently passed first)
+  upcomingDeadlines.sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime())
+  overdueDeadlines.sort((a, b) => b.dueDate.getTime() - a.dueDate.getTime())
+
+  const displayedList =
+    filter === "upcoming"
+      ? upcomingDeadlines
+      : filter === "overdue"
+      ? overdueDeadlines
+      : [...upcomingDeadlines, ...overdueDeadlines]
 
   return (
-    <div className="relative flex flex-col overflow-hidden rounded-3xl border border-white/5 bg-zinc-900/80 p-6 shadow-xl backdrop-blur-2xl">
-      <div className="flex items-center justify-between pb-4 border-b border-white/5">
+    <div className="rounded-xl border border-zinc-800 bg-zinc-900/30 overflow-hidden">
+      {/* Header & Filter Controls */}
+      <div className="p-3.5 sm:p-4 border-b border-zinc-800 bg-zinc-900/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Clock className="h-4 w-4 text-indigo-400" />
-          <h3 className="text-sm font-bold text-white">Upcoming Deadlines</h3>
+          <Clock className="h-4 w-4 text-zinc-400" />
+          <h3 className="text-xs font-semibold text-zinc-200">
+            {filter === "upcoming"
+              ? "Upcoming Deadlines"
+              : filter === "overdue"
+              ? "Past & Overdue Deadlines"
+              : "All Deadlines"}
+          </h3>
         </div>
-        <Link
-          href="/calendar"
-          className="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-400 hover:text-indigo-300 transition-colors"
-        >
-          <span>Calendar</span>
-          <ArrowRight className="h-3 w-3" />
-        </Link>
+
+        <div className="flex items-center gap-2">
+          {/* Segmented Filter */}
+          <div className="flex rounded-lg bg-zinc-950 p-0.5 border border-zinc-800 text-xs">
+            <button
+              onClick={() => setFilter("upcoming")}
+              className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors ${
+                filter === "upcoming"
+                  ? "bg-zinc-800 text-white font-semibold"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
+            >
+              Upcoming ({upcomingDeadlines.length})
+            </button>
+
+            {overdueDeadlines.length > 0 && (
+              <button
+                onClick={() => setFilter("overdue")}
+                className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors ${
+                  filter === "overdue"
+                    ? "bg-zinc-800 text-white font-semibold"
+                    : "text-zinc-400 hover:text-zinc-200"
+                }`}
+              >
+                Overdue ({overdueDeadlines.length})
+              </button>
+            )}
+
+            <button
+              onClick={() => setFilter("all")}
+              className={`px-2.5 py-1 text-[11px] font-medium rounded-md transition-colors ${
+                filter === "all"
+                  ? "bg-zinc-800 text-white font-semibold"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
+            >
+              All ({deadlines.length})
+            </button>
+          </div>
+
+          <Link
+            href="/calendar"
+            className="hidden sm:inline-flex items-center gap-1 text-[11px] font-medium text-zinc-400 hover:text-white transition-colors ml-1"
+          >
+            <span>Calendar</span>
+            <ArrowRight className="h-3 w-3" />
+          </Link>
+        </div>
       </div>
 
-      <div className="mt-4 flex-1 overflow-y-auto max-h-[380px] pr-1 space-y-3">
-        {sortedDeadlines.length === 0 ? (
-          <div className="flex min-h-[200px] flex-col items-center justify-center text-center p-6">
-            <CheckCircle2 className="h-8 w-8 text-emerald-400/80 mb-2" />
-            <p className="text-xs font-bold text-zinc-300">All caught up!</p>
-            <p className="text-[11px] text-zinc-500 mt-0.5">No pending deadlines on your radar.</p>
-          </div>
-        ) : (
-          sortedDeadlines.map((deadline, idx) => {
-            const past = isPast(deadline.dueDate)
+      {/* List Content */}
+      <div className="p-3.5 sm:p-4 space-y-2">
+        <AnimatePresence mode="wait">
+          {displayedList.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="py-8 text-center"
+            >
+              <CheckCircle2 className="h-7 w-7 text-zinc-500 mx-auto mb-2" />
+              <p className="text-xs font-semibold text-zinc-300">
+                {filter === "upcoming"
+                  ? "No upcoming deadlines!"
+                  : filter === "overdue"
+                  ? "No overdue submissions!"
+                  : "No deadlines found"}
+              </p>
+              <p className="text-[11px] text-zinc-500 mt-0.5">
+                {filter === "upcoming"
+                  ? "You have completed all active assignments on your schedule."
+                  : "All assignments are up to date."}
+              </p>
+            </motion.div>
+          ) : (
+            <motion.div
+              key={filter}
+              initial={{ opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.15 }}
+              className="space-y-2"
+            >
+              {displayedList.map((item) => {
+                const past = isPast(item.dueDate)
 
-            return (
-              <motion.div
-                key={deadline.id}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: idx * 0.04, duration: 0.2 }}
-                className="group relative rounded-2xl border border-white/5 bg-zinc-950/60 p-4 transition-all hover:border-indigo-500/30 hover:bg-zinc-950/90"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="truncate rounded-md bg-white/5 px-2 py-0.5 text-[10px] font-bold text-zinc-300 border border-white/10 max-w-[65%]">
-                    {deadline.courseName}
-                  </span>
+                return (
+                  <div
+                    key={item.id}
+                    className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-3 transition-colors hover:border-zinc-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5"
+                  >
+                    <div className="space-y-1 min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="rounded bg-zinc-800 px-2 py-0.5 text-[10px] font-medium text-zinc-300">
+                          {item.courseName}
+                        </span>
 
-                  {past ? (
-                    <Badge className="bg-red-500/15 text-red-400 border-red-500/30 text-[10px] font-bold">
-                      Overdue
-                    </Badge>
-                  ) : (
-                    <Badge className="bg-indigo-500/15 text-indigo-400 border-indigo-500/30 text-[10px] font-bold">
-                      Due Soon
-                    </Badge>
-                  )}
-                </div>
+                        {past ? (
+                          <span className="rounded bg-red-950/40 text-red-400 border border-red-800/40 px-1.5 py-0.5 text-[10px] font-medium">
+                            Overdue
+                          </span>
+                        ) : (
+                          <span className="rounded bg-zinc-800 text-zinc-200 border border-zinc-700 px-1.5 py-0.5 text-[10px] font-medium">
+                            Due in {formatDistanceToNow(item.dueDate, { addSuffix: false })}
+                          </span>
+                        )}
+                      </div>
 
-                <h4 className="mt-2 text-xs font-bold text-zinc-100 line-clamp-1 group-hover:text-indigo-200 transition-colors">
-                  {deadline.title}
-                </h4>
+                      <h4 className="text-xs font-semibold text-white truncate">
+                        {item.title}
+                      </h4>
+                    </div>
 
-                <div className="mt-2 flex items-center justify-between text-[10px] text-zinc-400 font-medium">
-                  <span className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3 text-zinc-500" />
-                    {format(deadline.dueDate, "dd MMM, hh:mm a")}
-                  </span>
-                  <span className={past ? "text-red-400 font-bold" : "text-amber-400 font-semibold"}>
-                    {past ? "Passed " : "in "}
-                    {formatDistanceToNow(deadline.dueDate, { addSuffix: false })}
-                  </span>
-                </div>
-              </motion.div>
-            )
-          })
-        )}
+                    <div className="shrink-0 flex items-center justify-between sm:justify-end gap-3 text-[11px] text-zinc-400">
+                      <span className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3 text-zinc-500" />
+                        {format(item.dueDate, "MMM d, h:mm a")}
+                      </span>
+
+                      {past && (
+                        <span className="text-[10px] text-zinc-500">
+                          ({formatDistanceToNow(item.dueDate, { addSuffix: true })})
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   )

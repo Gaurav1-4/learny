@@ -103,6 +103,10 @@ export default function DashboardPage() {
   const isAuthIssue = errorStatus === 401 || (error && error.includes('401'));
   const userName = session?.user?.name ? session.user.name.split(' ')[0] : 'Student';
 
+  const now = new Date();
+  const upcomingCount = deadlines.filter((d) => d.dueDate >= now).length;
+  const overdueCount = deadlines.filter((d) => d.dueDate < now).length;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -179,12 +183,12 @@ export default function DashboardPage() {
               </div>
               <div className="space-y-0.5">
                 <div className="text-xs font-semibold text-white">
-                  {deadlines.length === 0
+                  {upcomingCount === 0
                     ? 'All Caught Up!'
-                    : `${deadlines.length} Upcoming Deadlines`}
+                    : `${upcomingCount} Active Upcoming Deadlines`}
                 </div>
                 <div className="text-[11px] text-zinc-400">
-                  {coursesCount} Active Classroom Courses enrolled
+                  {coursesCount} Enrolled Courses {overdueCount > 0 && `• ${overdueCount} Overdue items`}
                 </div>
               </div>
             </div>
