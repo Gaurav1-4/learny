@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import {
@@ -209,6 +209,7 @@ export function SubjectWorkflowSuite({
                         difficulty: "Medium",
                         methodOfWork: item.summary || "Solve assignment problems according to lecture notes.",
                         dueDate: item.dueDate || "2026-08-18",
+                        rawInput: item.rawInput,
                       })
                     } else {
                       questionNums.forEach((qNum: number) => {
@@ -223,6 +224,7 @@ export function SubjectWorkflowSuite({
                           difficulty: "Medium",
                           methodOfWork: `Solve using Chapter ${exercise.split(".")[0]} standard formula and check limit conditions.`,
                           dueDate: item.dueDate || "2026-08-18",
+                          rawInput: item.rawInput,
                         })
                       })
                     }
@@ -614,6 +616,40 @@ export function SubjectWorkflowSuite({
       ? doneProblems
       : parsedProblems
 
+  // Find all exact raw text stored for this course
+  const savedRawText = useMemo(() => {
+    if (typeof window === "undefined") return ""
+    const texts: string[] = []
+
+    parsedProblems.forEach((p) => {
+      if (p.rawInput && p.rawInput.trim() && !texts.includes(p.rawInput.trim())) {
+        texts.push(p.rawInput.trim())
+      }
+    })
+
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)
+      if (key && key.startsWith("learny-backlog-hw-")) {
+        try {
+          const raw = localStorage.getItem(key)
+          if (raw) {
+            const item = JSON.parse(raw)
+            if (item && item.rawInput && item.rawInput.trim()) {
+              const itemCode = item.courseCode || key.split("-").slice(3).join("-")
+              const itemName = item.courseName || ""
+              if (isMatchingCourse(itemCode, itemName, courseId, courseName)) {
+                if (!texts.includes(item.rawInput.trim())) {
+                  texts.push(item.rawInput.trim())
+                }
+              }
+            }
+          }
+        } catch {}
+      }
+    }
+    return texts.join(", ")
+  }, [parsedProblems, courseId, courseName])
+
   const selectedMaterial =
     materials.find((m) => m.id === selectedMaterialId) || materials[0] || null
 
@@ -637,6 +673,54 @@ export function SubjectWorkflowSuite({
       {/* 1. MATH III / PROBLEM SET VIEW: Dynamic Homework Ledger */}
       {isMath3 ? (
         <div className="space-y-3">
+          {/* Saved Raw Homework Message Banner */}
+          {savedRawText && (
+            <div className="rounded-xl border border-indigo-500/30 bg-indigo-950/20 p-3.5 flex items-center justify-between gap-3 flex-wrap">
+              <div className="space-y-0.5 min-w-0 flex-1">
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-indigo-500/20 text-indigo-300 border-indigo-500/30 text-[10px] font-semibold">
+                    Saved Homework Transcript
+                  </Badge>
+                  <span className="text-[11px] text-zinc-400">Verbatim Input Archive</span>
+                </div>
+                <p className="text-xs text-white font-mono font-medium pt-1 line-clamp-2">
+                  &ldquo;{savedRawText}&rdquo;
+                </p>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <Button
+                  size="sm"
+                  onClick={handleReprocessWithAI}
+                  disabled={isReprocessing}
+                  className="h-7 text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-semibold gap-1.5 px-3 shadow-md shadow-indigo-600/20"
+                >
+                  {isReprocessing ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin text-white" />
+                      <span>Rewriting with Gemini...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-3.5 w-3.5 text-amber-300" />
+                      <span>Rewrite with Gemini AI</span>
+                    </>
+                  )}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    setShorthandInput(savedRawText)
+                    setShowHomeworkModal(true)
+                  }}
+                  className="h-7 text-xs border-zinc-700 bg-zinc-900 text-zinc-300 hover:bg-zinc-800"
+                >
+                  Edit Text
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Minimalist Top Action Bar */}
           <div className="flex flex-wrap items-center justify-between gap-2 pb-1">
             {/* Pending vs Done Section Switcher */}
