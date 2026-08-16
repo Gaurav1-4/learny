@@ -2,11 +2,24 @@
 
 import { useEffect, useState } from 'react';
 import { useSession, signIn, signOut } from 'next-auth/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { StatsCards } from '@/components/dashboard/stats-cards';
 import { CourseCards, Course } from '@/components/dashboard/course-cards';
 import { DeadlineList, Deadline } from '@/components/dashboard/deadline-list';
 import { ClassroomCourse, ClassroomCourseWork } from '@/types';
-import { AlertCircle, RefreshCw, LogIn, ExternalLink, BookOpen, ShieldAlert } from 'lucide-react';
+import {
+  AlertCircle,
+  RefreshCw,
+  LogIn,
+  ExternalLink,
+  BookOpen,
+  Sparkles,
+  Brain,
+  Timer,
+  Calculator,
+  Calendar as CalendarIcon,
+  ArrowRight,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 
@@ -27,7 +40,7 @@ export default function DashboardPage() {
 
       // 1. Fetch courses
       const coursesRes = await fetch('/api/classroom/courses');
-      
+
       if (!coursesRes.ok) {
         setErrorStatus(coursesRes.status);
         const errJson = await coursesRes.json().catch(() => ({}));
@@ -39,7 +52,7 @@ export default function DashboardPage() {
 
       const rawCourses: ClassroomCourse[] = await coursesRes.json();
       const coursesList = Array.isArray(rawCourses) ? rawCourses : [];
-      
+
       // 2. Fetch coursework across all courses
       const courseworkRes = await fetch('/api/classroom/coursework');
       const courseworkData = courseworkRes.ok ? await courseworkRes.json() : { coursework: [] };
@@ -110,46 +123,84 @@ export default function DashboardPage() {
     error?.toLowerCase().includes('unauthorized') ||
     error?.toLowerCase().includes('credential');
 
+  const quickShortcuts = [
+    {
+      title: 'NotebookLM Compiler',
+      desc: 'Export syllabus & notes',
+      icon: Brain,
+      href: '/notebooklm',
+      color: 'text-purple-400 border-purple-500/30 bg-purple-500/10',
+    },
+    {
+      title: 'Subject Evals & CGPA',
+      desc: 'Calculate target exam marks',
+      icon: Calculator,
+      href: '/gpa',
+      color: 'text-emerald-400 border-emerald-500/30 bg-emerald-500/10',
+    },
+    {
+      title: 'Deep Focus Timer',
+      desc: 'Pomodoro study chamber',
+      icon: Timer,
+      href: '/timer',
+      color: 'text-amber-400 border-amber-500/30 bg-amber-500/10',
+    },
+    {
+      title: 'SM-2 AI Decks',
+      desc: 'Active recall spaced review',
+      icon: Sparkles,
+      href: '/study',
+      color: 'text-indigo-400 border-indigo-500/30 bg-indigo-500/10',
+    },
+  ];
+
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight text-zinc-100">
-          Welcome back, {session?.user?.name || 'Student'}
-        </h1>
-        <p className="text-sm text-zinc-400">
-          Here is what is happening across your Google Classroom courses today.
-        </p>
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-8 max-w-7xl"
+    >
+      {/* Header with Ambient Badge */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="space-y-1">
+          <div className="inline-flex items-center gap-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 px-3 py-1 text-xs font-bold text-indigo-400 mb-1">
+            <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-ping" />
+            Live Classroom Feed Active
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
+            Welcome back, {session?.user?.name?.split(' ')[0] || 'Student'} 👋
+          </h1>
+          <p className="text-sm text-zinc-400">
+            Here is your academic overview, coursework deadlines, and study tools for today.
+          </p>
+        </div>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => fetchData()}
+          className="self-start md:self-auto h-9 gap-2 rounded-xl border-zinc-800 bg-zinc-900/80 text-xs font-semibold text-zinc-300 hover:text-white"
+        >
+          <RefreshCw className="h-3.5 w-3.5" />
+          <span>Sync Classroom</span>
+        </Button>
       </div>
 
       {/* Error Banner if any */}
       {error && (
-        <div className="rounded-2xl border border-red-500/30 bg-red-950/30 p-6 backdrop-blur-sm space-y-4">
+        <div className="rounded-3xl border border-red-500/30 bg-red-950/30 p-6 backdrop-blur-md space-y-4 shadow-xl">
           <div className="flex items-start gap-3 text-red-400">
             <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
             <div className="space-y-1.5 flex-1">
-              <h3 className="font-bold text-sm text-red-200">Google Classroom Connection Issue</h3>
+              <h3 className="font-bold text-sm text-red-200">Google Classroom Connection</h3>
               <p className="text-xs text-red-300/90 leading-relaxed">{error}</p>
-              
+
               {isAuthIssue && (
                 <p className="text-xs text-zinc-300 pt-1">
-                  Your Google Classroom OAuth session needs to be refreshed. Click <strong>&quot;Sign in Again with Google&quot;</strong> below to grant access and reload your courses.
+                  Your Google Classroom session needs to be refreshed. Click below to grant permissions and reload courses.
                 </p>
               )}
-
-              {error.includes("disabled") || error.includes("Google Classroom API") ? (
-                <div className="pt-2 text-xs text-zinc-300 space-y-1">
-                  <p>Enable the Google Classroom API in your Google Cloud Console project:</p>
-                  <a
-                    href="https://console.cloud.google.com/apis/library/classroom.googleapis.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 text-indigo-400 hover:underline font-semibold"
-                  >
-                    Open Google Classroom API in Cloud Console <ExternalLink className="h-3.5 w-3.5" />
-                  </a>
-                </div>
-              ) : null}
             </div>
           </div>
 
@@ -162,7 +213,7 @@ export default function DashboardPage() {
                     signIn('google', { callbackUrl: '/dashboard' });
                   });
                 }}
-                className="h-9 bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white shadow-lg shadow-indigo-600/30"
+                className="h-9 bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white shadow-lg shadow-indigo-600/30 rounded-xl"
               >
                 <LogIn className="h-3.5 w-3.5 mr-1.5" /> Sign in Again with Google Classroom
               </Button>
@@ -172,7 +223,7 @@ export default function DashboardPage() {
               size="sm"
               variant="outline"
               onClick={() => fetchData()}
-              className="h-9 border-zinc-800 bg-zinc-900 hover:bg-zinc-800 text-xs font-semibold text-zinc-300"
+              className="h-9 border-zinc-800 bg-zinc-900 hover:bg-zinc-800 text-xs font-semibold text-zinc-300 rounded-xl"
             >
               <RefreshCw className="h-3.5 w-3.5 mr-1.5" /> Try Again
             </Button>
@@ -185,12 +236,15 @@ export default function DashboardPage() {
         <div className="space-y-8">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-28 animate-pulse rounded-2xl bg-zinc-900 border border-zinc-800" />
+              <div
+                key={i}
+                className="h-28 animate-pulse rounded-3xl bg-zinc-900 border border-zinc-800"
+              />
             ))}
           </div>
           <div className="grid gap-8 md:grid-cols-3">
-            <div className="md:col-span-2 h-64 animate-pulse rounded-2xl bg-zinc-900 border border-zinc-800" />
-            <div className="h-64 animate-pulse rounded-2xl bg-zinc-900 border border-zinc-800" />
+            <div className="md:col-span-2 h-72 animate-pulse rounded-3xl bg-zinc-900 border border-zinc-800" />
+            <div className="h-72 animate-pulse rounded-3xl bg-zinc-900 border border-zinc-800" />
           </div>
         </div>
       ) : !error ? (
@@ -200,32 +254,63 @@ export default function DashboardPage() {
             coursesCount={courses.length}
             pendingCount={pendingCount}
             upcomingCount={deadlines.length}
-            averageGrade="N/A"
+            averageGrade="Continuous"
           />
 
+          {/* Quick Shortcuts Bar */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {quickShortcuts.map((sc) => (
+              <Link
+                key={sc.title}
+                href={sc.href}
+                className="group flex items-center gap-3 rounded-2xl border border-white/5 bg-zinc-900/60 p-3.5 backdrop-blur-xl transition-all hover:border-white/15 hover:bg-zinc-800/40"
+              >
+                <div
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${sc.color} transition-transform group-hover:scale-105`}
+                >
+                  <sc.icon className="h-5 w-5" />
+                </div>
+                <div className="truncate">
+                  <h4 className="text-xs font-bold text-zinc-100 group-hover:text-indigo-300 transition-colors">
+                    {sc.title}
+                  </h4>
+                  <p className="text-[10px] text-zinc-500 truncate">{sc.desc}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+
           {/* Main Dashboard Layout */}
-          <div className="grid gap-8 md:grid-cols-3">
+          <div className="grid gap-8 lg:grid-cols-3">
             {/* Active Courses Section (2 Cols) */}
-            <div className="space-y-4 md:col-span-2">
+            <div className="space-y-4 lg:col-span-2">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold tracking-tight text-zinc-100">Enrolled Courses</h2>
+                <div className="flex items-center gap-2">
+                  <BookOpen className="h-5 w-5 text-indigo-400" />
+                  <h2 className="text-lg font-bold tracking-tight text-white">
+                    Enrolled Courses ({courses.length})
+                  </h2>
+                </div>
                 <Link
                   href="/courses"
-                  className="text-xs font-semibold text-indigo-400 hover:text-indigo-300 transition-colors"
+                  className="inline-flex items-center gap-1 text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors"
                 >
-                  View all courses & archive &rarr;
+                  <span>View All & Archive</span>
+                  <ArrowRight className="h-3 w-3" />
                 </Link>
               </div>
 
               {courses.length === 0 ? (
-                <div className="flex min-h-[220px] flex-col items-center justify-center rounded-2xl border border-zinc-800 border-dashed bg-zinc-900/40 p-8 text-center">
+                <div className="flex min-h-[220px] flex-col items-center justify-center rounded-3xl border border-zinc-800 border-dashed bg-zinc-900/40 p-8 text-center">
                   <BookOpen className="mb-3 h-10 w-10 text-zinc-600" />
                   <h3 className="font-bold text-zinc-200 text-sm">No Active Courses Found</h3>
                   <p className="mt-1 text-xs text-zinc-400 max-w-sm">
-                    No active courses found for your Google account. If your courses belong to past semesters, check the{' '}
-                    <Link href="/courses?tab=archived" className="text-indigo-400 hover:underline">
+                    No active courses found. If your courses are archived from past semesters, check
+                    the{' '}
+                    <Link href="/courses" className="text-indigo-400 hover:underline">
                       Archived Vault
-                    </Link>.
+                    </Link>
+                    .
                   </p>
                 </div>
               ) : (
@@ -235,12 +320,15 @@ export default function DashboardPage() {
 
             {/* Upcoming Deadlines (1 Col) */}
             <div className="space-y-4">
-              <h2 className="text-xl font-bold tracking-tight text-zinc-100">Deadlines & Tasks</h2>
+              <div className="flex items-center gap-2">
+                <CalendarIcon className="h-5 w-5 text-indigo-400" />
+                <h2 className="text-lg font-bold tracking-tight text-white">Academic Radar</h2>
+              </div>
               <DeadlineList deadlines={deadlines} />
             </div>
           </div>
         </>
       ) : null}
-    </div>
+    </motion.div>
   );
 }

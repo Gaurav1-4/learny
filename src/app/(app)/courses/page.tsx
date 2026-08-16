@@ -2,8 +2,31 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Search, BookOpen, Archive, CheckCircle2, Clock, Filter } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Search,
+  BookOpen,
+  Archive,
+  ArrowRight,
+  ExternalLink,
+  Sparkles,
+  Layers,
+  GraduationCap,
+  User,
+  Hash,
+} from 'lucide-react';
 import { ClassroomCourse } from '@/types';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+
+const GRADIENTS = [
+  'from-indigo-600/20 via-zinc-900/90 to-purple-600/10 border-indigo-500/30 hover:border-indigo-400/60',
+  'from-emerald-600/20 via-zinc-900/90 to-teal-600/10 border-emerald-500/30 hover:border-emerald-400/60',
+  'from-violet-600/20 via-zinc-900/90 to-fuchsia-600/10 border-violet-500/30 hover:border-violet-400/60',
+  'from-cyan-600/20 via-zinc-900/90 to-blue-600/10 border-cyan-500/30 hover:border-cyan-400/60',
+  'from-amber-600/20 via-zinc-900/90 to-orange-600/10 border-amber-500/30 hover:border-amber-400/60',
+  'from-rose-600/20 via-zinc-900/90 to-pink-600/10 border-rose-500/30 hover:border-rose-400/60',
+];
 
 export default function CoursesPage() {
   const [activeTab, setActiveTab] = useState<'active' | 'archived'>('active');
@@ -41,141 +64,174 @@ export default function CoursesPage() {
 
   const currentList = activeTab === 'active' ? courses : archivedCourses;
 
-  const filteredCourses = currentList.filter((c) =>
-    (c.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (c.section || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (c.descriptionHeading || '').toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredCourses = currentList.filter(
+    (c) =>
+      (c.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (c.section || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (c.descriptionHeading || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-8 max-w-7xl">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-zinc-100">Course Workspace</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-2.5">
+            <BookOpen className="h-8 w-8 text-indigo-400" />
+            Course Workspace & Archives
+          </h1>
           <p className="text-sm text-zinc-400 mt-1">
-            Access your active courses and browse previous semesters from your Google Classroom archives.
+            Browse your current semester subjects and retrieve study materials from archived courses.
           </p>
         </div>
 
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
-          <input
-            type="text"
-            placeholder="Search courses or topics..."
+        {/* Search Bar */}
+        <div className="relative w-full md:w-80">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+          <Input
+            placeholder="Search subjects or teachers..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full sm:w-64 rounded-xl border border-zinc-800 bg-zinc-900 py-2 pl-10 pr-4 text-sm text-zinc-100 placeholder-zinc-500 focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 shadow-sm"
+            className="pl-10 h-11 bg-zinc-900/90 border-zinc-800 text-xs text-zinc-100 rounded-2xl focus:border-indigo-500/50 shadow-inner"
           />
         </div>
       </div>
 
-      {/* Tabs: Active vs Archived */}
-      <div className="flex items-center gap-2 border-b border-zinc-800 pb-2">
+      {/* Tabs */}
+      <div className="flex items-center gap-3 border-b border-white/5 pb-3">
         <button
           onClick={() => setActiveTab('active')}
-          className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
-            activeTab === 'active'
-              ? 'bg-zinc-800 text-white shadow-sm border border-zinc-700/50'
-              : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900'
+          className={`relative flex items-center gap-2 rounded-2xl px-5 py-2.5 text-xs font-bold transition-all ${
+            activeTab === 'active' ? 'text-white' : 'text-zinc-400 hover:text-zinc-200'
           }`}
         >
-          <BookOpen className="h-4 w-4 text-indigo-400" />
-          <span>Active Courses</span>
-          <span className="ml-1 rounded-full bg-zinc-900 px-2 py-0.5 text-xs text-zinc-300 font-mono">
+          <Sparkles className="h-4 w-4 text-indigo-400" />
+          <span>Active Subjects</span>
+          <span className="rounded-full bg-zinc-800 px-2.5 py-0.5 text-[11px] font-mono text-zinc-300">
             {courses.length}
           </span>
+          {activeTab === 'active' && (
+            <motion.div
+              layoutId="activeCoursesTabIndicator"
+              className="absolute inset-0 -z-10 rounded-2xl bg-zinc-800/90 border border-zinc-700/60 shadow-sm"
+              transition={{ type: 'spring', stiffness: 450, damping: 35 }}
+            />
+          )}
         </button>
 
         <button
           onClick={() => setActiveTab('archived')}
-          className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-all ${
-            activeTab === 'archived'
-              ? 'bg-zinc-800 text-white shadow-sm border border-zinc-700/50'
-              : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900'
+          className={`relative flex items-center gap-2 rounded-2xl px-5 py-2.5 text-xs font-bold transition-all ${
+            activeTab === 'archived' ? 'text-white' : 'text-zinc-400 hover:text-zinc-200'
           }`}
         >
-          <Archive className="h-4 w-4 text-purple-400" />
+          <Archive className="h-4 w-4 text-amber-400" />
           <span>Archived Vault</span>
-          <span className="ml-1 rounded-full bg-zinc-900 px-2 py-0.5 text-xs text-zinc-300 font-mono">
+          <span className="rounded-full bg-zinc-800 px-2.5 py-0.5 text-[11px] font-mono text-zinc-300">
             {archivedCourses.length}
           </span>
+          {activeTab === 'archived' && (
+            <motion.div
+              layoutId="activeCoursesTabIndicator"
+              className="absolute inset-0 -z-10 rounded-2xl bg-zinc-800/90 border border-zinc-700/60 shadow-sm"
+              transition={{ type: 'spring', stiffness: 450, damping: 35 }}
+            />
+          )}
         </button>
       </div>
 
+      {/* Grid */}
       {loading ? (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="h-48 animate-pulse rounded-2xl bg-zinc-900 border border-zinc-800" />
+            <div
+              key={i}
+              className="h-56 animate-pulse rounded-3xl bg-zinc-900 border border-zinc-800"
+            />
           ))}
-        </div>
-      ) : filteredCourses.length === 0 ? (
-        <div className="flex min-h-[360px] flex-col items-center justify-center rounded-2xl border border-zinc-800 border-dashed bg-zinc-900/40 p-8 text-center">
-          {activeTab === 'active' ? (
-            <BookOpen className="mb-4 h-12 w-12 text-zinc-600" />
-          ) : (
-            <Archive className="mb-4 h-12 w-12 text-purple-600/50" />
-          )}
-          <h3 className="text-lg font-bold text-zinc-200">
-            {searchQuery
-              ? "No courses matching your search."
-              : activeTab === "active"
-              ? "No active courses found in Google Classroom."
-              : "No archived courses found in your account."}
-          </h3>
-          <p className="mt-1 text-sm text-zinc-400 max-w-sm">
-            {activeTab === 'archived'
-              ? "Courses from past semesters that have been archived in Google Classroom will appear here."
-              : "Enrolled active courses will automatically sync."}
-          </p>
         </div>
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredCourses.map((course) => (
-            <Link
-              key={course.id}
-              href={`/courses/${course.id}`}
-              className="group flex flex-col justify-between rounded-2xl border border-zinc-800 bg-zinc-900/80 p-6 transition-all hover:border-indigo-500/50 hover:bg-zinc-800/60 shadow-sm"
+        <AnimatePresence mode="wait">
+          {filteredCourses.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex min-h-[350px] flex-col items-center justify-center rounded-3xl border border-zinc-800 border-dashed bg-zinc-900/30 p-12 text-center"
             >
-              <div>
-                <div className="flex items-center justify-between gap-2 mb-2">
-                  <span
-                    className={`inline-flex items-center rounded-md px-2 py-0.5 text-[11px] font-semibold ${
-                      course.courseState === "ARCHIVED"
-                        ? "bg-purple-950/40 text-purple-400 border border-purple-800/40"
-                        : "bg-indigo-950/40 text-indigo-400 border border-indigo-800/40"
-                    }`}
+              <BookOpen className="mb-3 h-12 w-12 text-zinc-600" />
+              <h3 className="text-base font-bold text-zinc-200">
+                No {activeTab === 'active' ? 'Active' : 'Archived'} Courses Found
+              </h3>
+              <p className="text-xs text-zinc-400 mt-1 max-w-sm">
+                {searchQuery
+                  ? 'No courses matched your search keyword.'
+                  : `Your Google Classroom has no courses marked as ${activeTab}.`}
+              </p>
+            </motion.div>
+          ) : (
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+              className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3"
+            >
+              {filteredCourses.map((course, idx) => {
+                const gradientClass = GRADIENTS[idx % GRADIENTS.length];
+
+                return (
+                  <motion.div
+                    key={course.id}
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.04, duration: 0.25 }}
+                    whileHover={{ y: -4, transition: { duration: 0.2 } }}
                   >
-                    {course.courseState === "ARCHIVED" ? "Archived Semester" : "Active Subject"}
-                  </span>
-                  {course.section && (
-                    <span className="text-xs text-zinc-400 font-medium truncate max-w-[120px]">
-                      {course.section}
-                    </span>
-                  )}
-                </div>
+                    <Link
+                      href={`/courses/${course.id}`}
+                      className={`group relative flex h-full flex-col justify-between overflow-hidden rounded-3xl border bg-gradient-to-br p-6 shadow-xl backdrop-blur-xl transition-all ${gradientClass}`}
+                    >
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/5 border border-white/10 px-2.5 py-1 text-[11px] font-bold text-zinc-300">
+                            <Hash className="h-3 w-3 text-indigo-400" />
+                            {course.section || 'General'}
+                          </span>
 
-                <h3 className="line-clamp-2 text-lg font-bold text-zinc-100 group-hover:text-indigo-400 transition-colors">
-                  {course.name}
-                </h3>
+                          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/5 text-zinc-400 transition-transform group-hover:translate-x-1 group-hover:text-white">
+                            <ArrowRight className="h-4 w-4" />
+                          </div>
+                        </div>
 
-                {course.descriptionHeading && (
-                  <p className="mt-2 text-xs text-zinc-400 line-clamp-2 leading-relaxed">
-                    {course.descriptionHeading}
-                  </p>
-                )}
-              </div>
+                        <h3 className="text-xl font-extrabold tracking-tight text-white group-hover:text-indigo-200 transition-colors line-clamp-2 leading-snug">
+                          {course.name}
+                        </h3>
 
-              <div className="mt-6 flex items-center justify-between border-t border-zinc-800/80 pt-4">
-                <span className="text-xs text-zinc-500">
-                  {course.room ? `Room ${course.room}` : "Google Classroom"}
-                </span>
-                <span className="text-xs font-semibold text-indigo-400 group-hover:underline flex items-center gap-1">
-                  Browse materials &rarr;
-                </span>
-              </div>
-            </Link>
-          ))}
-        </div>
+                        {course.descriptionHeading && (
+                          <p className="text-xs text-zinc-400 flex items-center gap-1.5 line-clamp-1">
+                            <User className="h-3.5 w-3.5 text-indigo-400 shrink-0" />
+                            <span>{course.descriptionHeading}</span>
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="mt-6 border-t border-white/5 pt-4 flex items-center justify-between text-xs text-zinc-400">
+                        <span className="text-[11px] font-medium text-zinc-500">
+                          {activeTab === 'archived' ? 'Archived Record' : 'Active Subject'}
+                        </span>
+                        <span className="inline-flex items-center gap-1 font-bold text-indigo-400 group-hover:text-indigo-300">
+                          View Workspace &rarr;
+                        </span>
+                      </div>
+                    </Link>
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+          )}
+        </AnimatePresence>
       )}
     </div>
   );

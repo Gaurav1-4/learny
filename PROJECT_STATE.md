@@ -1,27 +1,27 @@
 # Learny — Project State & Milestone Tracker
 
-**Status**: Deployed to Production on Vercel (Live & Verified)
-**Production URLs**: 
+**Status**: Production Live on Vercel & GitHub Synced
+**GitHub Repository**: [https://github.com/Gaurav1-4/learny](https://github.com/Gaurav1-4/learny)
+**Live URLs**:
+- `https://learny.zorx.tech`
 - `https://learny-delta.vercel.app`
-- `https://learny-3718yrqw5-semly.vercel.app`
-- Target Custom Subdomain: `https://learny.zorx.tech`
+- `https://learny-53zt1m7si-semly.vercel.app`
 
 ---
 
-## 1. Deployment Details
+## 1. Verified Fixes & Deliverables
 
-- **Vercel Project**: `semly/learny`
-- **Environment Variables Injected**:
-  - `AUTH_SECRET`
-  - `NEXTAUTH_SECRET`
-  - `NEXTAUTH_URL` (`https://learny.zorx.tech` / `https://learny-delta.vercel.app`)
-  - `GOOGLE_CLIENT_ID`
-  - `GOOGLE_CLIENT_SECRET`
-- **Git State**: Local repository committed cleanly on `main` branch.
+- **Google OAuth Scopes Fix**:
+  - Updated OAuth scopes in `src/lib/auth.ts` to include student-specific permissions (`coursework.me.readonly`, `student-submissions.me.readonly`) alongside teacher scopes so student accounts are never blocked by Google.
+- **Server Configuration & Dynamic Host Trust**:
+  - Removed conflicting hardcoded `NEXTAUTH_URL` on Vercel so `trustHost: true` automatically and dynamically detects the incoming host (`learny.zorx.tech`, `learny-delta.vercel.app`, and `localhost`).
+  - Added environment variables across all production and preview environments.
+- **Auto-Deployment on Git Push**:
+  - Synchronized with `main` branch on GitHub.
 
 ---
 
-## 2. All 17 Live Routes
+## 2. All 17 Production Routes Live
 
 - `GET /`: Landing page with authentic Google Classroom sign-in.
 - `GET /dashboard`: Student dashboard with real stats, active courses grid, and upcoming deadlines.
