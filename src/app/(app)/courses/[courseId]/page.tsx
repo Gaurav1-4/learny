@@ -26,21 +26,36 @@ import {
 } from '@/types';
 import { Button } from '@/components/ui/button';
 import { SubjectWorkflowSuite } from '@/components/courses/subject-workflow-suite';
+import { DocumentNotebookView, DocumentNotebookData } from '@/components/notebooklm/document-notebooklm-view';
 
-function AttachmentBadge({ item }: { item: ClassroomMaterialItem }) {
+function AttachmentBadge({ item, onOpenNotebook }: { item: ClassroomMaterialItem; onOpenNotebook?: (title: string, link?: string) => void }) {
   if (item.driveFile?.driveFile) {
     const df = item.driveFile.driveFile;
     return (
-      <a
-        href={df.alternateLink || '#'}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-flex items-center gap-1.5 rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1 text-[11px] text-zinc-300 transition-colors hover:border-zinc-700 hover:text-white"
-      >
+      <div className="inline-flex items-center gap-1.5 rounded-md border border-zinc-800 bg-zinc-950 px-2 py-1 text-[11px] text-zinc-300">
         <FileText className="h-3 w-3 text-zinc-400" />
         <span className="max-w-[180px] truncate">{df.title || 'Attached File'}</span>
-        <ExternalLink className="h-2.5 w-2.5 text-zinc-500" />
-      </a>
+        {df.alternateLink && (
+          <a
+            href={df.alternateLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-zinc-500 hover:text-white"
+          >
+            <ExternalLink className="h-2.5 w-2.5" />
+          </a>
+        )}
+        {onOpenNotebook && (
+          <button
+            onClick={() => onOpenNotebook(df.title || 'Attached File', df.alternateLink)}
+            className="ml-1 text-[10px] text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-0.5"
+            title="Open in NotebookLM"
+          >
+            <Sparkles className="h-2.5 w-2.5" />
+            <span>Notebook</span>
+          </button>
+        )}
+      </div>
     );
   }
 
@@ -91,6 +106,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ courseI
   const [announcements, setAnnouncements] = useState<ClassroomAnnouncement[]>([]);
   const [submissions, setSubmissions] = useState<ClassroomStudentSubmission[]>([]);
   const [activeTab, setActiveTab] = useState<string>('study-suite');
+  const [activeNotebookDoc, setActiveNotebookDoc] = useState<DocumentNotebookData | null>(null);
 
   useEffect(() => {
     async function fetchCourseData() {
@@ -317,15 +333,15 @@ export default function CourseDetailPage({ params }: { params: Promise<{ courseI
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="space-y-2.5"
+            className="space-y-3"
           >
             {materials.map((mat) => (
               <div
                 key={mat.id}
-                className="rounded-lg border border-zinc-800 bg-zinc-900/40 p-3.5 space-y-1.5 transition-colors hover:border-zinc-700"
+                className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 space-y-3 transition-all hover:border-zinc-700"
               >
                 <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-0.5 flex-1">
+                  <div className="space-y-1 flex-1">
                     <h4 className="text-xs sm:text-sm font-semibold text-white">{mat.title}</h4>
                     {mat.description && (
                       <p className="text-xs text-zinc-400 leading-relaxed whitespace-pre-line">
@@ -333,22 +349,58 @@ export default function CourseDetailPage({ params }: { params: Promise<{ courseI
                       </p>
                     )}
                   </div>
-                  {mat.alternateLink && (
-                    <a
-                      href={mat.alternateLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-zinc-400 hover:text-white p-1"
+                  
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <Button
+                      size="sm"
+                      onClick={() =>
+                        setActiveNotebookDoc({
+                          documentId: mat.id,
+                          documentTitle: mat.title,
+                          courseId: course.id,
+                          courseName: course.name,
+                          courseCode: course.section || course.name.split(' ')[0] || 'COURSE',
+                          attachmentLink: mat.alternateLink,
+                          content: mat.description,
+                        })
+                      }
+                      className="h-7 text-[11px] font-semibold bg-indigo-600 hover:bg-indigo-500 text-white gap-1 px-2.5 shadow-sm shadow-indigo-500/20"
                     >
-                      <ExternalLink className="h-3.5 w-3.5" />
-                    </a>
-                  )}
+                      <Sparkles className="h-3 w-3 text-indigo-200" />
+                      <span>Go to NotebookLM</span>
+                    </Button>
+
+                    {mat.alternateLink && (
+                      <a
+                        href={mat.alternateLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-zinc-400 hover:text-white p-1 rounded-lg border border-zinc-800 bg-zinc-950 hover:bg-zinc-800"
+                      >
+                        <ExternalLink className="h-3.5 w-3.5" />
+                      </a>
+                    )}
+                  </div>
                 </div>
 
                 {mat.materials && mat.materials.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 pt-2 border-t border-zinc-800/80">
                     {mat.materials.map((item, idx) => (
-                      <AttachmentBadge key={idx} item={item} />
+                      <AttachmentBadge
+                        key={idx}
+                        item={item}
+                        onOpenNotebook={(title, link) =>
+                          setActiveNotebookDoc({
+                            documentId: `${mat.id}-${idx}`,
+                            documentTitle: title,
+                            courseId: course.id,
+                            courseName: course.name,
+                            courseCode: course.section || course.name.split(' ')[0] || 'COURSE',
+                            attachmentLink: link || mat.alternateLink,
+                            content: mat.description,
+                          })
+                        }
+                      />
                     ))}
                   </div>
                 )}
@@ -563,6 +615,19 @@ export default function CourseDetailPage({ params }: { params: Promise<{ courseI
               </>
             )}
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Fullscreen Document NotebookLM Modal */}
+      <AnimatePresence>
+        {activeNotebookDoc && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto">
+            <DocumentNotebookView
+              data={activeNotebookDoc}
+              onClose={() => setActiveNotebookDoc(null)}
+              isModal={true}
+            />
+          </div>
         )}
       </AnimatePresence>
     </motion.div>

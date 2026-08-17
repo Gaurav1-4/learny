@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { StudyDecks } from '@/components/study/study-decks';
+import { DocumentNotebookLMVault } from '@/components/study/document-notebooklm-vault';
 import { NotebookLMHub } from '@/components/notebooklm/notebooklm-hub';
 import { FocusTimer } from '@/components/timer/focus-timer';
 import { SubjectEvaluations } from '@/components/gpa/subject-evaluations';
@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function StudyToolsHubPage() {
   const searchParams = useSearchParams();
-  const defaultTab = searchParams.get('tab') || 'decks';
+  const defaultTab = searchParams.get('tab') || 'vault';
   const [activeTab, setActiveTab] = useState(defaultTab);
 
   return (
@@ -29,16 +29,16 @@ export default function StudyToolsHubPage() {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-4">
         <TabsList className="bg-zinc-950 border border-zinc-800 p-0.5 rounded-lg text-xs flex overflow-x-auto scrollbar-none">
           <TabsTrigger
-            value="decks"
-            className="rounded-md px-3 py-1.5 text-xs data-[state=active]:bg-zinc-800 data-[state=active]:text-white"
+            value="vault"
+            className="rounded-md px-3 py-1.5 text-xs data-[state=active]:bg-zinc-800 data-[state=active]:text-white font-medium"
           >
-            Flashcards (SM-2)
+            NotebookLM Document Vault
           </TabsTrigger>
           <TabsTrigger
             value="notebooklm"
             className="rounded-md px-3 py-1.5 text-xs data-[state=active]:bg-zinc-800 data-[state=active]:text-white"
           >
-            NotebookLM Vault
+            NotebookLM Account Sync
           </TabsTrigger>
           <TabsTrigger
             value="timer"
@@ -54,9 +54,9 @@ export default function StudyToolsHubPage() {
           </TabsTrigger>
         </TabsList>
 
-        {/* 1. SM-2 Flashcards */}
-        <TabsContent value="decks" className="focus-visible:outline-none">
-          <StudyDecks />
+        {/* 1. Google NotebookLM Document Vault */}
+        <TabsContent value="vault" className="focus-visible:outline-none">
+          <DocumentNotebookLMVault />
         </TabsContent>
 
         {/* 2. NotebookLM Dual-Account Hub */}

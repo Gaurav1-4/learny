@@ -36,6 +36,7 @@ import { MathView, FormattedMathText } from "@/components/ui/math-view"
 import { ClassroomCourseWorkMaterial, ClassroomCourseWork, ClassroomAnnouncement } from "@/types"
 import { isHomeworkDone, toggleHomeworkStatus } from "@/lib/backlog-engine"
 import { pushToFirestore } from "@/lib/firebase/firestore-sync"
+import { DocumentNotebookView, DocumentNotebookData } from "@/components/notebooklm/document-notebooklm-view"
 
 interface SubjectWorkflowSuiteProps {
   courseId: string
@@ -65,7 +66,7 @@ export interface MathProblem {
 export function SubjectWorkflowSuite({
   courseId,
   courseName,
-  courseSection,
+  courseSection = "",
   materials = [],
   coursework = [],
   announcements = [],
@@ -87,6 +88,7 @@ export function SubjectWorkflowSuite({
   const [isReprocessing, setIsReprocessing] = useState(false)
   const [expandedMethodMap, setExpandedMethodMap] = useState<Record<string, boolean>>({})
   const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const [activeNotebookDoc, setActiveNotebookDoc] = useState<DocumentNotebookData | null>(null)
 
   // Editing state
   const [editingProblem, setEditingProblem] = useState<MathProblem | null>(null)
@@ -1447,16 +1449,37 @@ export function SubjectWorkflowSuite({
                 {/* Dynamic Study Context & Prompts */}
                 {selectedMaterial && (
                   <div className="space-y-3 p-4 rounded-xl bg-zinc-900/50 border border-zinc-800">
-                    <div className="space-y-1">
-                      <h3 className="text-xs font-semibold text-white">{selectedMaterial.title}</h3>
-                      {selectedMaterial.description ? (
-                        <p className="text-xs text-zinc-400 leading-relaxed whitespace-pre-line">
-                          {selectedMaterial.description}
-                        </p>
-                      ) : null}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-zinc-800">
+                      <div className="space-y-0.5">
+                        <h3 className="text-xs sm:text-sm font-semibold text-white">{selectedMaterial.title}</h3>
+                        {selectedMaterial.description ? (
+                          <p className="text-xs text-zinc-400 leading-relaxed line-clamp-2">
+                            {selectedMaterial.description}
+                          </p>
+                        ) : null}
+                      </div>
+
+                      <Button
+                        size="sm"
+                        onClick={() =>
+                          setActiveNotebookDoc({
+                            documentId: selectedMaterial.id,
+                            documentTitle: selectedMaterial.title,
+                            courseId,
+                            courseName,
+                            courseCode: courseSection || courseName.split(" ")[0] || "COURSE",
+                            attachmentLink: selectedMaterial.alternateLink,
+                            content: selectedMaterial.description,
+                          })
+                        }
+                        className="h-8 text-xs font-semibold bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white gap-1.5 shrink-0 shadow-md shadow-indigo-600/20 border border-indigo-400/30"
+                      >
+                        <Sparkles className="h-3.5 w-3.5 text-indigo-200" />
+                        <span>Go to NotebookLM</span>
+                      </Button>
                     </div>
 
-                    <div className="pt-2 border-t border-zinc-800/80 space-y-2">
+                    <div className="space-y-2 pt-1">
                       <div className="text-xs font-medium text-zinc-300">
                         Contextual AI Study Prompts:
                       </div>
@@ -1520,6 +1543,19 @@ export function SubjectWorkflowSuite({
           </CardContent>
         </Card>
       )}
+
+      {/* Fullscreen Document NotebookLM Modal */}
+      <AnimatePresence>
+        {activeNotebookDoc && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto">
+            <DocumentNotebookView
+              data={activeNotebookDoc}
+              onClose={() => setActiveNotebookDoc(null)}
+              isModal={true}
+            />
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
