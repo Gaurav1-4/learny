@@ -53,7 +53,7 @@ export async function askGAHA({
     const rawText = await geminiPool.generateContent({
       prompt,
       systemInstruction: GAHA_SYSTEM_PROMPT,
-      model: "gemini-2.0-flash-lite",
+      model: "gemini-3.5-flash-lite",
       temperature: 0.3,
     });
 

@@ -92,7 +92,7 @@ class GeminiKeyPool {
 
   public async generateContent({
     prompt,
-    model = "gemini-2.0-flash-lite", // Fallback to supported Google endpoint
+    model = "gemini-3.5-flash-lite", // Official supported high-throughput endpoint
     systemInstruction,
     responseSchema,
     temperature = 0.2,
@@ -107,8 +107,13 @@ class GeminiKeyPool {
       this.loadKeys();
     }
 
-    const maxAttempts = Math.min(this.keys.length, 5);
+    const maxAttempts = Math.max(this.keys.length, 5);
     let lastError: any = null;
+
+    // Supported active models in order of priority
+    const modelsToTry = [model, "gemini-3.5-flash-lite", "gemini-3.6-flash"].filter(
+      (m, idx, arr) => arr.indexOf(m) === idx
+    );
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       const keyIndex = this.getNextAvailableKeyIndex();
@@ -119,8 +124,10 @@ class GeminiKeyPool {
       stats.lastUsed = Date.now();
       this.keyStats.set(keyIndex, stats);
 
+      const targetModel = modelsToTry[attempt % modelsToTry.length];
+
       try {
-        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${apiKey}`;
 
         const payload: any = {
           contents: [{ parts: [{ text: prompt }] }],
@@ -146,16 +153,19 @@ class GeminiKeyPool {
           body: JSON.stringify(payload),
         });
 
-        if (res.status === 429) {
-          console.warn(`Gemini Key #${keyIndex + 1} hit 429 rate limit. Cooling down for 60s & rotating.`);
-          stats.cooldownUntil = Date.now() + 60000;
+        if (res.status === 429 || res.status === 403) {
+          console.warn(`Gemini Key #${keyIndex + 1} returned status ${res.status}. Cooling down & auto-failing over.`);
+          stats.cooldownUntil = Date.now() + 300000; // 5 min cooldown
           this.keyStats.set(keyIndex, stats);
           continue; // Instantly retry with next key in 0ms
         }
 
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
-          throw new Error(`Gemini API Error (${res.status}): ${JSON.stringify(errData)}`);
+          console.warn(`Gemini Key #${keyIndex + 1} error (${res.status}):`, errData);
+          stats.cooldownUntil = Date.now() + 60000;
+          this.keyStats.set(keyIndex, stats);
+          continue;
         }
 
         const data = await res.json();
@@ -164,6 +174,8 @@ class GeminiKeyPool {
       } catch (err: any) {
         lastError = err;
         console.warn(`Attempt ${attempt + 1} failed on key #${keyIndex + 1}:`, err?.message);
+        stats.cooldownUntil = Date.now() + 30000;
+        this.keyStats.set(keyIndex, stats);
       }
     }
 
