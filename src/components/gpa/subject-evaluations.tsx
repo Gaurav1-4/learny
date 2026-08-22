@@ -169,8 +169,16 @@ export function SubjectEvaluations() {
 
     if (savedPrevSems) {
       try {
-        const parsed = JSON.parse(savedPrevSems)
+        let parsed = JSON.parse(savedPrevSems)
         if (Array.isArray(parsed) && parsed.length > 0) {
+          // Auto-migrate fake template data to Gaurav's real grades
+          if (parsed.length >= 1 && parsed[0].sgpa === 8.5 && parsed[0].totalCredits === 16) {
+            parsed = [
+              { id: "sem-1", name: "Semester 1 (IP, HCI, LA, COM, DC)", totalCredits: 20, sgpa: 8.6 },
+              { id: "sem-2", name: "Semester 2 (Winter)", totalCredits: 20, sgpa: 9.0 },
+            ]
+            localStorage.setItem("learny_prev_semesters", JSON.stringify(parsed))
+          }
           setPrevSemesters(parsed)
         }
       } catch (e) {
@@ -330,8 +338,8 @@ export function SubjectEvaluations() {
     ]
 
     const iiitdPastSems: PreviousSemester[] = [
-      { id: "sem-1", name: "Semester 1 (Monsoon - IP, DC, M1, SM, COM)", totalCredits: 16, sgpa: 8.5 },
-      { id: "sem-2", name: "Semester 2 (Winter - DS, BE, M2, CD)", totalCredits: 16, sgpa: 8.65 },
+      { id: "sem-1", name: "Semester 1 (IP, HCI, LA, COM, DC)", totalCredits: 20, sgpa: 8.6 },
+      { id: "sem-2", name: "Semester 2 (Winter)", totalCredits: 20, sgpa: 9.0 },
     ]
 
     setSubjectEvals(iiitdSem3)

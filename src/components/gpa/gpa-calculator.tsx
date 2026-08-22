@@ -37,12 +37,24 @@ export function GpaCalculator() {
     {
       id: "sem-1",
       name: "Semester 1",
-      courses: Array.from({ length: 5 }).map((_, i) => ({
-        id: `course-${i}`,
-        name: "",
-        credits: "",
-        grade: "",
-      })),
+      courses: [
+        { id: "c1-1", name: "Intro to Programming", credits: 4, grade: "B+" },
+        { id: "c1-2", name: "HCI", credits: 4, grade: "A+" },
+        { id: "c1-3", name: "Linear Algebra", credits: 4, grade: "A" },
+        { id: "c1-4", name: "Communication Skills", credits: 4, grade: "A+" },
+        { id: "c1-5", name: "Digital Circuits", credits: 4, grade: "O" },
+      ],
+    },
+    {
+      id: "sem-2",
+      name: "Semester 2",
+      courses: [
+        { id: "c2-1", name: "Data Structures & Algorithms", credits: 4, grade: "A+" },
+        { id: "c2-2", name: "Computer Organization", credits: 4, grade: "A+" },
+        { id: "c2-3", name: "Probability & Statistics", credits: 4, grade: "A+" },
+        { id: "c2-4", name: "Intro to Engineering Design", credits: 4, grade: "A+" },
+        { id: "c2-5", name: "SSH Elective", credits: 4, grade: "A+" },
+      ],
     },
   ])
 
@@ -51,7 +63,13 @@ export function GpaCalculator() {
     const saved = localStorage.getItem("learny-gpa-data")
     if (saved) {
       try {
-        setSemesters(JSON.parse(saved))
+        let parsed = JSON.parse(saved)
+        // Migration: If they have the old generic empty template, overwrite with real grades
+        if (parsed.length === 1 && parsed[0].courses && parsed[0].courses[0].name === "") {
+          parsed = semesters // Use the newly seeded real grades
+          localStorage.setItem("learny-gpa-data", JSON.stringify(parsed))
+        }
+        setSemesters(parsed)
       } catch (e) {
         console.error("Failed to parse GPA data", e)
       }
