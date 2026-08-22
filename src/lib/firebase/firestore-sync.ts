@@ -144,7 +144,7 @@ export async function syncAllWithFirestore(customStudentId?: string): Promise<St
       try { localState.gpaRecords = JSON.parse(rawGpa); } catch {}
     }
 
-    const rawSubjects = localStorage.getItem("learny_subject_evaluations");
+    const rawSubjects = localStorage.getItem("learny_subject_evals_v2");
     if (rawSubjects) {
       try { localState.subjectEvaluations = JSON.parse(rawSubjects); } catch {}
     }
@@ -209,7 +209,7 @@ export async function syncAllWithFirestore(customStudentId?: string): Promise<St
       }
 
       if (cloudData.subjectEvaluations && cloudData.subjectEvaluations.length > 0) {
-        localStorage.setItem("learny_subject_evaluations", JSON.stringify(cloudData.subjectEvaluations));
+        localStorage.setItem("learny_subject_evals_v2", JSON.stringify(cloudData.subjectEvaluations));
         localState.subjectEvaluations = cloudData.subjectEvaluations;
       }
 
@@ -298,7 +298,7 @@ export function listenToFirestoreSync(callback?: (state: StudentCloudState) => v
       }
 
       if (cloudData.subjectEvaluations) {
-        localStorage.setItem("learny_subject_evaluations", JSON.stringify(cloudData.subjectEvaluations));
+        localStorage.setItem("learny_subject_evals_v2", JSON.stringify(cloudData.subjectEvaluations));
       }
 
       if (cloudData.prevSemesters) {

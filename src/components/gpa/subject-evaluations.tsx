@@ -224,7 +224,23 @@ export function SubjectEvaluations() {
               updated.push(s)
             }
           })
-          setSubjectEvals(updated)
+          
+          // Deduplicate by courseId
+          const uniqueMap = new Map<string, SubjectEvaluation>()
+          updated.forEach(sub => {
+            if (!uniqueMap.has(sub.courseId)) {
+              uniqueMap.set(sub.courseId, sub)
+            }
+          })
+          let deduped = Array.from(uniqueMap.values())
+          
+          // If we have rmssd-1 and rmssd-2, remove the old one if it somehow slipped in
+          if (deduped.some(d => d.courseId === 'iiitd-csd-rmssd-1')) {
+            deduped = deduped.filter(d => d.courseId !== 'iiitd-csd-rmssd')
+          }
+          
+          setSubjectEvals(deduped)
+
         } else {
           handleLoadIIITDCSDCurriculum()
         }
