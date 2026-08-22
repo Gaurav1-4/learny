@@ -339,7 +339,7 @@ export default function DashboardPage() {
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <Link href="/manager">
+          <a href={process.env.NODE_ENV === 'development' ? 'http://gaha.localhost:3000' : 'https://gaha.zorx.tech'}>
             <Button
               size="sm"
               className="h-8 gap-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white shadow-md shadow-indigo-600/20"
@@ -347,7 +347,7 @@ export default function DashboardPage() {
               <span>Open Command Center</span>
               <ArrowRight className="h-3.5 w-3.5" />
             </Button>
-          </Link>
+          </a>
         </div>
       </div>
 

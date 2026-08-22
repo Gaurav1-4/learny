@@ -32,11 +32,6 @@ export function Sidebar({ user }: SidebarProps) {
 
   const mainRoutes = [
     {
-      label: "GAHA Manager (24x7)",
-      icon: Brain,
-      href: "/manager",
-    },
-    {
       label: "Dashboard",
       icon: LayoutDashboard,
       href: "/dashboard",
