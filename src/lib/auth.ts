@@ -73,6 +73,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "learny-development-secret-key-at-least-32-chars-long",
   trustHost: true,
   callbacks: {
+    async signIn({ user }) {
+      const email = user?.email?.toLowerCase()?.trim();
+      // Strict single-user authorization exclusively for Gaurav
+      if (email === "gaurav25212@iiitd.ac.in") {
+        return true;
+      }
+      console.warn(`Unauthorized login attempt blocked for: ${email}`);
+      return false; // Rejects all unauthorized users
+    },
     async jwt({ token, account, user }) {
       if (account && user) {
         return {

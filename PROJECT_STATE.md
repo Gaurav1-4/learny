@@ -1,33 +1,34 @@
 # Learny — Project State & Milestone Tracker
 
-**Current Status**: Google NotebookLM Document-Connected System Deployed
+**Current Status**: Single-User Auth Lock, 100% Firebase Cloud Storage & Premium Dashboard Deployed
 **GitHub Repository**: [https://github.com/Gaurav1-4/learny](https://github.com/Gaurav1-4/learny)
 **Live Production URL**: [https://learny.zorx.tech](https://learny.zorx.tech)
 
 ---
 
-## 🧠 Google NotebookLM Document-Connected System
-
-1. **Automatic Document Ingestion into NotebookLM**:
-   - Every single course document, lecture slide, PDF, and syllabus topic is directly linked to **Google's NotebookLM (`notebooklm.google.com`)**.
-   - Clicking **"Go to NotebookLM"** automatically adds that document as active source material in the course notebook under `studyonly.co@gmail.com` and deep-links directly to Google NotebookLM.
-2. **Native Embedded NotebookLM Study Assets**:
-   - 🎙️ **Conversational Audio Overview**: Built-in player for the 2-host deep dive audio podcast with live transcript and playback controls (1x, 1.25x, 1.5x, 2x).
-   - 🎬 **Video & Visual Concept Explainer**: Whiteboard concept breakdown with slide-by-slide visual highlights.
-   - 🎴 **Document Flashcards (SM-2)**: Active-recall flashcards generated directly from that specific document with SuperMemo spaced repetition intervals (*Again 1d, Hard 3d, Good 6d, Easy 10d+*).
-   - 📑 **Study Guide & Briefing Doc**: Summary, key technical definitions, LaTeX formulas, FAQs, and exam traps.
-   - 🎯 **Practice Quiz**: Interactive self-test with instant feedback and answer rationales.
-   - 💬 **Ask Document AI**: Instant grounded Q&A with Gemini AI citing the document.
-3. **Google NotebookLM Document Vault (`/study`)**:
-   - Replaced detached standalone flashcards with the centralized **NotebookLM Document Vault**.
-   - Organized by course (*Operating Systems, Math III, Advanced Programming, DPP, RMSSD*).
-   - Instant 1-click launch into the NotebookLM workspace or directly to `https://notebooklm.google.com`.
-4. **Course Page Deep Integration (`/courses/[courseId]`)**:
-   - Prominent **`✨ Go to NotebookLM`** action buttons next to every lecture material, slide attachment, and coursework PDF.
+## 🔒 1. Strict Single-User Security Lock
+- NextAuth Google OAuth is strictly locked exclusively to **`gaurav25212@iiitd.ac.in`**.
+- Any unauthorized email trying to sign in is immediately rejected with an Access Denied block.
 
 ---
 
-## 🚀 Automated Gemini AI Homework Flow
-1. **Zero-Click Automatic AI Processing**: Every homework entry is processed by Gemini KaTeX Formatter (`/api/homework/ai-format`).
-2. **Eliminated All Regex Fallbacks**: AI-only parsing with automatic detection and recovery from poorly-formatted entries.
-3. **Cloud Firestore Sync**: Real-time cross-device sync for MacBook & iPhone (`students/{email}`).
+## ☁️ 2. 100% Cloud-First Architecture (Firebase Firestore)
+- All user data is stored centrally in Cloud Firestore under `students/gaurav25212_iiitd_ac_in`:
+  1. **Course Evaluations & Marks**: `subjectEvaluations`, `prevSemesters`, component weights, and marks obtained.
+  2. **Target Grades & GPA**: Target calculations and multi-semester records.
+  3. **Homework Ledgers & KaTeX Problems**: `problemsMap`, `homeworkInputs`, `solvedQuestions`.
+  4. **1-Week Backlog**: `backlogHomeworkMap`, `homeworkLogs`.
+  5. **Custom Calendar Events**: Auto-scheduled deadlines and timetable overrides.
+  6. **Google NotebookLM Study Assets**: Flashcards (SM-2), video/audio scripts, briefing docs.
+  7. **User Settings & Themes**.
+- Real-time bidirectional synchronization across your **MacBook and iPhone**.
+
+---
+
+## ✨ 3. Ultra-Clean, High-Information Density Dashboard
+- **Header**: Minimalist and sleek with `☁️ Firebase Cloud Synced` live status pill and one-click sync.
+- **Smart Homework Banner**: Minimal, non-intrusive single-card notification (only shown if homework needs logging, dismissible).
+- **High-Density 3-Column Grid**:
+  1. **📋 Pending Assignments**: Color-coded course badges, countdowns (*"Due in 2 days"*, *"Overdue"*), max points, and 1-click links.
+  2. **🔔 Recent Academic Notifications**: Live feed of professor/TA announcements across all courses with relative timestamps and attachment links.
+  3. **📅 Today's Schedule & Room Guide**: Clean timeline with live room numbers (*A106, C201, C11, C21*) and test indicators + quick shortcuts.

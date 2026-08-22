@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Label } from "@/components/ui/label"
 import { ClassroomCourse } from "@/types"
+import { pushToFirestore } from "@/lib/firebase/firestore-sync"
 
 export interface EvaluationItem {
   id: string
@@ -70,7 +71,7 @@ export function SubjectEvaluations() {
   const [prevSemesters, setPrevSemesters] = useState<PreviousSemester[]>([])
   const [expandedSubject, setExpandedSubject] = useState<string | null>(null)
 
-  // 1. Load from localStorage
+  // 1. Load from localStorage & Cloud
   useEffect(() => {
     const savedSubjects = localStorage.getItem("learny_subject_evaluations")
     const savedPrevSems = localStorage.getItem("learny_prev_semesters")
@@ -103,13 +104,19 @@ export function SubjectEvaluations() {
     }
   }, [])
 
-  // 2. Save to localStorage
+  // 2. Save to localStorage & Cloud Firestore (Real-Time Cross-Device Sync)
   useEffect(() => {
     localStorage.setItem("learny_subject_evaluations", JSON.stringify(subjectEvals))
+    if (subjectEvals.length > 0) {
+      pushToFirestore({ subjectEvaluations: subjectEvals })
+    }
   }, [subjectEvals])
 
   useEffect(() => {
     localStorage.setItem("learny_prev_semesters", JSON.stringify(prevSemesters))
+    if (prevSemesters.length > 0) {
+      pushToFirestore({ prevSemesters })
+    }
   }, [prevSemesters])
 
   // 3. Fetch courses from Google Classroom

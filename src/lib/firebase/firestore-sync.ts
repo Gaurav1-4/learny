@@ -9,17 +9,26 @@ export interface StudentCloudState {
   solvedQuestions?: Record<string, boolean>;
   problemsMap?: Record<string, any[]>;
   calendarEvents?: any[];
+  customCalendarEvents?: any[];
   studyDecks?: any[];
   gpaRecords?: any;
+  gpaSemesters?: any[];
+  subjectEvaluations?: any[];
+  prevSemesters?: any[];
   targetGrades?: any[];
+  notebookDocuments?: Record<string, any>;
+  settings?: any;
   updatedAt?: any;
+  lastSyncedAt?: string;
 }
 
 export function getStudentIdentifier(): string {
-  if (typeof window === "undefined") return "default_student";
+  if (typeof window === "undefined") return "gaurav25212_iiitd_ac_in";
   const sessionUser = localStorage.getItem("learny-user-email");
-  if (sessionUser && sessionUser.trim()) return sessionUser.trim().toLowerCase().replace(/[^a-zA-Z0-9_]/g, "_");
-  return "default_student";
+  if (sessionUser && sessionUser.trim()) {
+    return sessionUser.trim().toLowerCase().replace(/[^a-zA-Z0-9_]/g, "_");
+  }
+  return "gaurav25212_iiitd_ac_in";
 }
 
 /**
@@ -36,7 +45,7 @@ export async function pushToFirestore(data: Partial<StudentCloudState>, customSt
       updatedAt: serverTimestamp(),
     }, { merge: true });
     
-    // Also notify other local tabs
+    // Also notify other local components and tabs
     window.dispatchEvent(new Event("learny-cloud-synced"));
   } catch (err) {
     console.warn("Firestore sync push warning (offline or permissions):", err);
@@ -91,14 +100,34 @@ export async function syncAllWithFirestore(customStudentId?: string): Promise<St
       try { localState.calendarEvents = JSON.parse(rawEvents); } catch {}
     }
 
+    const rawCustomEvents = localStorage.getItem("learny-calendar-custom-events");
+    if (rawCustomEvents) {
+      try { localState.customCalendarEvents = JSON.parse(rawCustomEvents); } catch {}
+    }
+
     const rawDecks = localStorage.getItem("learny-study-decks");
     if (rawDecks) {
       try { localState.studyDecks = JSON.parse(rawDecks); } catch {}
     }
 
-    const rawGpa = localStorage.getItem("learny-gpa-records");
+    const rawGpa = localStorage.getItem("learny-gpa-records") || localStorage.getItem("learny-gpa-data");
     if (rawGpa) {
       try { localState.gpaRecords = JSON.parse(rawGpa); } catch {}
+    }
+
+    const rawSubjects = localStorage.getItem("learny_subject_evaluations");
+    if (rawSubjects) {
+      try { localState.subjectEvaluations = JSON.parse(rawSubjects); } catch {}
+    }
+
+    const rawPrevSems = localStorage.getItem("learny_prev_semesters");
+    if (rawPrevSems) {
+      try { localState.prevSemesters = JSON.parse(rawPrevSems); } catch {}
+    }
+
+    const rawTargetGrades = localStorage.getItem("learny_target_grades");
+    if (rawTargetGrades) {
+      try { localState.targetGrades = JSON.parse(rawTargetGrades); } catch {}
     }
 
     // 2. Fetch existing Cloud Firestore document
@@ -132,12 +161,32 @@ export async function syncAllWithFirestore(customStudentId?: string): Promise<St
         localStorage.setItem("learny-calendar-events", JSON.stringify(cloudData.calendarEvents));
       }
 
+      if (cloudData.customCalendarEvents && cloudData.customCalendarEvents.length > 0) {
+        localStorage.setItem("learny-calendar-custom-events", JSON.stringify(cloudData.customCalendarEvents));
+      }
+
       if (cloudData.studyDecks && cloudData.studyDecks.length > 0) {
         localStorage.setItem("learny-study-decks", JSON.stringify(cloudData.studyDecks));
       }
 
       if (cloudData.gpaRecords) {
         localStorage.setItem("learny-gpa-records", JSON.stringify(cloudData.gpaRecords));
+        localStorage.setItem("learny-gpa-data", JSON.stringify(cloudData.gpaRecords));
+      }
+
+      if (cloudData.subjectEvaluations && cloudData.subjectEvaluations.length > 0) {
+        localStorage.setItem("learny_subject_evaluations", JSON.stringify(cloudData.subjectEvaluations));
+        localState.subjectEvaluations = cloudData.subjectEvaluations;
+      }
+
+      if (cloudData.prevSemesters && cloudData.prevSemesters.length > 0) {
+        localStorage.setItem("learny_prev_semesters", JSON.stringify(cloudData.prevSemesters));
+        localState.prevSemesters = cloudData.prevSemesters;
+      }
+
+      if (cloudData.targetGrades && cloudData.targetGrades.length > 0) {
+        localStorage.setItem("learny_target_grades", JSON.stringify(cloudData.targetGrades));
+        localState.targetGrades = cloudData.targetGrades;
       }
 
       if (cloudData.problemsMap) {
@@ -147,7 +196,7 @@ export async function syncAllWithFirestore(customStudentId?: string): Promise<St
       }
     }
 
-    // 3. Push the fully merged state back to Firestore so both local & cloud are 100% synchronized
+    // 3. Push the fully merged state back to Firestore so cloud has everything
     await setDoc(studentRef, {
       ...localState,
       lastSyncedAt: new Date().toISOString(),
@@ -195,12 +244,29 @@ export function listenToFirestoreSync(callback?: (state: StudentCloudState) => v
         localStorage.setItem("learny-calendar-events", JSON.stringify(cloudData.calendarEvents));
       }
 
+      if (cloudData.customCalendarEvents) {
+        localStorage.setItem("learny-calendar-custom-events", JSON.stringify(cloudData.customCalendarEvents));
+      }
+
       if (cloudData.studyDecks) {
         localStorage.setItem("learny-study-decks", JSON.stringify(cloudData.studyDecks));
       }
 
       if (cloudData.gpaRecords) {
         localStorage.setItem("learny-gpa-records", JSON.stringify(cloudData.gpaRecords));
+        localStorage.setItem("learny-gpa-data", JSON.stringify(cloudData.gpaRecords));
+      }
+
+      if (cloudData.subjectEvaluations) {
+        localStorage.setItem("learny_subject_evaluations", JSON.stringify(cloudData.subjectEvaluations));
+      }
+
+      if (cloudData.prevSemesters) {
+        localStorage.setItem("learny_prev_semesters", JSON.stringify(cloudData.prevSemesters));
+      }
+
+      if (cloudData.targetGrades) {
+        localStorage.setItem("learny_target_grades", JSON.stringify(cloudData.targetGrades));
       }
 
       if (cloudData.problemsMap) {
