@@ -21,6 +21,7 @@ import {
   ChevronRight,
   Layers,
   Flame,
+  Brain,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -29,6 +30,7 @@ import { ClassroomCourse, ClassroomCourseWork } from '@/types';
 import { HomeworkLoggerModal } from '@/components/homework/homework-logger-modal';
 import { triggerFullCloudSync } from '@/components/sync/cloud-sync-hydrator';
 import { TIMETABLE_CLASSES, ClassSlot } from '@/lib/timetable-data';
+import { getAcademicDateInfo } from '@/lib/academic-calendar-engine';
 import { format, formatDistanceToNow, isPast } from 'date-fns';
 
 interface DashboardDeadline {
@@ -209,8 +211,9 @@ export default function DashboardPage() {
 
   const userName = session?.user?.name ? session.user.name.split(' ')[0] : 'Gaurav';
   const now = new Date();
-  const currentDayName = format(now, 'EEEE');
-  const todayClasses = TIMETABLE_CLASSES.filter((c) => c.day === currentDayName);
+  const academicDateInfo = getAcademicDateInfo(now);
+  const currentDayName = academicDateInfo.effectiveDayOfWeek;
+  const todayClasses = academicDateInfo.effectiveClasses;
 
   const pendingDeadlines = deadlines.filter((d) => d.status === 'due');
   const overdueDeadlines = deadlines.filter((d) => d.status === 'overdue');
@@ -303,9 +306,54 @@ export default function DashboardPage() {
         </div>
       )}
 
+      {/* 2. GAHA 24x7 Academic Executive Manager Banner */}
+      <div className="rounded-2xl border border-indigo-500/30 bg-zinc-900/70 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
+        <div className="flex items-start gap-3.5">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-400">
+            <Brain className="h-5 w-5" />
+          </div>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-indigo-400">
+                24x7 Academic Manager
+              </span>
+              <span className="rounded-full bg-indigo-950/60 border border-indigo-800/50 px-2 py-0.2 text-[10px] font-mono text-indigo-300 font-medium">
+                {academicDateInfo.weekLabel} • {academicDateInfo.phaseTitle}
+              </span>
+              {academicDateInfo.isTTA && (
+                <span className="rounded-full bg-amber-950/60 border border-amber-800/50 px-2 py-0.2 text-[10px] font-mono text-amber-300 font-medium">
+                  ⚡ TTA Active: {academicDateInfo.ttaTargetDay} TT
+                </span>
+              )}
+            </div>
+            <h3 className="text-sm sm:text-base font-bold text-white">
+              {academicDateInfo.isHoliday
+                ? `Gazetted Holiday: ${academicDateInfo.holidayName}`
+                : `Today: ${academicDateInfo.effectiveClasses.length} Classes Running • ${academicDateInfo.daysToMidsem} Days to Midsems`}
+            </h3>
+            <p className="text-xs text-zinc-400">
+              {academicDateInfo.specialNotes ||
+                `Manager has synchronized your OKF knowledge graph, SM-2 flashcard reviews, and study blocks.`}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <Link href="/manager">
+            <Button
+              size="sm"
+              className="h-8 gap-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white shadow-md shadow-indigo-600/20"
+            >
+              <span>Open Command Center</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Button>
+          </Link>
+        </div>
+      </div>
+
       {/* 3. Compact Smart Homework Banner (Only if homework prompt is active & not dismissed) */}
       {!dismissedBanner && (
-        <div className="rounded-2xl border border-indigo-500/30 bg-gradient-to-r from-indigo-950/40 via-zinc-900/70 to-purple-950/30 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-lg">
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-start gap-3">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 mt-0.5">
               <Sparkles className="h-4 w-4" />

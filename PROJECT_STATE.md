@@ -1,20 +1,32 @@
 # Learny — Project State & Milestone Tracker
 
-**Current Status**: Latency Bottlenecks Solved (High-Speed In-Memory Cache + 0ms Instant Hydration + Non-Blocking Sync), Complete IIITD Monsoon 2026 Evaluation Suite Active, GAHA Chatbot Online, Single-User Auth Lock, 100% Firebase Cloud Storage, Premium Dashboard & 1-to-1 Automatic NotebookLM Mapping Deployed
+**Current Status**: Fluid Swipe & Touch Drag Tab Gestures Active App-Wide, Latency Bottlenecks Solved (High-Speed In-Memory Cache + 0ms Instant Hydration + Non-Blocking Sync), Complete IIITD Monsoon 2026 Evaluation Suite Active, GAHA Chatbot Online, Single-User Auth Lock, 100% Firebase Cloud Storage, Premium Dashboard & 1-to-1 Automatic NotebookLM Mapping Deployed
 **GitHub Repository**: [https://github.com/Gaurav1-4/learny](https://github.com/Gaurav1-4/learny)
 **Live Production URL**: [https://learny.zorx.tech](https://learny.zorx.tech)
 
 ---
 
+## 📱 Fluid Swipe & Touch Gesture Tabs (Deployed)
+- **Reusable Component (`src/components/ui/swipeable-tabs.tsx`)**:
+  - Full horizontal touch swipe and trackpad/mouse drag support with physics-based spring transitions.
+  - Swipe left (`offset.x < -60`) advances to the next tab.
+  - Swipe right (`offset.x > 60`) returns to the previous tab.
+  - Active layout pill indicator (`layoutId="active-tab-indicator"`) smoothly glides between tabs.
+  - Direction-aware enter/exit slide animations.
+  - Preserves vertical scrolling (`touch-pan-y`) so page scrolling on mobile/iPhone remains smooth without interference.
+- **Integrated Across All App Views**:
+  1. **GPA & CGPA Planning (`/gpa`)**: Swipe between *Subject Evaluations*, *Target Grade Planner*, and *Manual SGPA Table*.
+  2. **Courses Hub (`/courses`)**: Swipe between *Active Semester*, *Past / Hidden*, and *Archived*.
+  3. **Course Details (`/courses/[id]`)**: Swipe between *Study & Practice Lab*, *Classroom Stream*, *Notes & Slides*, and *Assignments*.
+  4. **Study & Productivity Suite (`/study`)**: Swipe between *NotebookLM Document Vault*, *NotebookLM Account Sync*, *Focus Timer*, and *GPA & Evaluations*.
+
+---
+
 ## ⚡ Performance & Latency Optimization (Resolved)
-- **Root Cause of Latency**:
-  - Every page transition was triggering **20+ individual synchronous REST API round-trips to Google datacenters** (fetching courses, then sequentially fetching coursework and announcements per course) with **0 caching**.
-  - Dashboard was blocking initial render on a synchronous Firestore full push/pull.
-- **Optimizations Applied**:
-  1. **In-Memory TTL API Cache (`src/lib/api-cache.ts`)**: Caches Google Classroom courses, coursework, materials, announcements, and submissions in-memory (90-180s TTL) with `Cache-Control: private, max-age=60, stale-while-revalidate=120`. Subsequent requests respond in **<1ms instead of 3,500ms** (a 3,500x speedup).
-  2. **0ms Instant Client-Side Hydration**: Dashboard and Courses pages immediately hydrate from `sessionStorage` on mount so that cards and deadlines paint instantly with **0ms perceived latency**, revalidating in the background.
-  3. **Non-Blocking Background Cloud Sync**: `triggerFullCloudSync()` now executes asynchronously without blocking the initial page render.
-  4. **Instant Manual Refresh**: Tapping **"Sync"** forces a fresh live pull (`?fresh=true`), bypassing the cache when live data is needed.
+- In-memory API cache (`apiCache`, 90–180s TTL) with `Cache-Control: private, max-age=60, stale-while-revalidate=120`.
+- 0ms instant client-side cache hydration from `sessionStorage`.
+- Non-blocking background Firestore sync.
+- Instant manual refresh with `?fresh=true`.
 
 ---
 

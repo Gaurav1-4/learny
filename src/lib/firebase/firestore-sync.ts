@@ -39,6 +39,8 @@ export interface StudentCloudState {
   notebookDocuments?: Record<string, any>;
   notebookMappings?: Record<string, DocumentNotebookMapping>;
   settings?: any;
+  okfMemory?: any;
+  lastManagerSync?: string;
   updatedAt?: any;
   lastSyncedAt?: string;
 }
