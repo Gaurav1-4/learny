@@ -89,15 +89,38 @@ export default function DashboardPage() {
       }
 
       const rawCourses: ClassroomCourse[] = await coursesRes.json();
-      const courseList = Array.isArray(rawCourses) ? rawCourses : [];
-      setCourses(courseList);
+      const rawList = Array.isArray(rawCourses) ? rawCourses : [];
 
-      // 2. Map Deadlines
+      // Get user-hidden courses from local storage
+      const hiddenRaw = localStorage.getItem('learny_hidden_courses');
+      const hiddenIds: string[] = hiddenRaw ? JSON.parse(hiddenRaw) : [];
+
+      // Filter out past courses (like unarchived HCI from previous terms)
+      const courseList = rawList.filter((c) => {
+        if (hiddenIds.includes(c.id)) return false;
+        const nameLower = (c.name || '').toLowerCase();
+        // Auto-filter known past courses from prior semesters unless user explicitly unhides
+        if (nameLower.includes('human computer interaction') || nameLower.includes('hci') || nameLower.includes('des102')) {
+          return false;
+        }
+        return true;
+      });
+
+      setCourses(courseList);
+      const activeCourseIds = new Set(courseList.map((c) => c.id));
+
+      // 2. Map Deadlines (only for active semester courses)
       const courseworkData = courseworkRes.ok ? await courseworkRes.json() : { coursework: [] };
       const rawCoursework: ClassroomCourseWork[] = courseworkData.coursework || [];
 
       const allDeadlines: DashboardDeadline[] = [];
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
       for (const cw of rawCoursework) {
+        // Exclude coursework from past/hidden courses
+        if (!activeCourseIds.has(cw.courseId)) continue;
+
         const matchingCourse = courseList.find((c) => c.id === cw.courseId);
         const courseName = matchingCourse ? matchingCourse.name : 'Course';
         const courseCode = matchingCourse?.section || courseName.split(' ')[0] || 'COURSE';
@@ -109,6 +132,10 @@ export default function DashboardPage() {
           const hours = cw.dueTime?.hours || 23;
           const minutes = cw.dueTime?.minutes || 59;
           const dDate = new Date(year, month, day, hours, minutes);
+
+          // Exclude dead assignments older than 30 days
+          if (dDate < thirtyDaysAgo) continue;
+
           const status: 'due' | 'overdue' = dDate < new Date() ? 'overdue' : 'due';
 
           allDeadlines.push({
@@ -127,10 +154,13 @@ export default function DashboardPage() {
       allDeadlines.sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
       setDeadlines(allDeadlines);
 
-      // 3. Map Announcements
+      // 3. Map Announcements (only for active semester courses)
       if (announcementsRes && announcementsRes.ok) {
         const annData = await announcementsRes.json();
-        setAnnouncements(annData.announcements?.slice(0, 8) || []);
+        const activeAnnouncements = (annData.announcements || []).filter((a: any) =>
+          activeCourseIds.has(a.courseId)
+        );
+        setAnnouncements(activeAnnouncements.slice(0, 8));
       }
     } catch (err: any) {
       console.error('Error fetching dashboard data:', err);
