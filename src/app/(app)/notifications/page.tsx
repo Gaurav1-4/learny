@@ -6,6 +6,7 @@ import { Bell, ExternalLink, Loader2, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { formatDistanceToNow } from "date-fns";
 import { Input } from "@/components/ui/input";
+import { PushNotificationManager } from "@/components/push-notification-manager";
 
 interface DashboardAnnouncement {
   id: string;
@@ -92,6 +93,8 @@ export default function NotificationsPage() {
           </p>
         </div>
       </div>
+
+      <PushNotificationManager />
 
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />

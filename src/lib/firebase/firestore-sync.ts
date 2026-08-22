@@ -24,6 +24,7 @@ export interface DocumentNotebookMapping {
 }
 
 export interface StudentCloudState {
+  pushSubscription?: string;
   backlogHomeworkMap?: Record<string, any>;
   homeworkLogs?: any[];
   solvedQuestions?: Record<string, boolean>;
