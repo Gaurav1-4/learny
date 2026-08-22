@@ -45,6 +45,9 @@ import {
   detectConflicts,
   getClassBlocksForDate,
 } from '@/lib/gaha-time-blocks';
+import { RemindersView } from '@/components/gaha/reminders-view';
+import { TasksView } from '@/components/gaha/tasks-view';
+import { AnalyticsView } from '@/components/gaha/analytics-view';
 import { getAcademicDateInfo, TIMETABLE_ADJUSTMENTS_2026, getUpcomingMilestones, AcademicMilestone } from '@/lib/academic-calendar-engine';
 import { format, addDays, subDays } from 'date-fns';
 
@@ -489,19 +492,20 @@ export default function GahaManagerPage() {
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
             <Clock className="h-3.5 w-3.5 text-indigo-400" />
-            <span>Timetable Adjustments (TTA Matrix)</span>
+            <span>Upcoming Timetable Adjustments</span>
           </h3>
           <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-800/40 px-2 py-0.5 rounded-full">
-            8 Adjustments
+            {Object.keys(TIMETABLE_ADJUSTMENTS_2026).filter(d => d >= format(currentDate, 'yyyy-MM-dd')).length} Upcoming
           </span>
         </div>
         <div className="grid gap-2 sm:grid-cols-2">
-          {Object.entries(TIMETABLE_ADJUSTMENTS_2026).map(([dateStr, tta], idx) => {
-            const isPast = dateStr < format(new Date(), 'yyyy-MM-dd');
-            return (
+          {Object.entries(TIMETABLE_ADJUSTMENTS_2026)
+            .filter(([dateStr]) => dateStr >= format(currentDate, 'yyyy-MM-dd'))
+            .slice(0, 4) // Only show the next 4 adjustments to keep it clean
+            .map(([dateStr, tta], idx) => (
               <div
                 key={idx}
-                className={`rounded-xl border border-zinc-800 p-3 flex items-center justify-between text-xs ${isPast ? 'bg-zinc-950/40 opacity-50' : 'bg-zinc-950/70'}`}
+                className="rounded-xl border border-zinc-800 bg-zinc-950/70 p-3 flex items-center justify-between text-xs"
               >
                 <div className="space-y-0.5">
                   <span className="font-mono text-zinc-300 font-semibold">{dateStr}</span>
@@ -511,8 +515,7 @@ export default function GahaManagerPage() {
                   {tta.targetDay}
                 </span>
               </div>
-            );
-          })}
+          ))}
         </div>
       </div>
 
@@ -563,6 +566,24 @@ export default function GahaManagerPage() {
       label: 'Calendar & TTA',
       icon: <Calendar className="h-3.5 w-3.5 text-amber-400" />,
       content: calendarTab,
+    },
+    {
+      id: 'reminders',
+      label: 'Deadlines',
+      icon: <AlertTriangle className="h-3.5 w-3.5 text-rose-400" />,
+      content: <RemindersView />,
+    },
+    {
+      id: 'tasks',
+      label: 'Tasks & Briefing',
+      icon: <CheckCircle2 className="h-3.5 w-3.5 text-blue-400" />,
+      content: <TasksView />,
+    },
+    {
+      id: 'analytics',
+      label: 'Insights & Modes',
+      icon: <Flame className="h-3.5 w-3.5 text-orange-400" />,
+      content: <AnalyticsView />,
     },
   ];
 

@@ -14,14 +14,15 @@ export const config = {
   ],
 }
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const url = req.nextUrl;
   const hostname = req.headers.get('host') || '';
 
   // Check for gaha subdomain (handles local gaha.localhost:3000 and prod gaha.zorx.tech)
   if (hostname.startsWith('gaha.')) {
     // Rewrite all paths on the gaha subdomain to the /gaha-app directory
-    return NextResponse.rewrite(new URL(`/gaha-app${url.pathname}`, req.url));
+    const path = url.pathname === '/' ? '/gaha-app' : `/gaha-app${url.pathname}`;
+    return NextResponse.rewrite(new URL(path, req.url));
   }
 
   // Otherwise, it's Learny, proceed normally.

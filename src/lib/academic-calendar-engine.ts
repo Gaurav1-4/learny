@@ -62,7 +62,6 @@ export const ACADEMIC_MILESTONES_2026: AcademicMilestone[] = [
   { id: "m-1", title: "1st Day of Class (Monsoon 2026)", dateStr: "2026-08-10", category: "EVENT", description: "Classes begin for Semester 3 CSD", important: true },
   { id: "m-2", title: "Last Day of Add / Drop", dateStr: "2026-08-14", category: "DEADLINE", description: "Final course registration deadline" },
   { id: "m-3", title: "ESYA Technical Fest", dateStr: "2026-08-28", category: "EVENT", description: "Annual technical fest of IIIT Delhi (Aug 28-29)" },
-  { id: "m-4", title: "RMSSD Home Assignment 1 Deadline", dateStr: "2026-09-07", category: "DEADLINE", description: "20% weightage submission deadline (11:59 PM)", important: true },
   { id: "m-5", title: "Mid-Semester Examinations", dateStr: "2026-09-20", category: "EXAM", description: "Midsem Exam Period (20 Sept – 28 Sept 2026)", important: true },
   { id: "m-6", title: "Mid Recess-I (UG Vacation)", dateStr: "2026-09-29", category: "RECESS", description: "Mid-semester vacation (29 Sept – 1 Oct 2026)" },
   { id: "m-7", title: "Last Day of Late Drop", dateStr: "2026-10-05", category: "DEADLINE", description: "Late drop course deadline" },

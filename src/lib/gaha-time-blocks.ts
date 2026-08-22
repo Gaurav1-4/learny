@@ -121,7 +121,7 @@ export function generateDefaultStudyBlocks(date: Date, existingPersonalBlocks: T
   const dayName = format(date, 'EEEE') as DayName;
   const classBlocks = getClassBlocksForDate(date);
   
-  let allBlocks = [...classBlocks, ...existingPersonalBlocks.filter(b => b.date === dateStr)];
+  const allBlocks = [...classBlocks, ...existingPersonalBlocks.filter(b => b.date === dateStr)];
   allBlocks.sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
 
   const startOfDayMinutes = timeToMinutes('08:00');

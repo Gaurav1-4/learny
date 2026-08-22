@@ -43,6 +43,9 @@ export interface StudentCloudState {
   lastManagerSync?: string;
   gahaTimeBlocks?: any[];  // Personal time blocks
   gahaStudyPrefs?: any;    // Study preferences
+  gahaReminders?: any[];   // Reminders and Deadlines
+  gahaTasks?: any[];       // Tasks
+  gahaAnalyticsState?: any; // War-room and holiday modes
   updatedAt?: any;
   lastSyncedAt?: string;
 }

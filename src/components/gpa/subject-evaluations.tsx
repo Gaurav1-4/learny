@@ -80,7 +80,7 @@ export function SubjectEvaluations() {
       try {
         const parsed = JSON.parse(savedSubjects)
         if (Array.isArray(parsed) && parsed.length > 0) {
-          let updated: SubjectEvaluation[] = []
+          const updated: SubjectEvaluation[] = []
           parsed.forEach((s: SubjectEvaluation) => {
             if ((s.courseId === "iiitd-csd-dpp" || s.courseName.toLowerCase().includes("dpp") || s.courseName.toLowerCase().includes("design processes")) && s.evaluations.length < 7) {
               updated.push({
@@ -259,7 +259,7 @@ export function SubjectEvaluations() {
   }
 
   // Load IIITD CSD 3rd Semester & Past Semesters Preset
-  const handleLoadIIITDCSDCurriculum = () => {
+  function handleLoadIIITDCSDCurriculum() {
     const iiitdSem3: SubjectEvaluation[] = [
       {
         courseId: "iiitd-csd-m3",

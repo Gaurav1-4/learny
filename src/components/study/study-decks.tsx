@@ -92,25 +92,7 @@ export function StudyDecks() {
   }, [])
 
   // Keyboard Shortcuts for Flashcards
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (studyMode !== "flashcards" || !activeDeck) return
 
-      if (e.code === "Space") {
-        e.preventDefault()
-        setIsFlipped((f) => !f)
-      } else if (e.code === "ArrowRight") {
-        e.preventDefault()
-        handleNextCard()
-      } else if (e.code === "ArrowLeft") {
-        e.preventDefault()
-        handlePrevCard()
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown)
-    return () => window.removeEventListener("keydown", handleKeyDown)
-  }, [studyMode, activeDeck, isFlipped, currentCardIndex])
 
   // Derived Queue
   const currentQueue = activeDeck ? activeDeck.flashcards.filter((f) => {
@@ -152,6 +134,27 @@ export function StudyDecks() {
       (prev) => (prev - 1 + currentQueue.length) % currentQueue.length
     )
   }
+
+  // Keyboard Shortcuts for Flashcards
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (studyMode !== "flashcards" || !activeDeck) return
+
+      if (e.code === "Space") {
+        e.preventDefault()
+        setIsFlipped((f) => !f)
+      } else if (e.code === "ArrowRight") {
+        e.preventDefault()
+        handleNextCard()
+      } else if (e.code === "ArrowLeft") {
+        e.preventDefault()
+        handlePrevCard()
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [studyMode, activeDeck, isFlipped, currentCardIndex, handleNextCard, handlePrevCard])
 
   // Card Status Rating
   const handleRateCard = (grade: number) => {
