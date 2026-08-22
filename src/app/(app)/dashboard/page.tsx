@@ -331,7 +331,7 @@ export default function DashboardPage() {
               </Link>
             </div>
 
-            {deadlines.length === 0 ? (
+            {pendingDeadlines.length === 0 ? (
               <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-6 text-center space-y-2">
                 <CheckCircle2 className="h-8 w-8 text-emerald-500 mx-auto" />
                 <h4 className="text-xs font-semibold text-white">All caught up!</h4>
@@ -339,7 +339,7 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div className="space-y-2">
-                {deadlines.slice(0, 5).map((item) => {
+                {pendingDeadlines.slice(0, 5).map((item) => {
                   const isOverdue = item.status === 'overdue';
                   return (
                     <div
