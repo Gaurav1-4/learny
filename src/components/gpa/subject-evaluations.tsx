@@ -80,9 +80,10 @@ export function SubjectEvaluations() {
       try {
         const parsed = JSON.parse(savedSubjects)
         if (Array.isArray(parsed) && parsed.length > 0) {
-          const updated = parsed.map((s: SubjectEvaluation) => {
+          let updated: SubjectEvaluation[] = []
+          parsed.forEach((s: SubjectEvaluation) => {
             if ((s.courseId === "iiitd-csd-dpp" || s.courseName.toLowerCase().includes("dpp") || s.courseName.toLowerCase().includes("design processes")) && s.evaluations.length < 7) {
-              return {
+              updated.push({
                 ...s,
                 courseName: "DPP (Design Processes & Perspectives)",
                 evaluations: [
@@ -94,9 +95,33 @@ export function SubjectEvaluations() {
                   { id: "dpp-6", name: "Maintenance of a Journal", maxMarks: 10, marksObtained: 9, weightPercent: 10 },
                   { id: "dpp-7", name: "End-Sem Exam / Jury", maxMarks: 20, marksObtained: 18, weightPercent: 20 },
                 ],
-              }
+              })
+            } else if (s.courseId === "iiitd-csd-rmssd" || (s.courseName.toLowerCase().includes("rmssd") && !s.courseId.includes("-1") && !s.courseId.includes("-2"))) {
+              updated.push(
+                {
+                  courseId: "iiitd-csd-rmssd-1",
+                  courseName: "RMSSD Part 1: Pre-Midsem Module (SSH201)",
+                  credits: 2,
+                  evaluations: [
+                    { id: "rmssd1-1", name: "Tutorial Exercises (As per schedule)", maxMarks: 40, marksObtained: 36, weightPercent: 40 },
+                    { id: "rmssd1-2", name: "Home Assignment 1 (Deadline: 7th Sep, 11:59 PM)", maxMarks: 20, marksObtained: 18, weightPercent: 20 },
+                    { id: "rmssd1-3", name: "Mid-Semester Exam", maxMarks: 40, marksObtained: 35, weightPercent: 40 },
+                  ],
+                },
+                {
+                  courseId: "iiitd-csd-rmssd-2",
+                  courseName: "RMSSD Part 2: Post-Midsem Module (SSH201)",
+                  credits: 2,
+                  evaluations: [
+                    { id: "rmssd2-1", name: "Tutorial Exercises & Qualitative Labs", maxMarks: 40, marksObtained: 36, weightPercent: 40 },
+                    { id: "rmssd2-2", name: "Home Assignment / Fieldwork", maxMarks: 20, marksObtained: 18, weightPercent: 20 },
+                    { id: "rmssd2-3", name: "End-Semester Exam / Report", maxMarks: 40, marksObtained: 35, weightPercent: 40 },
+                  ],
+                }
+              )
+            } else {
+              updated.push(s)
             }
-            return s
           })
           setSubjectEvals(updated)
         } else {
@@ -246,14 +271,23 @@ export function SubjectEvaluations() {
         ],
       },
       {
-        courseId: "iiitd-csd-rmssd",
-        courseName: "RMSSD (Research Methods in Social Sciences & Design)",
-        credits: 4,
+        courseId: "iiitd-csd-rmssd-1",
+        courseName: "RMSSD Part 1: Pre-Midsem Module (SSH201)",
+        credits: 2,
         evaluations: [
-          { id: "rmssd-1", name: "Lab Exercises & SPSS/R Analysis (C01)", maxMarks: 40, marksObtained: 36, weightPercent: 25 },
-          { id: "rmssd-2", name: "Reading Review & Qualitative Coding", maxMarks: 30, marksObtained: 27, weightPercent: 20 },
-          { id: "rmssd-3", name: "Midsem Exam", maxMarks: 35, marksObtained: 29, weightPercent: 25 },
-          { id: "rmssd-4", name: "Final Research Report", maxMarks: 100, marksObtained: 88, weightPercent: 30 },
+          { id: "rmssd1-1", name: "Tutorial Exercises (As per schedule)", maxMarks: 40, marksObtained: 36, weightPercent: 40 },
+          { id: "rmssd1-2", name: "Home Assignment 1 (Deadline: 7th Sep, 11:59 PM)", maxMarks: 20, marksObtained: 18, weightPercent: 20 },
+          { id: "rmssd1-3", name: "Mid-Semester Exam", maxMarks: 40, marksObtained: 35, weightPercent: 40 },
+        ],
+      },
+      {
+        courseId: "iiitd-csd-rmssd-2",
+        courseName: "RMSSD Part 2: Post-Midsem Module (SSH201)",
+        credits: 2,
+        evaluations: [
+          { id: "rmssd2-1", name: "Tutorial Exercises & Qualitative Labs", maxMarks: 40, marksObtained: 36, weightPercent: 40 },
+          { id: "rmssd2-2", name: "Home Assignment / Fieldwork", maxMarks: 20, marksObtained: 18, weightPercent: 20 },
+          { id: "rmssd2-3", name: "End-Semester Exam / Report", maxMarks: 40, marksObtained: 35, weightPercent: 40 },
         ],
       },
     ]
