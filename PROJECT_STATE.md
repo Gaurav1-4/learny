@@ -1,14 +1,30 @@
 # Learny — Project State & Milestone Tracker
 
-**Current Status**: DPP Evaluation Components Updated (Official 7-Item Breakdown), GAHA Chatbot Online, Single-User Auth Lock, 100% Firebase Cloud Storage, Premium Dashboard & 1-to-1 Automatic NotebookLM Mapping Deployed
+**Current Status**: RMSSD 2+2 Credit Evaluation Modules & DPP Updated, GAHA Chatbot Online, Single-User Auth Lock, 100% Firebase Cloud Storage, Premium Dashboard & 1-to-1 Automatic NotebookLM Mapping Deployed
 **GitHub Repository**: [https://github.com/Gaurav1-4/learny](https://github.com/Gaurav1-4/learny)
 **Live Production URL**: [https://learny.zorx.tech](https://learny.zorx.tech)
 
 ---
 
-## 🎨 DPP (Design Processes & Perspectives / DES201) Evaluation Scheme
-Updated with the exact official 7-category breakdown from your classroom projector slide:
+## 📊 RMSSD (Research Methods in Social Sciences & Design / SSH201) Evaluation Scheme
+Structured as a **2 + 2 Credit Modular Course**:
 
+### **Part 1: Pre-Midsem Module (2 Credits)**
+| S.No | Submission | Quantity | Weightage (%) | Deadline |
+| :---: | :--- | :---: | :---: | :--- |
+| 1 | **Tutorial Exercises** | Multiple | **40%** | As per schedule |
+| 2 | **Home Assignment 1** | 1 | **20%** | **7th September, 11:59 PM** |
+| 3 | **Mid-Semester Exam** | 1 | **40%** | To be decided |
+| **Total** | | | **100%** | *(Pre-Midsem 2-Credit Module)* |
+
+### **Part 2: Post-Midsem Module (2 Credits)**
+- Tutorial Exercises & Qualitative Labs: **40%**
+- Home Assignment 2 / Fieldwork: **20%**
+- End-Semester Exam / Final Project: **40%**
+
+---
+
+## 🎨 DPP (Design Processes & Perspectives / DES201) Evaluation Scheme
 | S.No | Category | Weight (%) | Quantity / Frequency | Total Marks |
 | :---: | :--- | :---: | :---: | :---: |
 | 1 | **Assignments (Individual)** | **10%** | 4 | $2.5 \times 4 = 10$ |
@@ -21,23 +37,3 @@ Updated with the exact official 7-category breakdown from your classroom project
 | **Total** | | **100%** | | **100** |
 
 - Synced directly to **Firebase Cloud Firestore** under `students/gaurav25212_iiitd_ac_in/subjectEvaluations`.
-
----
-
-## 🧠 1. GAHA Academic Intelligence Layer (9-Key Gemini Pool)
-- **Identity & Role**: **GAHA** (*Gaurav's Academic & Homework Assistant*), personal AI academic manager tailored to IIIT Delhi Monsoon 2026 courses (*Math III, OS, AP, DPP, RMSSD*).
-- **9-Key Load-Balancing Infrastructure**:
-  - Load-balances requests across all 9 Gemini API keys with round-robin execution and instant 0ms failover (capacity of 13,500 requests/day).
-- **Multi-Domain Engine**: Homework & KaTeX math, NotebookLM synthesis, Target Grade calculus, and timetable schedule planning.
-
----
-
-## 🔒 2. Strict Single-User Security Lock
-- NextAuth Google OAuth is strictly locked exclusively to **`gaurav25212@iiitd.ac.in`**.
-- Any unauthorized email trying to sign in is immediately rejected with an Access Denied block.
-
----
-
-## ☁️ 3. 100% Cloud-First Architecture (Firebase Firestore)
-- All user data is stored centrally in Cloud Firestore under `students/gaurav25212_iiitd_ac_in`.
-- Real-time bidirectional synchronization across your **MacBook and iPhone**.

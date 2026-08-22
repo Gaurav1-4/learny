@@ -119,6 +119,17 @@ export function SubjectEvaluations() {
                   ],
                 }
               )
+            } else if (s.courseId === "iiitd-csd-ap" || (s.courseName.toLowerCase().includes("advanced programming") && s.evaluations[0]?.weightPercent !== 30)) {
+              updated.push({
+                ...s,
+                courseName: "Advanced Programming (AP / CSE201)",
+                evaluations: [
+                  { id: "ap-1", name: "Assignments (Total 4 assignments @ 7.5%)", maxMarks: 30, marksObtained: 27, weightPercent: 30 },
+                  { id: "ap-2", name: "Quizzes (Best 5 out of 6; 3 pre-midsem, 3 post-midsem)", maxMarks: 10, marksObtained: 9, weightPercent: 10 },
+                  { id: "ap-3", name: "Midsem Exam", maxMarks: 25, marksObtained: 22, weightPercent: 25 },
+                  { id: "ap-4", name: "Final Exam", maxMarks: 35, marksObtained: 30, weightPercent: 35 },
+                ],
+              })
             } else {
               updated.push(s)
             }
@@ -247,13 +258,13 @@ export function SubjectEvaluations() {
       },
       {
         courseId: "iiitd-csd-ap",
-        courseName: "Advanced Programming (AP / OOP)",
+        courseName: "Advanced Programming (AP / CSE201)",
         credits: 4,
         evaluations: [
-          { id: "ap-1", name: "Surprise Pop Quizzes & Labs (Tue & Thu 3 PM)", maxMarks: 25, marksObtained: 23, weightPercent: 20 },
-          { id: "ap-2", name: "Software Architecture Project", maxMarks: 50, marksObtained: 46, weightPercent: 20 },
-          { id: "ap-3", name: "Midsem Exam", maxMarks: 35, marksObtained: 30, weightPercent: 25 },
-          { id: "ap-4", name: "Endsem Final Exam", maxMarks: 100, marksObtained: 86, weightPercent: 35 },
+          { id: "ap-1", name: "Assignments (Total 4 assignments @ 7.5%)", maxMarks: 30, marksObtained: 27, weightPercent: 30 },
+          { id: "ap-2", name: "Quizzes (Best 5 out of 6; 3 pre-midsem, 3 post-midsem)", maxMarks: 10, marksObtained: 9, weightPercent: 10 },
+          { id: "ap-3", name: "Midsem Exam", maxMarks: 25, marksObtained: 22, weightPercent: 25 },
+          { id: "ap-4", name: "Final Exam", maxMarks: 35, marksObtained: 30, weightPercent: 35 },
         ],
       },
       {
