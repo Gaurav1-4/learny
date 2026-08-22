@@ -155,7 +155,7 @@ export function GahaManagerBar() {
   return (
     <>
       {/* Floating Manager Trigger Bar */}
-      <div className="fixed bottom-4 right-4 z-40">
+      <div className="fixed bottom-20 right-4 md:bottom-8 md:right-8 z-40">
         {!isOpen && (
           <motion.button
             initial={{ scale: 0.9, opacity: 0 }}
