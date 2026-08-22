@@ -3,6 +3,26 @@
 import { db } from "./config";
 import { doc, getDoc, setDoc, onSnapshot, serverTimestamp } from "firebase/firestore";
 
+export interface DocumentNotebookMapping {
+  documentId: string;
+  notebookId: string;
+  notebookTitle: string;
+  notebookUrl: string;
+  courseId: string;
+  courseName: string;
+  courseCode: string;
+  attachmentLink?: string;
+  userCustomNotes?: string;
+  lastSyncedAt: string;
+  artifacts?: {
+    briefingDoc?: any;
+    audioOverview?: any;
+    videoExplainer?: any;
+    flashcards?: any[];
+    quiz?: any[];
+  };
+}
+
 export interface StudentCloudState {
   backlogHomeworkMap?: Record<string, any>;
   homeworkLogs?: any[];
@@ -17,6 +37,7 @@ export interface StudentCloudState {
   prevSemesters?: any[];
   targetGrades?: any[];
   notebookDocuments?: Record<string, any>;
+  notebookMappings?: Record<string, DocumentNotebookMapping>;
   settings?: any;
   updatedAt?: any;
   lastSyncedAt?: string;
@@ -130,6 +151,11 @@ export async function syncAllWithFirestore(customStudentId?: string): Promise<St
       try { localState.targetGrades = JSON.parse(rawTargetGrades); } catch {}
     }
 
+    const rawMappings = localStorage.getItem("learny_notebook_mappings");
+    if (rawMappings) {
+      try { localState.notebookMappings = JSON.parse(rawMappings); } catch {}
+    }
+
     // 2. Fetch existing Cloud Firestore document
     const snap = await getDoc(studentRef);
     let cloudData: StudentCloudState = {};
@@ -187,6 +213,12 @@ export async function syncAllWithFirestore(customStudentId?: string): Promise<St
       if (cloudData.targetGrades && cloudData.targetGrades.length > 0) {
         localStorage.setItem("learny_target_grades", JSON.stringify(cloudData.targetGrades));
         localState.targetGrades = cloudData.targetGrades;
+      }
+
+      if (cloudData.notebookMappings) {
+        const mergedMappings = { ...localState.notebookMappings, ...cloudData.notebookMappings };
+        localStorage.setItem("learny_notebook_mappings", JSON.stringify(mergedMappings));
+        localState.notebookMappings = mergedMappings;
       }
 
       if (cloudData.problemsMap) {
@@ -267,6 +299,10 @@ export function listenToFirestoreSync(callback?: (state: StudentCloudState) => v
 
       if (cloudData.targetGrades) {
         localStorage.setItem("learny_target_grades", JSON.stringify(cloudData.targetGrades));
+      }
+
+      if (cloudData.notebookMappings) {
+        localStorage.setItem("learny_notebook_mappings", JSON.stringify(cloudData.notebookMappings));
       }
 
       if (cloudData.problemsMap) {

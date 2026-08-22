@@ -364,20 +364,29 @@ export function DocumentNotebookLMVault() {
                   )}
                 </div>
 
-                {/* Connected NotebookLM Assets Badges */}
-                <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-zinc-800/80">
-                  <span className="inline-flex items-center gap-1 rounded-md bg-indigo-950/40 border border-indigo-800/40 px-2 py-0.5 text-[10px] text-indigo-300 font-medium">
-                    <Volume2 className="h-2.5 w-2.5" /> Audio Overview
-                  </span>
-                  <span className="inline-flex items-center gap-1 rounded-md bg-amber-950/40 border border-amber-800/40 px-2 py-0.5 text-[10px] text-amber-300 font-medium">
-                    <Layers className="h-2.5 w-2.5" /> {doc.cardCount} Flashcards (SM-2)
-                  </span>
-                  <span className="inline-flex items-center gap-1 rounded-md bg-purple-950/40 border border-purple-800/40 px-2 py-0.5 text-[10px] text-purple-300 font-medium">
-                    <Video className="h-2.5 w-2.5" /> Video Explainer
-                  </span>
-                  <span className="inline-flex items-center gap-1 rounded-md bg-emerald-950/40 border border-emerald-800/40 px-2 py-0.5 text-[10px] text-emerald-300 font-medium">
-                    <BookOpen className="h-2.5 w-2.5" /> Study Guide
-                  </span>
+                {/* Connected 1-to-1 NotebookLM Mapping Header & Assets Badges */}
+                <div className="space-y-2 pt-2 border-t border-zinc-800/80">
+                  <div className="flex items-center justify-between text-[10px] text-zinc-500 font-mono">
+                    <span className="inline-flex items-center gap-1 text-indigo-400 font-medium">
+                      <Sparkles className="h-3 w-3" /> 1-to-1 Notebook: nb-{(doc.courseCode).toLowerCase()}-{(doc.id).slice(0, 8)}
+                    </span>
+                    <span className="text-zinc-500">Auto-Synced</span>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="inline-flex items-center gap-1 rounded-md bg-indigo-950/40 border border-indigo-800/40 px-2 py-0.5 text-[10px] text-indigo-300 font-medium">
+                      <Volume2 className="h-2.5 w-2.5" /> Audio Overview
+                    </span>
+                    <span className="inline-flex items-center gap-1 rounded-md bg-amber-950/40 border border-amber-800/40 px-2 py-0.5 text-[10px] text-amber-300 font-medium">
+                      <Layers className="h-2.5 w-2.5" /> {doc.cardCount} Flashcards (SM-2)
+                    </span>
+                    <span className="inline-flex items-center gap-1 rounded-md bg-purple-950/40 border border-purple-800/40 px-2 py-0.5 text-[10px] text-purple-300 font-medium">
+                      <Video className="h-2.5 w-2.5" /> Video Explainer
+                    </span>
+                    <span className="inline-flex items-center gap-1 rounded-md bg-emerald-950/40 border border-emerald-800/40 px-2 py-0.5 text-[10px] text-emerald-300 font-medium">
+                      <BookOpen className="h-2.5 w-2.5" /> Study Guide
+                    </span>
+                  </div>
                 </div>
 
                 {/* Dual Action Buttons */}

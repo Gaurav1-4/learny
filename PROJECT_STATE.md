@@ -1,6 +1,6 @@
 # Learny — Project State & Milestone Tracker
 
-**Current Status**: Single-User Auth Lock, 100% Firebase Cloud Storage & Premium Dashboard Deployed
+**Current Status**: Single-User Auth Lock, 100% Firebase Cloud Storage, Premium Dashboard & 1-to-1 Automatic NotebookLM Mapping Deployed
 **GitHub Repository**: [https://github.com/Gaurav1-4/learny](https://github.com/Gaurav1-4/learny)
 **Live Production URL**: [https://learny.zorx.tech](https://learny.zorx.tech)
 
@@ -19,16 +19,30 @@
   3. **Homework Ledgers & KaTeX Problems**: `problemsMap`, `homeworkInputs`, `solvedQuestions`.
   4. **1-Week Backlog**: `backlogHomeworkMap`, `homeworkLogs`.
   5. **Custom Calendar Events**: Auto-scheduled deadlines and timetable overrides.
-  6. **Google NotebookLM Study Assets**: Flashcards (SM-2), video/audio scripts, briefing docs.
+  6. **Google NotebookLM Dedicated Mappings**: 1-to-1 mapped notebooks (`notebookMappings`), SM-2 flashcards, and briefing docs.
   7. **User Settings & Themes**.
 - Real-time bidirectional synchronization across your **MacBook and iPhone**.
 
 ---
 
-## ✨ 3. Ultra-Clean, High-Information Density Dashboard
-- **Header**: Minimalist and sleek with `☁️ Firebase Cloud Synced` live status pill and one-click sync.
-- **Smart Homework Banner**: Minimal, non-intrusive single-card notification (only shown if homework needs logging, dismissible).
-- **High-Density 3-Column Grid**:
-  1. **📋 Pending Assignments**: Color-coded course badges, countdowns (*"Due in 2 days"*, *"Overdue"*), max points, and 1-click links.
-  2. **🔔 Recent Academic Notifications**: Live feed of professor/TA announcements across all courses with relative timestamps and attachment links.
-  3. **📅 Today's Schedule & Room Guide**: Clean timeline with live room numbers (*A106, C201, C11, C21*) and test indicators + quick shortcuts.
+## 📓 3. Automatic 1-to-1 Document-to-NotebookLM Mapping & Editor
+- **Automatic Provisioning**: Every single document, lecture slide, and PDF across all courses is automatically provisioned and mapped to its own unique Google NotebookLM Notebook (`notebookId`, `notebookUrl`, `notebookTitle`).
+- **Full User Editing**:
+  - Click **"Edit Mapping"** in any document's study view to customize the Notebook Title, paste a custom Google NotebookLM URL, or add personal lecture notes/exam hints.
+  - Automatically saves and syncs to Firebase Cloud Firestore in real time.
+- **Dedicated Study Assets for Every Document**:
+  - 2-Host Conversational Audio Overview Podcast with synchronized transcript and speech player.
+  - Concept Video Explainer with visual breakdown.
+  - SuperMemo SM-2 Active Recall Flashcards with 4-level difficulty grading.
+  - Executive Briefing Document with key definitions and exam traps.
+  - Grounded Document Q&A Chat.
+
+---
+
+## ✨ 4. Ultra-Clean, High-Information Density Dashboard
+- Minimalist header with live `☁️ Firebase Cloud Synced` pill and one-click sync.
+- Compact smart homework banner (only shown if a class recently finished or unlogged homework remains).
+- High-density 3-column split:
+  1. **📋 Pending Assignments** with countdowns and points.
+  2. **🔔 Recent Academic Notifications & Announcements** from professors across all courses.
+  3. **📅 Today's Live Class Timetable & Room Guide** (*A106, C201, C11, C21*).

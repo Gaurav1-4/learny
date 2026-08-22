@@ -32,13 +32,18 @@ import {
   Maximize2,
   Flame,
   CheckCheck,
+  Edit3,
+  Link as LinkIcon,
+  Save,
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { MathView } from "@/components/ui/math-view"
 import { calculateSM2 } from "@/lib/spaced-repetition"
-import { pushToFirestore } from "@/lib/firebase/firestore-sync"
+import { pushToFirestore, DocumentNotebookMapping } from "@/lib/firebase/firestore-sync"
 
 export interface DocumentNotebookData {
   documentId: string
@@ -61,9 +66,20 @@ export function DocumentNotebookView({ data, onClose, isModal = true }: Document
   const [activeTab, setActiveTab] = useState<"audio-video" | "flashcards" | "briefing" | "quiz" | "chat">("audio-video")
   const [loading, setLoading] = useState(true)
   const [artifacts, setArtifacts] = useState<any>(null)
-  const [notebookUrl, setNotebookUrl] = useState<string>("https://notebooklm.google.com")
   const [isSyncing, setIsSyncing] = useState(false)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
+
+  // 1-to-1 NotebookLM Mapping State
+  const defaultNotebookId = `nb-${data.courseCode.toLowerCase()}-${(data.documentId || data.documentTitle).toLowerCase().replace(/[^a-z0-9]/g, "-")}`
+  const [notebookTitle, setNotebookTitle] = useState<string>(`[${data.courseCode}] ${data.documentTitle}`)
+  const [notebookUrl, setNotebookUrl] = useState<string>(`https://notebooklm.google.com/notebook/${defaultNotebookId}`)
+  const [userCustomNotes, setUserCustomNotes] = useState<string>("")
+  const [showEditMappingModal, setShowEditMappingModal] = useState(false)
+
+  // Edit Mapping Form state
+  const [editTitle, setEditTitle] = useState("")
+  const [editUrl, setEditUrl] = useState("")
+  const [editNotes, setEditNotes] = useState("")
 
   // Audio Player State
   const [isPlayingAudio, setIsPlayingAudio] = useState(false)
@@ -75,11 +91,9 @@ export function DocumentNotebookView({ data, onClose, isModal = true }: Document
   const [flashcards, setFlashcards] = useState<any[]>([])
   const [currentCardIdx, setCurrentCardIdx] = useState(0)
   const [isFlipped, setIsFlipped] = useState(false)
-  const [cardFilter, setCardFilter] = useState<"all" | "due" | "mastered">("all")
 
   // Quiz State
   const [quizAnswers, setQuizAnswers] = useState<Record<number, number>>({})
-  const [quizScore, setQuizScore] = useState<number | null>(null)
 
   // Chat State
   const [chatMessages, setChatMessages] = useState<Array<{ role: "user" | "assistant"; text: string }>>([
@@ -96,27 +110,39 @@ export function DocumentNotebookView({ data, onClose, isModal = true }: Document
     setTimeout(() => setToastMessage(null), 3000)
   }
 
-  // 1. Fetch & Auto-Sync Document to Google NotebookLM on Mount
+  // 1. Fetch & Auto-Provision 1-to-1 Mapping in Cloud Firestore
   useEffect(() => {
     async function loadDocumentNotebook() {
       setLoading(true)
-      const cacheKey = `learny_notebooklm_doc_${data.documentId || data.documentTitle}`
-      const cached = localStorage.getItem(cacheKey)
 
-      if (cached) {
+      // Check for saved 1-to-1 mapping
+      const savedMappingsRaw = localStorage.getItem("learny_notebook_mappings")
+      let existingMapping: DocumentNotebookMapping | null = null
+
+      if (savedMappingsRaw) {
         try {
-          const parsed = JSON.parse(cached)
-          setArtifacts(parsed.artifacts)
-          setNotebookUrl(parsed.notebookUrl || "https://notebooklm.google.com")
-          if (parsed.artifacts?.flashcards) {
-            setFlashcards(parsed.artifacts.flashcards)
+          const mappings = JSON.parse(savedMappingsRaw)
+          if (mappings[data.documentId]) {
+            existingMapping = mappings[data.documentId]
           }
-          setLoading(false)
-          return
         } catch {}
       }
 
-      // Generate artifacts via API
+      if (existingMapping) {
+        setNotebookTitle(existingMapping.notebookTitle || `[${data.courseCode}] ${data.documentTitle}`)
+        setNotebookUrl(existingMapping.notebookUrl || `https://notebooklm.google.com/notebook/${defaultNotebookId}`)
+        setUserCustomNotes(existingMapping.userCustomNotes || "")
+        if (existingMapping.artifacts) {
+          setArtifacts(existingMapping.artifacts)
+          if (existingMapping.artifacts.flashcards) {
+            setFlashcards(existingMapping.artifacts.flashcards)
+          }
+          setLoading(false)
+          return
+        }
+      }
+
+      // If artifacts are not cached, generate via API & auto-provision 1-to-1 mapping
       try {
         const res = await fetch("/api/notebooklm/sync-document", {
           method: "POST",
@@ -134,17 +160,35 @@ export function DocumentNotebookView({ data, onClose, isModal = true }: Document
           const json = await res.json()
           if (json.artifacts) {
             setArtifacts(json.artifacts)
-            setNotebookUrl(json.syncResult?.notebookUrl || json.artifacts.notebookUrl || "https://notebooklm.google.com")
             setFlashcards(json.artifacts.flashcards || [])
 
-            localStorage.setItem(
-              cacheKey,
-              JSON.stringify({
-                artifacts: json.artifacts,
-                notebookUrl: json.syncResult?.notebookUrl || "https://notebooklm.google.com",
-                savedAt: new Date().toISOString(),
-              })
-            )
+            const generatedUrl = json.syncResult?.notebookUrl || json.artifacts.notebookUrl || `https://notebooklm.google.com/notebook/${defaultNotebookId}`
+            const generatedTitle = `[${data.courseCode}] ${data.documentTitle}`
+            
+            setNotebookUrl(generatedUrl)
+            setNotebookTitle(generatedTitle)
+
+            const newMapping: DocumentNotebookMapping = {
+              documentId: data.documentId,
+              notebookId: defaultNotebookId,
+              notebookTitle: generatedTitle,
+              notebookUrl: generatedUrl,
+              courseId: data.courseId,
+              courseName: data.courseName,
+              courseCode: data.courseCode,
+              attachmentLink: data.attachmentLink,
+              lastSyncedAt: new Date().toISOString(),
+              artifacts: json.artifacts,
+            }
+
+            // Save to local mapping cache & push to Cloud Firestore
+            const currentMappings = savedMappingsRaw ? JSON.parse(savedMappingsRaw) : {}
+            currentMappings[data.documentId] = newMapping
+            localStorage.setItem("learny_notebook_mappings", JSON.stringify(currentMappings))
+
+            pushToFirestore({
+              notebookMappings: currentMappings,
+            })
           }
         }
       } catch (err) {
@@ -156,6 +200,52 @@ export function DocumentNotebookView({ data, onClose, isModal = true }: Document
 
     loadDocumentNotebook()
   }, [data.documentId, data.documentTitle, data.courseName, data.courseCode, data.content, data.attachmentLink])
+
+  // Open Edit Mapping Modal
+  const handleOpenEditModal = () => {
+    setEditTitle(notebookTitle)
+    setEditUrl(notebookUrl)
+    setEditNotes(userCustomNotes)
+    setShowEditMappingModal(true)
+  }
+
+  // Save Custom Mapping to Cloud Firestore
+  const handleSaveMapping = () => {
+    const updatedTitle = editTitle.trim() || `[${data.courseCode}] ${data.documentTitle}`
+    const updatedUrl = editUrl.trim() || `https://notebooklm.google.com/notebook/${defaultNotebookId}`
+    const updatedNotes = editNotes.trim()
+
+    setNotebookTitle(updatedTitle)
+    setNotebookUrl(updatedUrl)
+    setUserCustomNotes(updatedNotes)
+    setShowEditMappingModal(false)
+
+    const updatedMapping: DocumentNotebookMapping = {
+      documentId: data.documentId,
+      notebookId: defaultNotebookId,
+      notebookTitle: updatedTitle,
+      notebookUrl: updatedUrl,
+      courseId: data.courseId,
+      courseName: data.courseName,
+      courseCode: data.courseCode,
+      attachmentLink: data.attachmentLink,
+      userCustomNotes: updatedNotes,
+      lastSyncedAt: new Date().toISOString(),
+      artifacts: artifacts || undefined,
+    }
+
+    const savedMappingsRaw = localStorage.getItem("learny_notebook_mappings")
+    const currentMappings = savedMappingsRaw ? JSON.parse(savedMappingsRaw) : {}
+    currentMappings[data.documentId] = updatedMapping
+    localStorage.setItem("learny_notebook_mappings", JSON.stringify(currentMappings))
+
+    // Real-time Cloud Sync
+    pushToFirestore({
+      notebookMappings: currentMappings,
+    })
+
+    showToast("✨ Custom NotebookLM mapping saved to Firebase Cloud!")
+  }
 
   // Audio Playback Simulation with SpeechSynthesis
   const audioIntervalRef = useRef<any>(null)
@@ -207,7 +297,6 @@ export function DocumentNotebookView({ data, onClose, isModal = true }: Document
   const handleOpenNotebookLM = async () => {
     setIsSyncing(true)
     try {
-      // Ingest document into NotebookLM automatically
       await fetch("/api/notebooklm/sync-document", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -220,7 +309,7 @@ export function DocumentNotebookView({ data, onClose, isModal = true }: Document
         }),
       })
 
-      showToast("✨ Auto-synced document material to Google NotebookLM!")
+      showToast("✨ Auto-synced document to dedicated Google NotebookLM!")
     } catch {
       showToast("Opening Google NotebookLM...")
     } finally {
@@ -252,18 +341,16 @@ export function DocumentNotebookView({ data, onClose, isModal = true }: Document
     setIsFlipped(false)
 
     // Save to cache and cloud
-    const cacheKey = `learny_notebooklm_doc_${data.documentId || data.documentTitle}`
-    const existing = localStorage.getItem(cacheKey)
-    if (existing) {
-      try {
-        const parsed = JSON.parse(existing)
-        parsed.artifacts.flashcards = updated
-        localStorage.setItem(cacheKey, JSON.stringify(parsed))
-      } catch {}
+    const savedMappingsRaw = localStorage.getItem("learny_notebook_mappings")
+    const currentMappings = savedMappingsRaw ? JSON.parse(savedMappingsRaw) : {}
+    if (currentMappings[data.documentId]) {
+      currentMappings[data.documentId].artifacts.flashcards = updated
+      localStorage.setItem("learny_notebook_mappings", JSON.stringify(currentMappings))
     }
 
     pushToFirestore({
       studyDecks: updated,
+      notebookMappings: currentMappings,
     })
 
     if (currentCardIdx < flashcards.length - 1) {
@@ -341,37 +428,50 @@ Provide a clear, accurate, high-yield academic response with direct citations an
         )}
       </AnimatePresence>
 
-      {/* Header Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800 bg-zinc-900/90 px-6 py-4 backdrop-blur">
+      {/* Header Bar with 1-to-1 Mapping Info */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-zinc-800 bg-zinc-900/90 px-6 py-4 backdrop-blur">
         <div className="flex items-center gap-3">
           {onClose && (
             <button
               onClick={onClose}
-              className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors"
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-800 bg-zinc-950 text-zinc-400 hover:text-white hover:border-zinc-700 transition-colors shrink-0"
             >
               <ArrowLeft className="h-4 w-4" />
             </button>
           )}
 
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 text-indigo-400">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 text-indigo-400 shrink-0">
             <Brain className="h-5 w-5" />
           </div>
 
-          <div>
-            <div className="flex items-center gap-2">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
               <Badge variant="outline" className="text-[10px] font-mono border-zinc-700 bg-zinc-950 text-zinc-300">
                 {data.courseCode || "COURSE"}
               </Badge>
-              <span className="text-[11px] text-zinc-400 font-medium">{data.courseName}</span>
+              <span className="inline-flex items-center gap-1 rounded bg-indigo-950/40 border border-indigo-800/40 px-2 py-0.5 text-[10px] text-indigo-300 font-mono">
+                <Sparkles className="h-2.5 w-2.5" /> 1-to-1 NotebookLM Mapped
+              </span>
             </div>
-            <h2 className="text-sm sm:text-base font-bold text-white max-w-xl truncate">
-              {data.documentTitle}
+            <h2 className="text-sm sm:text-base font-bold text-white max-w-xl truncate mt-0.5">
+              {notebookTitle}
             </h2>
           </div>
         </div>
 
         {/* Action Controls */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Edit Mapping Button */}
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleOpenEditModal}
+            className="h-8 gap-1.5 border-zinc-800 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 text-xs font-medium"
+          >
+            <Edit3 className="h-3 w-3 text-zinc-400" />
+            <span>Edit Mapping</span>
+          </Button>
+
           {data.attachmentLink && (
             <a
               href={data.attachmentLink}
@@ -481,7 +581,7 @@ Provide a clear, accurate, high-yield academic response with direct citations an
           <div className="flex flex-col items-center justify-center py-20 gap-4">
             <Loader2 className="h-8 w-8 animate-spin text-indigo-400" />
             <p className="text-sm font-medium text-zinc-400">
-              Generating Google NotebookLM Audio Overview, Flashcards, and Study Guide...
+              Auto-provisioning dedicated 1-to-1 NotebookLM workspace &amp; generating study assets...
             </p>
           </div>
         ) : (
@@ -495,6 +595,18 @@ Provide a clear, accurate, high-yield academic response with direct citations an
                 exit={{ opacity: 0, y: -10 }}
                 className="space-y-6 max-w-4xl mx-auto"
               >
+                {/* User Custom Notes if any */}
+                {userCustomNotes && (
+                  <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 space-y-1">
+                    <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">
+                      Personal Lecture Notes &amp; Highlights
+                    </span>
+                    <p className="text-xs text-zinc-200 whitespace-pre-line leading-relaxed">
+                      {userCustomNotes}
+                    </p>
+                  </div>
+                )}
+
                 {/* NotebookLM Conversational Audio Player */}
                 <div className="rounded-2xl border border-zinc-800 bg-gradient-to-b from-zinc-900 to-zinc-950 p-6 shadow-xl relative overflow-hidden">
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-zinc-800/80">
@@ -893,7 +1005,6 @@ Provide a clear, accurate, high-yield academic response with direct citations an
                 exit={{ opacity: 0, y: -10 }}
                 className="flex flex-col h-[500px] max-w-3xl mx-auto rounded-2xl border border-zinc-800 bg-zinc-900/60 overflow-hidden"
               >
-                {/* Chat Message Stream */}
                 <div className="flex-1 overflow-y-auto p-4 space-y-3">
                   {chatMessages.map((msg, idx) => (
                     <div
@@ -921,7 +1032,6 @@ Provide a clear, accurate, high-yield academic response with direct citations an
                   )}
                 </div>
 
-                {/* Input Bar */}
                 <form onSubmit={handleAskQuestion} className="p-3 border-t border-zinc-800 bg-zinc-950 flex items-center gap-2">
                   <input
                     type="text"
@@ -944,6 +1054,85 @@ Provide a clear, accurate, high-yield academic response with direct citations an
           </AnimatePresence>
         )}
       </div>
+
+      {/* Edit Mapping Modal */}
+      <AnimatePresence>
+        {showEditMappingModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-lg rounded-2xl border border-zinc-800 bg-zinc-900 p-6 space-y-4 shadow-2xl"
+            >
+              <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+                <div className="flex items-center gap-2">
+                  <Edit3 className="h-4 w-4 text-indigo-400" />
+                  <h3 className="text-sm font-bold text-white">Edit 1-to-1 NotebookLM Mapping</h3>
+                </div>
+                <button
+                  onClick={() => setShowEditMappingModal(false)}
+                  className="rounded-lg p-1 text-zinc-400 hover:text-white"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="space-y-3 text-xs">
+                <div className="space-y-1">
+                  <Label className="text-zinc-300 text-xs">Notebook Title</Label>
+                  <Input
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    placeholder="[CSE231] OS Lecture 1: Kernel Architecture"
+                    className="bg-zinc-950 border-zinc-800 text-white text-xs h-9"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-zinc-300 text-xs">Google NotebookLM Direct URL</Label>
+                  <Input
+                    value={editUrl}
+                    onChange={(e) => setEditUrl(e.target.value)}
+                    placeholder="https://notebooklm.google.com/notebook/nb-..."
+                    className="bg-zinc-950 border-zinc-800 text-white text-xs h-9 font-mono text-[11px]"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <Label className="text-zinc-300 text-xs">Personal Lecture Notes &amp; Key Highlights</Label>
+                  <textarea
+                    rows={4}
+                    value={editNotes}
+                    onChange={(e) => setEditNotes(e.target.value)}
+                    placeholder="Add personal formulas, professor exam hints, or important slide timestamps here..."
+                    className="w-full rounded-xl border border-zinc-800 bg-zinc-950 p-3 text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-indigo-500 leading-relaxed"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-zinc-800">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowEditMappingModal(false)}
+                  className="text-xs text-zinc-400 hover:text-white"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleSaveMapping}
+                  className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold gap-1.5 shadow-md shadow-indigo-600/20"
+                >
+                  <Save className="h-3.5 w-3.5" />
+                  <span>Save &amp; Sync to Cloud</span>
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
