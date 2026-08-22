@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { GoogleClassroomClient } from "@/lib/classroom";
+import { apiCache } from "@/lib/api-cache";
 import { UserSession } from "@/types";
 
 export const dynamic = "force-dynamic";
@@ -9,6 +10,23 @@ export async function GET(request: NextRequest) {
   const session = (await auth()) as UserSession | null;
   if (!session?.accessToken) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { searchParams } = new URL(request.url);
+  const fresh = searchParams.get("fresh") === "true";
+  const userEmail = session.user?.email || "default";
+  const cacheKey = `announcements:${userEmail}`;
+
+  if (!fresh) {
+    const cached = apiCache.get(cacheKey);
+    if (cached) {
+      return NextResponse.json({ announcements: cached }, {
+        headers: {
+          "Cache-Control": "private, max-age=60, stale-while-revalidate=120",
+          "X-Cache-Status": "HIT",
+        },
+      });
+    }
   }
 
   try {
@@ -42,7 +60,15 @@ export async function GET(request: NextRequest) {
       return timeB - timeA;
     });
 
-    return NextResponse.json({ announcements: allAnnouncements });
+    // Cache for 90 seconds
+    apiCache.set(cacheKey, allAnnouncements, 90);
+
+    return NextResponse.json({ announcements: allAnnouncements }, {
+      headers: {
+        "Cache-Control": "private, max-age=60, stale-while-revalidate=120",
+        "X-Cache-Status": "MISS",
+      },
+    });
   } catch (error: any) {
     console.error("API error fetching aggregated announcements:", error);
     return NextResponse.json(

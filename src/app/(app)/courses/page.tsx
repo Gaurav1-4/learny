@@ -36,23 +36,48 @@ export default function CoursesPage() {
       } catch {}
     }
 
+    // 0ms instant cache hydration
+    try {
+      const cached = sessionStorage.getItem('learny_courses_cache');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.active?.length > 0) {
+          setCourses(parsed.active);
+          if (parsed.archived) setArchivedCourses(parsed.archived);
+          setLoading(false);
+        }
+      }
+    } catch {}
+
     async function fetchAllCourses() {
       try {
-        setLoading(true);
+        if (courses.length === 0) setLoading(true);
         const [activeRes, archivedRes] = await Promise.all([
           fetch('/api/classroom/courses?state=ACTIVE'),
           fetch('/api/classroom/courses?state=ARCHIVED'),
         ]);
 
+        let activeData: ClassroomCourse[] = [];
+        let archivedData: ClassroomCourse[] = [];
+
         if (activeRes.ok) {
           const data = await activeRes.json();
-          setCourses(Array.isArray(data) ? data : []);
+          activeData = Array.isArray(data) ? data : [];
+          setCourses(activeData);
         }
 
         if (archivedRes.ok) {
           const data = await archivedRes.json();
-          setArchivedCourses(Array.isArray(data) ? data : []);
+          archivedData = Array.isArray(data) ? data : [];
+          setArchivedCourses(archivedData);
         }
+
+        try {
+          sessionStorage.setItem(
+            'learny_courses_cache',
+            JSON.stringify({ active: activeData, archived: archivedData })
+          );
+        } catch {}
       } catch (error) {
         console.error('Failed to fetch courses:', error);
       } finally {

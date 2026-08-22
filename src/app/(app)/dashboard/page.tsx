@@ -64,20 +64,21 @@ export default function DashboardPage() {
   const [dismissedBanner, setDismissedBanner] = useState(false);
 
   // Load dashboard data
-  async function fetchDashboardData() {
+  async function fetchDashboardData(isFresh = false) {
     try {
-      setLoading(true);
+      if (courses.length === 0) setLoading(true);
       setError(null);
       setErrorStatus(null);
 
-      // 0. Push/Pull with Cloud Firestore
-      await triggerFullCloudSync();
+      // Non-blocking background cloud sync
+      triggerFullCloudSync().catch(() => {});
 
       // 1. Fetch courses, coursework, and announcements in parallel
+      const freshParam = isFresh ? '?fresh=true' : '';
       const [coursesRes, courseworkRes, announcementsRes] = await Promise.all([
-        fetch('/api/classroom/courses'),
-        fetch('/api/classroom/coursework'),
-        fetch('/api/classroom/announcements').catch(() => null),
+        fetch(`/api/classroom/courses${freshParam}`),
+        fetch(`/api/classroom/coursework${freshParam}`),
+        fetch(`/api/classroom/announcements${freshParam}`).catch(() => null),
       ]);
 
       if (!coursesRes.ok) {
@@ -99,7 +100,6 @@ export default function DashboardPage() {
       const courseList = rawList.filter((c) => {
         if (hiddenIds.includes(c.id)) return false;
         const nameLower = (c.name || '').toLowerCase();
-        // Auto-filter known past courses from prior semesters unless user explicitly unhides
         if (nameLower.includes('human computer interaction') || nameLower.includes('hci') || nameLower.includes('des102')) {
           return false;
         }
@@ -118,7 +118,6 @@ export default function DashboardPage() {
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
       for (const cw of rawCoursework) {
-        // Exclude coursework from past/hidden courses
         if (!activeCourseIds.has(cw.courseId)) continue;
 
         const matchingCourse = courseList.find((c) => c.id === cw.courseId);
@@ -133,7 +132,6 @@ export default function DashboardPage() {
           const minutes = cw.dueTime?.minutes || 59;
           const dDate = new Date(year, month, day, hours, minutes);
 
-          // Exclude dead assignments older than 30 days
           if (dDate < thirtyDaysAgo) continue;
 
           const status: 'due' | 'overdue' = dDate < new Date() ? 'overdue' : 'due';
@@ -155,13 +153,27 @@ export default function DashboardPage() {
       setDeadlines(allDeadlines);
 
       // 3. Map Announcements (only for active semester courses)
+      let activeAnnouncements: any[] = [];
       if (announcementsRes && announcementsRes.ok) {
         const annData = await announcementsRes.json();
-        const activeAnnouncements = (annData.announcements || []).filter((a: any) =>
+        activeAnnouncements = (annData.announcements || []).filter((a: any) =>
           activeCourseIds.has(a.courseId)
         );
         setAnnouncements(activeAnnouncements.slice(0, 8));
       }
+
+      // Persist to sessionStorage for instant 0ms subsequent page loads
+      try {
+        sessionStorage.setItem(
+          'learny_dashboard_cache',
+          JSON.stringify({
+            courses: courseList,
+            deadlines: allDeadlines,
+            announcements: activeAnnouncements.slice(0, 8),
+            cachedAt: Date.now(),
+          })
+        );
+      } catch {}
     } catch (err: any) {
       console.error('Error fetching dashboard data:', err);
       setError(err.message || 'Failed to connect to Google Classroom.');
@@ -171,6 +183,27 @@ export default function DashboardPage() {
   }
 
   useEffect(() => {
+    // 0ms Instant Hydration from sessionStorage cache
+    try {
+      const cached = sessionStorage.getItem('learny_dashboard_cache');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed.courses?.length > 0) {
+          setCourses(parsed.courses);
+          if (parsed.deadlines) {
+            setDeadlines(
+              parsed.deadlines.map((d: any) => ({
+                ...d,
+                dueDate: new Date(d.dueDate),
+              }))
+            );
+          }
+          if (parsed.announcements) setAnnouncements(parsed.announcements);
+          setLoading(false);
+        }
+      }
+    } catch {}
+
     fetchDashboardData();
   }, []);
 
@@ -220,8 +253,8 @@ export default function DashboardPage() {
             variant="outline"
             size="sm"
             onClick={async () => {
-              await fetchDashboardData();
-              setSyncToast('Synced with Firebase Cloud & Google Classroom!');
+              await fetchDashboardData(true);
+              setSyncToast('Refreshed live data with Firebase & Google Classroom!');
               setTimeout(() => setSyncToast(null), 3000);
             }}
             className="h-8 gap-1.5 rounded-lg border-zinc-800 bg-zinc-900 text-xs font-medium text-zinc-300 hover:text-white hover:border-zinc-700"
