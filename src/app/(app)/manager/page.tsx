@@ -1,486 +1,744 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Brain,
   Sparkles,
   Calendar,
   Clock,
-  Award,
-  BookOpen,
-  Volume2,
-  VolumeX,
+  Plus,
+  X,
   RefreshCw,
   Flame,
   CheckCircle2,
-  Search,
+  AlertTriangle,
   ArrowRight,
-  Shield,
-  Activity,
-  Layers,
+  Trash2,
   ChevronRight,
-  TrendingUp,
+  ChevronLeft,
+  Users,
+  Dumbbell,
+  Tv,
+  UtensilsCrossed,
+  BookOpen,
+  Pencil,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { SwipeableTabs, SwipeableTabItem } from '@/components/ui/swipeable-tabs';
-import { GahaDailyBriefing } from '@/lib/gaha-scheduler';
-import { AcademicDateInfo, AcademicMilestone, TIMETABLE_ADJUSTMENTS_2026 } from '@/lib/academic-calendar-engine';
-import { OKFMemoryState, OKFConcept, OKFMemoryEngine } from '@/lib/okf-memory-engine';
-import { FormattedMathText } from '@/components/ui/math-view';
+import {
+  TimeBlock,
+  BlockType,
+  DayName,
+  DaySchedule,
+  ConflictInfo,
+  QUICK_ADD_PRESETS,
+  timeToMinutes,
+  minutesToTime,
+  getBlockDuration,
+  buildDaySchedule,
+  loadPersonalBlocks,
+  savePersonalBlocks,
+  addPersonalBlock,
+  removePersonalBlock,
+  detectConflicts,
+  getClassBlocksForDate,
+} from '@/lib/gaha-time-blocks';
+import { getAcademicDateInfo, TIMETABLE_ADJUSTMENTS_2026, getUpcomingMilestones, AcademicMilestone } from '@/lib/academic-calendar-engine';
+import { format, addDays, subDays } from 'date-fns';
 
-export default function GahaManagerPage() {
-  const [loading, setLoading] = useState(true);
-  const [briefingType, setBriefingType] = useState<'MORNING' | 'NIGHT'>('MORNING');
-  const [briefing, setBriefing] = useState<GahaDailyBriefing | null>(null);
-  const [calendarInfo, setCalendarInfo] = useState<AcademicDateInfo | null>(null);
-  const [milestones, setMilestones] = useState<AcademicMilestone[]>([]);
-  const [memoryState, setMemoryState] = useState<OKFMemoryState | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<OKFConcept[]>([]);
-  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
-  const [speechSynthesisSupported, setSpeechSynthesisSupported] = useState(false);
+// ── Timeline Constants ──
+const TIMELINE_START = 7; // 7 AM
+const TIMELINE_END = 23; // 11 PM
+const HOUR_HEIGHT = 60; // px per hour
+const TOTAL_HOURS = TIMELINE_END - TIMELINE_START;
 
-  // Load Manager Data
-  async function loadManagerData() {
-    try {
-      setLoading(true);
-      const [briefingRes, calendarRes, memoryRes] = await Promise.all([
-        fetch(`/api/gaha/briefing?type=${briefingType}`),
-        fetch('/api/gaha/calendar'),
-        fetch('/api/gaha/memory'),
-      ]);
+function getBlockTopAndHeight(block: TimeBlock) {
+  const startMinutes = timeToMinutes(block.startTime);
+  const endMinutes = timeToMinutes(block.endTime);
+  const top = ((startMinutes / 60) - TIMELINE_START) * HOUR_HEIGHT;
+  const height = ((endMinutes - startMinutes) / 60) * HOUR_HEIGHT;
+  return { top: Math.max(0, top), height: Math.max(HOUR_HEIGHT / 4, height) };
+}
 
-      if (briefingRes.ok) {
-        const bData = await briefingRes.json();
-        setBriefing(bData.briefing);
-      }
-
-      if (calendarRes.ok) {
-        const cData = await calendarRes.json();
-        setCalendarInfo(cData.current);
-        setMilestones(cData.upcomingMilestones || []);
-      }
-
-      if (memoryRes.ok) {
-        const mData = await memoryRes.json();
-        setMemoryState(mData.memoryState);
-      }
-    } catch (err) {
-      console.error('Failed to load manager data', err);
-    } finally {
-      setLoading(false);
-    }
+function getBlockIcon(type: BlockType) {
+  switch (type) {
+    case 'class': return <BookOpen className="h-3 w-3" />;
+    case 'study': return <Pencil className="h-3 w-3" />;
+    case 'social': return <Users className="h-3 w-3" />;
+    case 'personal': return <Sparkles className="h-3 w-3" />;
+    default: return <Clock className="h-3 w-3" />;
   }
+}
+
+function formatTimeLabel(time: string): string {
+  const [h, m] = time.split(':').map(Number);
+  const suffix = h >= 12 ? 'PM' : 'AM';
+  const hour12 = h % 12 || 12;
+  return m === 0 ? `${hour12} ${suffix}` : `${hour12}:${m.toString().padStart(2, '0')} ${suffix}`;
+}
+
+// ── Main Component ──
+export default function GahaManagerPage() {
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [personalBlocks, setPersonalBlocks] = useState<TimeBlock[]>([]);
+  const [daySchedule, setDaySchedule] = useState<DaySchedule | null>(null);
+  const [milestones, setMilestones] = useState<AcademicMilestone[]>([]);
+
+  // Add Block Modal State
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [addBlockLabel, setAddBlockLabel] = useState('');
+  const [addBlockType, setAddBlockType] = useState<BlockType>('personal');
+  const [addBlockStartTime, setAddBlockStartTime] = useState('15:00');
+  const [addBlockEndTime, setAddBlockEndTime] = useState('18:00');
+  const [addBlockColor, setAddBlockColor] = useState('border-orange-500/40 text-orange-300');
+  const [addBlockBgColor, setAddBlockBgColor] = useState('bg-orange-500/10');
+
+  // Conflict State
+  const [conflictInfo, setConflictInfo] = useState<ConflictInfo | null>(null);
+  const [showConflictModal, setShowConflictModal] = useState(false);
+
+  // ── Load & Rebuild Schedule ──
+  const rebuildSchedule = useCallback((date: Date, blocks: TimeBlock[]) => {
+    const schedule = buildDaySchedule(date, blocks);
+    setDaySchedule(schedule);
+  }, []);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      setSpeechSynthesisSupported(true);
-    }
-    loadManagerData();
-  }, [briefingType]);
+    const blocks = loadPersonalBlocks();
+    setPersonalBlocks(blocks);
+    rebuildSchedule(currentDate, blocks);
+    setMilestones(getUpcomingMilestones(6));
+  }, [currentDate, rebuildSchedule]);
 
-  // Handle Search in OKF Knowledge Base
-  useEffect(() => {
-    if (!searchQuery.trim()) {
-      setSearchResults([]);
-      return;
-    }
-    const results = OKFMemoryEngine.searchKnowledgeBase(searchQuery);
-    setSearchResults(results);
-  }, [searchQuery]);
+  // ── Day Navigation ──
+  const goToDay = (offset: number) => {
+    setCurrentDate((prev) => (offset > 0 ? addDays(prev, offset) : subDays(prev, Math.abs(offset))));
+  };
 
-  // Speech synthesis reader for executive briefing
-  const toggleAudioBriefing = () => {
-    if (!speechSynthesisSupported || !briefing) return;
+  const isToday = format(currentDate, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+  const academicInfo = getAcademicDateInfo(currentDate);
 
-    if (isPlayingAudio) {
-      window.speechSynthesis.cancel();
-      setIsPlayingAudio(false);
+  // ── Add Block Logic ──
+  const handlePresetClick = (preset: typeof QUICK_ADD_PRESETS[0]) => {
+    setAddBlockLabel(preset.label);
+    setAddBlockType(preset.type);
+    setAddBlockColor(preset.color);
+    setAddBlockBgColor(preset.bgColor);
+    const durationMinutes = preset.defaultDuration;
+    // Default to 3 PM start
+    setAddBlockStartTime('15:00');
+    setAddBlockEndTime(minutesToTime(timeToMinutes('15:00') + durationMinutes));
+    setShowAddModal(true);
+  };
+
+  const handleAddBlock = () => {
+    const dateStr = format(currentDate, 'yyyy-MM-dd');
+    const dayName = format(currentDate, 'EEEE') as DayName;
+    const newBlock: TimeBlock = {
+      id: `personal-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`,
+      label: addBlockLabel || 'Personal Time',
+      type: addBlockType,
+      day: dayName,
+      date: dateStr,
+      startTime: addBlockStartTime,
+      endTime: addBlockEndTime,
+      color: addBlockColor,
+      bgColor: addBlockBgColor,
+      isFixed: false,
+    };
+
+    // Detect conflicts with class blocks + existing personal blocks
+    const classBlocks = getClassBlocksForDate(currentDate);
+    const allExisting = [...classBlocks, ...personalBlocks];
+    const conflict = detectConflicts(newBlock, allExisting);
+
+    if (conflict) {
+      setConflictInfo(conflict);
+      setShowConflictModal(true);
+      setShowAddModal(false);
     } else {
-      window.speechSynthesis.cancel();
-      const textToRead = `${briefing.headline}. ${briefing.executiveSummaryText}`;
-      const utterance = new SpeechSynthesisUtterance(textToRead);
-      utterance.rate = 1.0;
-      utterance.pitch = 1.0;
-      utterance.onend = () => setIsPlayingAudio(false);
-      utterance.onerror = () => setIsPlayingAudio(false);
-      window.speechSynthesis.speak(utterance);
-      setIsPlayingAudio(true);
+      // No conflict — add directly
+      const updatedBlocks = [...personalBlocks, newBlock];
+      setPersonalBlocks(updatedBlocks);
+      savePersonalBlocks(updatedBlocks);
+      rebuildSchedule(currentDate, updatedBlocks);
+      setShowAddModal(false);
+      resetAddForm();
     }
   };
 
-  const handleMasteryBoost = (conceptId: string) => {
-    const updated = OKFMemoryEngine.updateConceptMastery(conceptId, 5);
-    if (updated) {
-      setMemoryState(OKFMemoryEngine.getMemoryState());
-    }
+  const handleAcceptAlternative = (altBlock: TimeBlock) => {
+    const updatedBlocks = [...personalBlocks, altBlock];
+    setPersonalBlocks(updatedBlocks);
+    savePersonalBlocks(updatedBlocks);
+    rebuildSchedule(currentDate, updatedBlocks);
+    setShowConflictModal(false);
+    setConflictInfo(null);
+    resetAddForm();
   };
 
-  // Build Tabs for the Manager
-  const managerTabs: SwipeableTabItem[] = [
-    {
-      id: 'briefing',
-      label: 'Daily Executive Directive',
-      icon: <Brain className="h-3.5 w-3.5 text-indigo-400" />,
-      content: (
-        <div className="space-y-4">
-          {/* Briefing Switcher & Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-400">
-                <Brain className="h-5 w-5" />
-              </div>
-              <div>
-                <div className="text-[11px] font-mono uppercase tracking-wider text-indigo-400 font-semibold">
-                  GAHA 2.0 • 24x7 Academic Manager
-                </div>
-                <h2 className="text-sm sm:text-base font-bold text-white">
-                  {briefing?.headline || 'Loading Daily Directive...'}
-                </h2>
-              </div>
+  const handleForceAdd = () => {
+    if (!conflictInfo) return;
+    // Force add the block despite conflicts
+    const updatedBlocks = [...personalBlocks, conflictInfo.newBlock];
+    setPersonalBlocks(updatedBlocks);
+    savePersonalBlocks(updatedBlocks);
+    rebuildSchedule(currentDate, updatedBlocks);
+    setShowConflictModal(false);
+    setConflictInfo(null);
+    resetAddForm();
+  };
+
+  const handleRemoveBlock = (blockId: string) => {
+    const updatedBlocks = personalBlocks.filter((b) => b.id !== blockId);
+    setPersonalBlocks(updatedBlocks);
+    savePersonalBlocks(updatedBlocks);
+    rebuildSchedule(currentDate, updatedBlocks);
+  };
+
+  const resetAddForm = () => {
+    setAddBlockLabel('');
+    setAddBlockType('personal');
+    setAddBlockStartTime('15:00');
+    setAddBlockEndTime('18:00');
+    setAddBlockColor('border-orange-500/40 text-orange-300');
+    setAddBlockBgColor('bg-orange-500/10');
+  };
+
+  // ── Current Time Indicator ──
+  const now = new Date();
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const currentTimeTop = ((currentMinutes / 60) - TIMELINE_START) * HOUR_HEIGHT;
+  const showCurrentTime = isToday && currentMinutes >= TIMELINE_START * 60 && currentMinutes <= TIMELINE_END * 60;
+
+  // ── Tab: Today's Plan ──
+  const todaysPlanTab = (
+    <div className="space-y-4">
+      {/* Day Header */}
+      <div className="flex items-center justify-between rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4">
+        <div className="flex items-center gap-3">
+          <button onClick={() => goToDay(-1)} className="rounded-lg border border-zinc-800 bg-zinc-950 p-1.5 text-zinc-400 hover:text-white transition-colors">
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <div>
+            <div className="text-sm font-bold text-white">
+              {format(currentDate, 'EEEE, MMMM d')}
+              {isToday && <span className="ml-2 text-[10px] font-mono text-emerald-400 bg-emerald-950/50 border border-emerald-800/40 px-1.5 py-0.5 rounded-full">TODAY</span>}
             </div>
-
-            <div className="flex items-center gap-2">
-              <div className="inline-flex rounded-lg border border-zinc-800 bg-zinc-950 p-0.5 text-xs">
-                <button
-                  onClick={() => setBriefingType('MORNING')}
-                  className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
-                    briefingType === 'MORNING' ? 'bg-zinc-800 text-white font-semibold' : 'text-zinc-400 hover:text-zinc-200'
-                  }`}
-                >
-                  🌅 Morning
-                </button>
-                <button
-                  onClick={() => setBriefingType('NIGHT')}
-                  className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
-                    briefingType === 'NIGHT' ? 'bg-zinc-800 text-white font-semibold' : 'text-zinc-400 hover:text-zinc-200'
-                  }`}
-                >
-                  🌙 Night Review
-                </button>
-              </div>
-
-              {speechSynthesisSupported && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={toggleAudioBriefing}
-                  className={`h-8 gap-1.5 rounded-lg border-zinc-800 text-xs ${
-                    isPlayingAudio ? 'bg-indigo-600/30 text-indigo-300 border-indigo-500/40' : 'bg-zinc-900 text-zinc-300'
-                  }`}
-                >
-                  {isPlayingAudio ? <VolumeX className="h-3.5 w-3.5 animate-pulse" /> : <Volume2 className="h-3.5 w-3.5" />}
-                  <span>{isPlayingAudio ? 'Stop Audio' : 'Listen'}</span>
-                </Button>
+            <div className="text-[11px] text-zinc-400 mt-0.5">
+              {academicInfo.phaseTitle}
+              {academicInfo.isTTA && (
+                <span className="ml-1.5 text-amber-400 font-semibold">⚡ TTA → {academicInfo.ttaTargetDay} Schedule</span>
+              )}
+              {academicInfo.isHoliday && (
+                <span className="ml-1.5 text-green-400 font-semibold">🌴 {academicInfo.holidayName}</span>
               )}
             </div>
           </div>
+          <button onClick={() => goToDay(1)} className="rounded-lg border border-zinc-800 bg-zinc-950 p-1.5 text-zinc-400 hover:text-white transition-colors">
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
 
-          {/* Executive Summary Card */}
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 space-y-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
-              <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
-              <span>Manager Directives &amp; Action Plan</span>
-            </h3>
-            <p className="text-xs sm:text-sm text-zinc-200 leading-relaxed">
-              {briefing?.executiveSummaryText}
-            </p>
+        <div className="flex items-center gap-2">
+          {!isToday && (
+            <Button size="sm" variant="outline" onClick={() => setCurrentDate(new Date())} className="h-7 text-[11px] rounded-lg border-zinc-800 bg-zinc-900 text-zinc-300">
+              Today
+            </Button>
+          )}
+          <Button size="sm" variant="outline" onClick={() => setShowAddModal(true)} className="h-7 gap-1 text-[11px] rounded-lg border-indigo-800/50 bg-indigo-950/30 text-indigo-300 hover:bg-indigo-950/50">
+            <Plus className="h-3 w-3" /> Add Block
+          </Button>
+        </div>
+      </div>
 
-            {/* Top Priorities Checklist */}
-            <div className="pt-3 border-t border-zinc-800/80 space-y-2">
-              <div className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider">
-                Target Priorities For Today:
-              </div>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {briefing?.topPriorities.map((pri, idx) => (
-                  <div
-                    key={idx}
-                    className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-3 flex items-start gap-2 text-xs text-zinc-300"
-                  >
-                    <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
-                    <span>{pri}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+      {/* Day Summary Stats */}
+      {daySchedule && (
+        <div className="grid grid-cols-3 gap-2">
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-3 text-center">
+            <div className="text-lg font-bold text-blue-400">{Math.round(daySchedule.totalClassMinutes / 60 * 10) / 10}h</div>
+            <div className="text-[10px] text-zinc-500 font-mono uppercase">Classes</div>
           </div>
-
-          {/* Planned Deep Work Study Blocks */}
-          <div className="space-y-2.5">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
-              <Clock className="h-3.5 w-3.5 text-indigo-400" />
-              <span>24x7 Scheduled Deep Work Blocks</span>
-            </h3>
-            <div className="grid gap-3 sm:grid-cols-3">
-              {briefing?.recommendedStudyBlocks.map((block, idx) => (
-                <div
-                  key={idx}
-                  className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4 space-y-2 flex flex-col justify-between"
-                >
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between text-[11px]">
-                      <span className="font-mono font-semibold text-indigo-400">{block.timeSlot}</span>
-                      <span className="rounded bg-zinc-800 px-1.5 py-0.5 text-[10px] text-zinc-400">
-                        {block.durationMinutes}m sprint
-                      </span>
-                    </div>
-                    <h4 className="text-xs font-bold text-white">{block.subject}</h4>
-                    <p className="text-xs text-zinc-300 line-clamp-2">{block.task}</p>
-                  </div>
-                  <div className="text-[10px] text-zinc-500 border-t border-zinc-800/60 pt-2 italic">
-                    {block.reason}
-                  </div>
-                </div>
-              ))}
-            </div>
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-3 text-center">
+            <div className="text-lg font-bold text-emerald-400">{Math.round(daySchedule.totalStudyMinutes / 60 * 10) / 10}h</div>
+            <div className="text-[10px] text-zinc-500 font-mono uppercase">Study</div>
+          </div>
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-3 text-center">
+            <div className="text-lg font-bold text-orange-400">{Math.round(daySchedule.totalPersonalMinutes / 60 * 10) / 10}h</div>
+            <div className="text-[10px] text-zinc-500 font-mono uppercase">Personal</div>
           </div>
         </div>
-      ),
-    },
-    {
-      id: 'calendar',
-      label: 'Academic Calendar & TTA Matrix',
-      icon: <Calendar className="h-3.5 w-3.5 text-emerald-400" />,
-      content: (
-        <div className="space-y-4">
-          {/* Calendar Status Card */}
-          <div className="grid gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4 space-y-1">
-              <div className="text-[10px] font-mono uppercase tracking-wider text-zinc-500">Current Phase</div>
-              <div className="text-sm font-bold text-white">{calendarInfo?.phaseTitle}</div>
-              <div className="text-[11px] text-zinc-400">{calendarInfo?.weekLabel}</div>
-            </div>
+      )}
 
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4 space-y-1">
-              <div className="text-[10px] font-mono uppercase tracking-wider text-zinc-500">Midsem Countdown</div>
-              <div className="text-sm font-bold text-amber-400 flex items-center gap-1">
-                <Flame className="h-4 w-4" />
-                <span>{calendarInfo?.daysToMidsem} Days Remaining</span>
+      {/* Interactive Timeline */}
+      <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 overflow-hidden">
+        <div className="relative" style={{ height: TOTAL_HOURS * HOUR_HEIGHT }}>
+          {/* Hour Grid Lines */}
+          {Array.from({ length: TOTAL_HOURS + 1 }).map((_, i) => (
+            <div key={i} className="absolute left-0 right-0 flex items-start" style={{ top: i * HOUR_HEIGHT }}>
+              <div className="w-14 shrink-0 text-right pr-2 text-[10px] font-mono text-zinc-600 -mt-1.5">
+                {`${(TIMELINE_START + i) % 12 || 12} ${TIMELINE_START + i >= 12 ? 'PM' : 'AM'}`}
               </div>
-              <div className="text-[11px] text-zinc-400">Mid-Semester Exams (20–28 Sept)</div>
+              <div className="flex-1 border-t border-zinc-800/50" />
             </div>
+          ))}
 
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4 space-y-1">
-              <div className="text-[10px] font-mono uppercase tracking-wider text-zinc-500">Endsem Countdown</div>
-              <div className="text-sm font-bold text-indigo-400">
-                {calendarInfo?.daysToEndsem} Days Remaining
-              </div>
-              <div className="text-[11px] text-zinc-400">Final Exams (29 Nov – 8 Dec)</div>
+          {/* Current Time Indicator */}
+          {showCurrentTime && (
+            <div className="absolute left-14 right-0 z-30 flex items-center" style={{ top: currentTimeTop }}>
+              <div className="h-2.5 w-2.5 rounded-full bg-red-500 -ml-1.5 shadow-lg shadow-red-500/40" />
+              <div className="flex-1 border-t-2 border-red-500/60 border-dashed" />
             </div>
-          </div>
+          )}
 
-          {/* Official Timetable Adjustments Matrix (TTAs) */}
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
-                <Clock className="h-3.5 w-3.5 text-indigo-400" />
-                <span>Official Timetable Adjustments (TTA Matrix)</span>
-              </h3>
-              <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-800/40 px-2 py-0.5 rounded-full">
-                8 Adjustments Synchronized
-              </span>
-            </div>
-
-            <div className="grid gap-2 sm:grid-cols-2">
-              {Object.entries(TIMETABLE_ADJUSTMENTS_2026).map(([dateStr, tta], idx) => (
-                <div
-                  key={idx}
-                  className="rounded-xl border border-zinc-800 bg-zinc-950/70 p-3 flex items-center justify-between text-xs"
-                >
-                  <div className="space-y-0.5">
-                    <span className="font-mono text-zinc-300 font-semibold">{dateStr}</span>
-                    <p className="text-[11px] text-zinc-400">{tta.reason}</p>
-                  </div>
-                  <span className="rounded-md bg-indigo-950/50 border border-indigo-800/40 px-2 py-1 text-[11px] font-mono text-indigo-300">
-                    {tta.targetDay} TT
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Upcoming Academic Milestones */}
-          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 space-y-3">
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
-              <Calendar className="h-3.5 w-3.5 text-indigo-400" />
-              <span>Upcoming Semester Deadlines &amp; Milestones</span>
-            </h3>
-
-            <div className="space-y-2">
-              {milestones.map((m) => (
-                <div
-                  key={m.id}
-                  className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-3 flex items-center justify-between text-xs"
-                >
-                  <div className="space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-white">{m.title}</span>
-                      {m.important && (
-                        <span className="rounded bg-rose-950/50 text-rose-400 border border-rose-800/40 text-[9px] px-1.5 py-0.2 font-mono">
-                          HIGH PRIORITY
-                        </span>
+          {/* Time Blocks */}
+          {daySchedule?.blocks.map((block) => {
+            const { top, height } = getBlockTopAndHeight(block);
+            const isPersonalOrStudy = !block.isFixed;
+            return (
+              <motion.div
+                key={block.id}
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                className={`absolute left-16 right-3 z-10 rounded-xl border ${block.color} ${block.bgColor} px-3 py-1.5 cursor-default overflow-hidden group`}
+                style={{ top, height: Math.max(28, height) }}
+              >
+                <div className="flex items-start justify-between h-full">
+                  <div className="flex items-start gap-1.5 min-w-0 flex-1">
+                    <span className="mt-0.5 shrink-0">{getBlockIcon(block.type)}</span>
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[11px] font-semibold truncate">{block.label}</div>
+                      {height >= 36 && (
+                        <div className="text-[10px] opacity-70 truncate">
+                          {formatTimeLabel(block.startTime)} – {formatTimeLabel(block.endTime)}
+                          {block.room && ` • ${block.room}`}
+                        </div>
                       )}
                     </div>
-                    <p className="text-[11px] text-zinc-400">{m.description}</p>
                   </div>
-                  <span className="font-mono text-zinc-400 shrink-0 ml-3">{m.dateStr}</span>
+                  {isPersonalOrStudy && (
+                    <button
+                      onClick={() => handleRemoveBlock(block.id)}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-1 p-0.5 rounded hover:bg-white/10"
+                      title="Remove block"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
                 </div>
-              ))}
-            </div>
-          </div>
+              </motion.div>
+            );
+          })}
         </div>
-      ),
-    },
-    {
-      id: 'okf-memory',
-      label: 'OKF Long-Term Knowledge Graph',
-      icon: <Layers className="h-3.5 w-3.5 text-amber-400" />,
-      content: (
-        <div className="space-y-4">
-          {/* Knowledge Search */}
-          <div className="relative">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+      </div>
+    </div>
+  );
+
+  // ── Tab: Smart Scheduler ──
+  const smartSchedulerTab = (
+    <div className="space-y-4">
+      {/* Quick Add Presets */}
+      <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5 space-y-3">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
+          <Plus className="h-3.5 w-3.5 text-indigo-400" />
+          <span>Quick Add — One Tap to Block Time</span>
+        </h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+          {QUICK_ADD_PRESETS.map((preset) => (
+            <button
+              key={preset.label}
+              onClick={() => handlePresetClick(preset)}
+              className={`rounded-xl border ${preset.color} ${preset.bgColor} p-3.5 text-left transition-all hover:scale-[1.02] active:scale-[0.98]`}
+            >
+              <div className="text-lg mb-1">{preset.icon}</div>
+              <div className="text-xs font-semibold">{preset.label}</div>
+              <div className="text-[10px] opacity-60 mt-0.5">{preset.defaultDuration} min default</div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Custom Block Builder */}
+      <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 space-y-4">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
+          <Pencil className="h-3.5 w-3.5 text-indigo-400" />
+          <span>Custom Block Builder</span>
+        </h3>
+
+        <div className="space-y-3">
+          <div>
+            <label className="text-[11px] text-zinc-500 font-medium block mb-1">What are you doing?</label>
             <Input
-              placeholder="Search concepts, KaTeX formulas, derivation methods across all subjects..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-10 bg-zinc-900 border-zinc-800 text-xs text-zinc-100 rounded-xl"
+              value={addBlockLabel}
+              onChange={(e) => setAddBlockLabel(e.target.value)}
+              placeholder="e.g., Going out with friends, Shopping..."
+              className="h-9 bg-zinc-950 border-zinc-800 text-xs text-white rounded-lg"
             />
           </div>
 
-          {/* Search Results if query present */}
-          {searchResults.length > 0 ? (
-            <div className="space-y-2.5">
-              <div className="text-xs font-semibold text-zinc-400">
-                Found {searchResults.length} matched OKF concepts:
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2">
-                {searchResults.map((c) => (
-                  <div
-                    key={c.id}
-                    className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 space-y-2"
-                  >
-                    <div className="flex items-center justify-between text-[11px]">
-                      <span className="rounded bg-zinc-800 px-2 py-0.5 font-mono text-zinc-300">{c.courseCode}</span>
-                      <span className="text-emerald-400 font-mono font-semibold">{c.masteryPercentage}% Mastery</span>
-                    </div>
-                    <h4 className="text-xs sm:text-sm font-bold text-white">{c.topic}</h4>
-                    <p className="text-xs text-zinc-400">{c.methodOfWork}</p>
-
-                    {c.latexFormulas.length > 0 && (
-                      <div className="rounded-lg bg-zinc-950 p-2 border border-zinc-800/80 overflow-x-auto">
-                        {c.latexFormulas.map((f, i) => (
-                          <div key={i} className="text-xs py-0.5">
-                            <FormattedMathText text={`$$${f}$$`} />
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-[11px] text-zinc-500 font-medium block mb-1">Start Time</label>
+              <Input
+                type="time"
+                value={addBlockStartTime}
+                onChange={(e) => setAddBlockStartTime(e.target.value)}
+                className="h-9 bg-zinc-950 border-zinc-800 text-xs text-white rounded-lg"
+              />
             </div>
-          ) : (
-            /* Subject Mastery Cards */
-            <div className="grid gap-3 sm:grid-cols-2">
-              {memoryState &&
-                Object.values(memoryState.subjects).map((sub) => (
-                  <div
-                    key={sub.courseCode}
-                    className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 space-y-3 flex flex-col justify-between"
-                  >
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="rounded bg-zinc-800 px-2 py-0.5 text-[10px] font-mono text-zinc-300">
-                          {sub.courseCode} • {sub.credits} Credits
-                        </span>
-                        <span className="text-xs font-mono font-semibold text-emerald-400">
-                          {sub.overallMastery}% Mastery
-                        </span>
-                      </div>
-
-                      <h3 className="text-sm font-bold text-white">{sub.courseName}</h3>
-
-                      {/* Progress Bar */}
-                      <div className="h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-indigo-500 rounded-full transition-all duration-500"
-                          style={{ width: `${sub.overallMastery}%` }}
-                        />
-                      </div>
-
-                      {/* Sub-topics list */}
-                      <div className="space-y-1.5 pt-2">
-                        {sub.concepts.map((concept) => (
-                          <div
-                            key={concept.id}
-                            className="rounded-xl border border-zinc-800/70 bg-zinc-950/60 p-2.5 text-xs space-y-1"
-                          >
-                            <div className="flex items-center justify-between">
-                              <span className="font-semibold text-zinc-200">{concept.topic}</span>
-                              <button
-                                onClick={() => handleMasteryBoost(concept.id)}
-                                title="Click to boost mastery +5%"
-                                className="text-[10px] font-mono text-indigo-400 hover:text-indigo-300 bg-zinc-800 px-1.5 py-0.5 rounded"
-                              >
-                                {concept.masteryPercentage}% +5
-                              </button>
-                            </div>
-                            <div className="text-[11px] text-zinc-400 line-clamp-1">{concept.methodOfWork}</div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="pt-2 border-t border-zinc-800/60 flex items-center justify-between text-[11px] text-zinc-500">
-                      <span>{sub.completedLectures} / {sub.totalLectures} Lectures Indexed</span>
-                      <span className="text-indigo-400 font-medium">OKF Synced</span>
-                    </div>
-                  </div>
-                ))}
+            <div>
+              <label className="text-[11px] text-zinc-500 font-medium block mb-1">End Time</label>
+              <Input
+                type="time"
+                value={addBlockEndTime}
+                onChange={(e) => setAddBlockEndTime(e.target.value)}
+                className="h-9 bg-zinc-950 border-zinc-800 text-xs text-white rounded-lg"
+              />
             </div>
-          )}
+          </div>
+
+          <div>
+            <label className="text-[11px] text-zinc-500 font-medium block mb-1">Block Type</label>
+            <div className="flex gap-2">
+              {(['personal', 'social', 'study'] as BlockType[]).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => {
+                    setAddBlockType(t);
+                    if (t === 'social') { setAddBlockColor('border-orange-500/40 text-orange-300'); setAddBlockBgColor('bg-orange-500/10'); }
+                    else if (t === 'study') { setAddBlockColor('border-blue-500/40 text-blue-300'); setAddBlockBgColor('bg-blue-500/10'); }
+                    else { setAddBlockColor('border-pink-500/40 text-pink-300'); setAddBlockBgColor('bg-pink-500/10'); }
+                  }}
+                  className={`px-3 py-1.5 rounded-lg text-[11px] font-medium border transition-colors ${
+                    addBlockType === t ? 'bg-zinc-800 text-white border-zinc-700' : 'bg-zinc-950 text-zinc-400 border-zinc-800 hover:text-zinc-200'
+                  }`}
+                >
+                  {t === 'personal' ? '🎯 Personal' : t === 'social' ? '🤝 Social' : '📚 Study'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <Button onClick={handleAddBlock} disabled={!addBlockLabel.trim()} className="w-full h-9 text-xs rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white">
+            <Plus className="h-3.5 w-3.5 mr-1.5" />
+            Add to {format(currentDate, 'EEEE')} Schedule
+          </Button>
         </div>
-      ),
+      </div>
+
+      {/* Active Personal Blocks for This Day */}
+      {personalBlocks.filter((b) => b.date === format(currentDate, 'yyyy-MM-dd')).length > 0 && (
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 space-y-3">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400">
+            Your Blocks for {format(currentDate, 'EEEE, MMM d')}
+          </h3>
+          <div className="space-y-2">
+            {personalBlocks
+              .filter((b) => b.date === format(currentDate, 'yyyy-MM-dd'))
+              .map((block) => (
+                <div key={block.id} className={`rounded-xl border ${block.color} ${block.bgColor} p-3 flex items-center justify-between`}>
+                  <div className="flex items-center gap-2">
+                    {getBlockIcon(block.type)}
+                    <div>
+                      <div className="text-xs font-semibold">{block.label}</div>
+                      <div className="text-[10px] opacity-60">
+                        {formatTimeLabel(block.startTime)} – {formatTimeLabel(block.endTime)} ({getBlockDuration(block)} min)
+                      </div>
+                    </div>
+                  </div>
+                  <button onClick={() => handleRemoveBlock(block.id)} className="p-1 rounded hover:bg-white/10 text-zinc-400 hover:text-red-400 transition-colors">
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  // ── Tab: Calendar & Milestones ──
+  const calendarTab = (
+    <div className="space-y-4">
+      {/* Calendar Status Cards */}
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4 space-y-1">
+          <div className="text-[10px] font-mono uppercase tracking-wider text-zinc-500">Current Phase</div>
+          <div className="text-sm font-bold text-white">{academicInfo.phaseTitle}</div>
+          <div className="text-[11px] text-zinc-400">{academicInfo.weekLabel}</div>
+        </div>
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4 space-y-1">
+          <div className="text-[10px] font-mono uppercase tracking-wider text-zinc-500">Midsem Countdown</div>
+          <div className="text-sm font-bold text-amber-400 flex items-center gap-1">
+            <Flame className="h-4 w-4" />
+            <span>{academicInfo.daysToMidsem} Days</span>
+          </div>
+          <div className="text-[11px] text-zinc-400">Mid-Semester Exams (20–28 Sept)</div>
+        </div>
+        <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-4 space-y-1">
+          <div className="text-[10px] font-mono uppercase tracking-wider text-zinc-500">Endsem Countdown</div>
+          <div className="text-sm font-bold text-indigo-400">{academicInfo.daysToEndsem} Days</div>
+          <div className="text-[11px] text-zinc-400">Final Exams (29 Nov – 8 Dec)</div>
+        </div>
+      </div>
+
+      {/* TTA Matrix */}
+      <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
+            <Clock className="h-3.5 w-3.5 text-indigo-400" />
+            <span>Timetable Adjustments (TTA Matrix)</span>
+          </h3>
+          <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/40 border border-emerald-800/40 px-2 py-0.5 rounded-full">
+            8 Adjustments
+          </span>
+        </div>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {Object.entries(TIMETABLE_ADJUSTMENTS_2026).map(([dateStr, tta], idx) => {
+            const isPast = dateStr < format(new Date(), 'yyyy-MM-dd');
+            return (
+              <div
+                key={idx}
+                className={`rounded-xl border border-zinc-800 p-3 flex items-center justify-between text-xs ${isPast ? 'bg-zinc-950/40 opacity-50' : 'bg-zinc-950/70'}`}
+              >
+                <div className="space-y-0.5">
+                  <span className="font-mono text-zinc-300 font-semibold">{dateStr}</span>
+                  <p className="text-[11px] text-zinc-400">{tta.reason}</p>
+                </div>
+                <span className="rounded-md bg-indigo-950/50 border border-indigo-800/40 px-2 py-1 text-[11px] font-mono text-indigo-300 shrink-0 ml-2">
+                  {tta.targetDay}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Upcoming Milestones */}
+      <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 space-y-3">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-400 flex items-center gap-1.5">
+          <Calendar className="h-3.5 w-3.5 text-indigo-400" />
+          <span>Upcoming Milestones & Deadlines</span>
+        </h3>
+        <div className="space-y-2">
+          {milestones.map((m) => (
+            <div key={m.id} className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-3 flex items-center justify-between text-xs">
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-white">{m.title}</span>
+                  {m.important && (
+                    <span className="rounded bg-rose-950/50 text-rose-400 border border-rose-800/40 text-[9px] px-1.5 py-0.5 font-mono">
+                      HIGH PRIORITY
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-zinc-400">{m.description}</p>
+              </div>
+              <span className="font-mono text-zinc-400 shrink-0 ml-3">{m.dateStr}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  // ── Build Tab Config ──
+  const managerTabs: SwipeableTabItem[] = [
+    {
+      id: 'today',
+      label: "Today's Plan",
+      icon: <Clock className="h-3.5 w-3.5 text-emerald-400" />,
+      content: todaysPlanTab,
+    },
+    {
+      id: 'scheduler',
+      label: 'Smart Scheduler',
+      icon: <Plus className="h-3.5 w-3.5 text-indigo-400" />,
+      content: smartSchedulerTab,
+    },
+    {
+      id: 'calendar',
+      label: 'Calendar & TTA',
+      icon: <Calendar className="h-3.5 w-3.5 text-amber-400" />,
+      content: calendarTab,
     },
   ];
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
-      {/* 1. Header Bar */}
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800 pb-4">
         <div>
           <div className="flex items-center gap-2">
             <span className="text-[11px] font-mono text-zinc-500 uppercase tracking-wider">
-              IIIT Delhi • Monsoon 2026
+              GAHA 2.0 • Life Manager
             </span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-indigo-950/50 border border-indigo-800/50 px-2 py-0.5 text-[10px] text-indigo-300 font-medium">
-              <span className="h-1.5 w-1.5 rounded-full bg-indigo-400 animate-pulse" />
-              24x7 Manager Online
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-950/50 border border-emerald-800/50 px-2 py-0.5 text-[10px] text-emerald-300 font-medium">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Online
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white mt-1">
-            Academic Command Center
+            Schedule Command Center
           </h1>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={loadManagerData}
-            className="h-8 gap-1.5 rounded-lg border-zinc-800 bg-zinc-900 text-xs text-zinc-300 hover:text-white"
-          >
-            <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
-            <span>Refresh Directives</span>
-          </Button>
         </div>
       </div>
 
-      {/* 2. Swipeable Tabs */}
-      <SwipeableTabs tabs={managerTabs} defaultTabId="briefing" />
+      {/* Swipeable Tabs */}
+      <SwipeableTabs tabs={managerTabs} defaultTabId="today" />
+
+      {/* ── Add Block Modal ── */}
+      <AnimatePresence>
+        {showAddModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4"
+            onClick={() => setShowAddModal(false)}
+          >
+            <motion.div
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 50, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 p-6 space-y-4"
+            >
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-white">Add Time Block</h3>
+                <button onClick={() => setShowAddModal(false)} className="p-1 rounded hover:bg-zinc-800 text-zinc-400">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="text-[11px] text-zinc-400">
+                For {format(currentDate, 'EEEE, MMMM d, yyyy')}
+              </div>
+
+              <div className="space-y-3">
+                <div>
+                  <label className="text-[11px] text-zinc-500 font-medium block mb-1">Activity</label>
+                  <Input
+                    value={addBlockLabel}
+                    onChange={(e) => setAddBlockLabel(e.target.value)}
+                    placeholder="What are you doing?"
+                    className="h-9 bg-zinc-950 border-zinc-800 text-xs text-white rounded-lg"
+                    autoFocus
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[11px] text-zinc-500 font-medium block mb-1">Start</label>
+                    <Input
+                      type="time"
+                      value={addBlockStartTime}
+                      onChange={(e) => setAddBlockStartTime(e.target.value)}
+                      className="h-9 bg-zinc-950 border-zinc-800 text-xs text-white rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[11px] text-zinc-500 font-medium block mb-1">End</label>
+                    <Input
+                      type="time"
+                      value={addBlockEndTime}
+                      onChange={(e) => setAddBlockEndTime(e.target.value)}
+                      className="h-9 bg-zinc-950 border-zinc-800 text-xs text-white rounded-lg"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <Button variant="outline" onClick={() => setShowAddModal(false)} className="flex-1 h-9 text-xs rounded-lg border-zinc-800 text-zinc-300">
+                  Cancel
+                </Button>
+                <Button onClick={handleAddBlock} disabled={!addBlockLabel.trim()} className="flex-1 h-9 text-xs rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white">
+                  Add Block
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Conflict Resolution Modal ── */}
+      <AnimatePresence>
+        {showConflictModal && conflictInfo && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4"
+            onClick={() => { setShowConflictModal(false); setConflictInfo(null); }}
+          >
+            <motion.div
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 50, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-md rounded-2xl border border-amber-800/50 bg-zinc-900 p-6 space-y-4"
+            >
+              <div className="flex items-center gap-2 text-amber-400">
+                <AlertTriangle className="h-5 w-5" />
+                <h3 className="text-sm font-bold">Schedule Conflict Detected</h3>
+              </div>
+
+              <div className="text-xs text-zinc-300">
+                <span className="font-semibold text-white">&ldquo;{conflictInfo.newBlock.label}&rdquo;</span> ({formatTimeLabel(conflictInfo.newBlock.startTime)} – {formatTimeLabel(conflictInfo.newBlock.endTime)}) overlaps with:
+              </div>
+
+              <div className="space-y-2">
+                {conflictInfo.conflictingBlocks.map((cb) => (
+                  <div key={cb.id} className={`rounded-xl border ${cb.color} ${cb.bgColor} p-3 text-xs`}>
+                    <div className="flex items-center gap-1.5">
+                      {getBlockIcon(cb.type)}
+                      <span className="font-semibold">{cb.label}</span>
+                    </div>
+                    <div className="text-[10px] opacity-70 mt-0.5">
+                      {formatTimeLabel(cb.startTime)} – {formatTimeLabel(cb.endTime)}
+                      {cb.room && ` • ${cb.room}`}
+                      {cb.isFixed && ' • ⚠️ Fixed (class)'}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {conflictInfo.suggestedAlternatives.length > 0 && (
+                <div className="space-y-2">
+                  <div className="text-[11px] text-zinc-400 font-semibold uppercase tracking-wider flex items-center gap-1">
+                    <Sparkles className="h-3 w-3 text-indigo-400" /> GAHA suggests:
+                  </div>
+                  {conflictInfo.suggestedAlternatives.map((alt, i) => (
+                    <button
+                      key={alt.id}
+                      onClick={() => handleAcceptAlternative(alt)}
+                      className="w-full rounded-xl border border-indigo-800/40 bg-indigo-950/30 p-3 text-xs text-left hover:bg-indigo-950/50 transition-colors flex items-center justify-between"
+                    >
+                      <div>
+                        <span className="font-semibold text-indigo-300">Option {i + 1}: </span>
+                        <span className="text-zinc-200">{formatTimeLabel(alt.startTime)} – {formatTimeLabel(alt.endTime)}</span>
+                      </div>
+                      <ArrowRight className="h-3.5 w-3.5 text-indigo-400" />
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex gap-2 pt-2 border-t border-zinc-800">
+                <Button variant="outline" onClick={() => { setShowConflictModal(false); setConflictInfo(null); }} className="flex-1 h-9 text-xs rounded-lg border-zinc-800 text-zinc-300">
+                  Cancel
+                </Button>
+                <Button variant="outline" onClick={handleForceAdd} className="flex-1 h-9 text-xs rounded-lg border-amber-800/50 text-amber-300 hover:bg-amber-950/30">
+                  Add Anyway
+                </Button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

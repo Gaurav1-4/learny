@@ -306,7 +306,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* 2. GAHA 24x7 Academic Executive Manager Banner */}
+      {/* 2. GAHA 24x7 Life Executive Manager Banner */}
       <div className="rounded-2xl border border-indigo-500/30 bg-zinc-900/70 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
         <div className="flex items-start gap-3.5">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-400">
@@ -315,7 +315,7 @@ export default function DashboardPage() {
           <div className="space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-indigo-400">
-                24x7 Academic Manager
+                24x7 Life Manager
               </span>
               <span className="rounded-full bg-indigo-950/60 border border-indigo-800/50 px-2 py-0.2 text-[10px] font-mono text-indigo-300 font-medium">
                 {academicDateInfo.weekLabel} • {academicDateInfo.phaseTitle}
@@ -333,7 +333,7 @@ export default function DashboardPage() {
             </h3>
             <p className="text-xs text-zinc-400">
               {academicDateInfo.specialNotes ||
-                `Manager has synchronized your OKF knowledge graph, SM-2 flashcard reviews, and study blocks.`}
+                `Manager has synchronized your timeline, study blocks, and personal schedule.`}
             </p>
           </div>
         </div>

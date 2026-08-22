@@ -1,38 +1,35 @@
 # Learny — Project State & Milestone Tracker
 
-**Current Status**: Fluid Swipe & Touch Drag Tab Gestures Active App-Wide, Latency Bottlenecks Solved (High-Speed In-Memory Cache + 0ms Instant Hydration + Non-Blocking Sync), Complete IIITD Monsoon 2026 Evaluation Suite Active, GAHA Chatbot Online, Single-User Auth Lock, 100% Firebase Cloud Storage, Premium Dashboard & 1-to-1 Automatic NotebookLM Mapping Deployed
+**Current Status**: GAHA 2.0 24x7 Academic Executive Manager Live & Operational, Official IIITD Monsoon 2026 Academic Calendar Engine Fully Integrated as "The Heart & Bible", OKF (Ontological Knowledge Framework) Long-Term Memory Synced to Cloud Firestore, Fluid Swipe & Click Navigation Active App-Wide, Complete IIITD Monsoon 2026 Evaluation Suite Active, Single-User Auth Lock, Premium Dashboard & 1-to-1 Automatic NotebookLM Mapping Deployed
 **GitHub Repository**: [https://github.com/Gaurav1-4/learny](https://github.com/Gaurav1-4/learny)
 **Live Production URL**: [https://learny.zorx.tech](https://learny.zorx.tech)
 
----
-
-## 📱 Fluid Swipe & Touch Gesture Tabs (Deployed)
-- **Reusable Component (`src/components/ui/swipeable-tabs.tsx`)**:
-  - Full horizontal touch swipe and trackpad/mouse drag support with physics-based spring transitions.
-  - Swipe left (`offset.x < -60`) advances to the next tab.
-  - Swipe right (`offset.x > 60`) returns to the previous tab.
-  - Active layout pill indicator (`layoutId="active-tab-indicator"`) smoothly glides between tabs.
-  - Direction-aware enter/exit slide animations.
-  - Preserves vertical scrolling (`touch-pan-y`) so page scrolling on mobile/iPhone remains smooth without interference.
-- **Integrated Across All App Views**:
-  1. **GPA & CGPA Planning (`/gpa`)**: Swipe between *Subject Evaluations*, *Target Grade Planner*, and *Manual SGPA Table*.
-  2. **Courses Hub (`/courses`)**: Swipe between *Active Semester*, *Past / Hidden*, and *Archived*.
-  3. **Course Details (`/courses/[id]`)**: Swipe between *Study & Practice Lab*, *Classroom Stream*, *Notes & Slides*, and *Assignments*.
-  4. **Study & Productivity Suite (`/study`)**: Swipe between *NotebookLM Document Vault*, *NotebookLM Account Sync*, *Focus Timer*, and *GPA & Evaluations*.
+**Project Milestones**:
+- [x] Integrate GAHA 2.0 with OKF Memory Graph & Daily Briefings.
+- [x] Phase 1 of GAHA 2.0 Life Manager (Timeline UI, Conflict Engine, Auto-Postpone).
 
 ---
 
-## ⚡ Performance & Latency Optimization (Resolved)
-- In-memory API cache (`apiCache`, 90–180s TTL) with `Cache-Control: private, max-age=60, stale-while-revalidate=120`.
-- 0ms instant client-side cache hydration from `sessionStorage`.
-- Non-blocking background Firestore sync.
-- Instant manual refresh with `?fresh=true`.
-
----
-
-## 📚 IIIT Delhi Monsoon 2026 Complete Official Evaluation Suite
-1. **Math III (MTH201)**: Weekly Tutorial Quizzes (30% n-2 policy), Midsem (30%), Endsem (40%).
-2. **Operating Systems (OS / CSE231 - Sec A)**: Quizzes (10% N-1), Take-Home Assignments (35% No N-1), Midsem (20%), Endsem (35%).
-3. **Advanced Programming (AP / CSE201)**: Assignments (30% total 4), Quizzes (10% best 5 of 6), Midsem (25%), Final Exam (35%).
-4. **RMSSD (SSH201 - 2+2 Credits)**: Part 1 Pre-Midsem (Tutorial 40%, Assignment 1 20% due 7 Sept, Midsem 40%), Part 2 Post-Midsem (40% / 20% / 40%).
-5. **DPP (DES201)**: 7 categories (10% Indiv, 10% Group, 20% Midsem Jury, 10% Attendance, 20% Project, 10% Journal, 20% Final Jury).
+## 🏛️ GAHA 2.0 — 24x7 Autonomous Academic Executive Manager (Deployed)
+- **Official Academic Calendar Engine (`src/lib/academic-calendar-engine.ts`)**:
+  - Encodes the complete IIIT Delhi Monsoon 2026 Semester Calendar (Weeks 0 to 23).
+  - Handles all **8 Timetable Adjustments (TTA)**:
+    - *Sat 22 Aug* $\to$ Friday Time Table (`TT-Fri³`)
+    - *Tue 8 Sep* $\to$ Friday Time Table (`TT-Fri⁴`)
+    - *Sat 12 Sep* $\to$ Wednesday Time Table (`TT-Wed⁵`)
+    - *Sat 19 Sep* $\to$ Tuesday Time Table (`TT-Tue⁵`)
+    - *Sat 10 Oct* $\to$ Monday Time Table (`TT-Mon⁸`)
+    - *Sat 21 Nov* $\to$ Monday Time Table (`TT-Mon¹²`)
+    - *Wed 25 Nov* $\to$ Tuesday Time Table (`TT-Tue¹³`)
+    - *Thu 26 Nov* $\to$ Friday Time Table (`TT-Fri¹³` — Last Day of Class)
+  - Automatically handles **9 Gazetted Holidays (GH)** (*Aug 15, Aug 26, Sep 4, Oct 2, Oct 20, Oct 26, Nov 8, Nov 24, Dec 25*).
+  - War-room countdowns for **Midsem Exams (20–28 Sept)** and **Endsem Exams (29 Nov – 8 Dec)**.
+- **OKF (Ontological Knowledge Framework) Memory Core (`src/lib/okf-memory-engine.ts`)**:
+  - Ingests all 5 courses (*Math III, OS, AP, DPP, RMSSD*) into structured topic mastery graphs.
+  - KaTeX formula bank and deterministic method-of-work retrieval.
+  - Real-time bidirectional Cloud Firestore sync under `students/gaurav25212_iiitd_ac_in/okfMemory`.
+- **24x7 Academic Command Center (`/manager`)**:
+  - Daily Morning Briefings (07:30 AM) and Night Reviews (10:00 PM) with built-in text-to-speech audio reader.
+  - TTA Calendar Matrix & Milestone countdowns.
+  - OKF Concept Search and Topic Mastery Boosters.
+  - Deep Work Study Block Dispatcher.

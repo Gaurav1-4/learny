@@ -41,6 +41,8 @@ export interface StudentCloudState {
   settings?: any;
   okfMemory?: any;
   lastManagerSync?: string;
+  gahaTimeBlocks?: any[];  // Personal time blocks
+  gahaStudyPrefs?: any;    // Study preferences
   updatedAt?: any;
   lastSyncedAt?: string;
 }
