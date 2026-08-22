@@ -17,9 +17,10 @@ import { ClassroomCourse } from '@/types';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { pushToFirestore } from '@/lib/firebase/firestore-sync';
+import { SwipeableTabs, SwipeableTabItem } from '@/components/ui/swipeable-tabs';
 
 export default function CoursesPage() {
-  const [activeTab, setActiveTab] = useState<'active' | 'archived' | 'hidden'>('active');
+  const [activeTab, setActiveTab] = useState<'active' | 'hidden' | 'archived'>('active');
   const [loading, setLoading] = useState(true);
   const [courses, setCourses] = useState<ClassroomCourse[]>([]);
   const [archivedCourses, setArchivedCourses] = useState<ClassroomCourse[]>([]);
@@ -112,23 +113,143 @@ export default function CoursesPage() {
     return hiddenCourseIds.includes(c.id) || (c.name || '').toLowerCase().includes('hci');
   };
 
-  let currentList: ClassroomCourse[] = [];
-  if (activeTab === 'active') {
-    currentList = courses.filter((c) => !isCourseHidden(c));
-  } else if (activeTab === 'archived') {
-    currentList = archivedCourses;
-  } else if (activeTab === 'hidden') {
-    currentList = courses.filter((c) => isCourseHidden(c));
-  }
+  const renderCourseGrid = (courseList: ClassroomCourse[], emptyTitle: string) => {
+    const filtered = courseList.filter((c) => {
+      const q = searchQuery.toLowerCase();
+      return (
+        (c.name || '').toLowerCase().includes(q) ||
+        (c.section || '').toLowerCase().includes(q) ||
+        (c.descriptionHeading || '').toLowerCase().includes(q)
+      );
+    });
 
-  const filteredCourses = currentList.filter((c) => {
-    const q = searchQuery.toLowerCase();
+    if (loading && courses.length === 0) {
+      return (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="h-40 animate-pulse rounded-xl bg-zinc-900 border border-zinc-800" />
+          ))}
+        </div>
+      );
+    }
+
+    if (filtered.length === 0) {
+      return (
+        <div className="flex min-h-[260px] flex-col items-center justify-center rounded-2xl border border-zinc-800 border-dashed bg-zinc-900/20 p-8 text-center">
+          <Archive className="mb-2 h-10 w-10 text-zinc-600" />
+          <h3 className="text-sm font-semibold text-zinc-200">{emptyTitle}</h3>
+          <p className="text-xs text-zinc-500 mt-1 max-w-sm">
+            {searchQuery ? 'No courses matched your search query.' : 'No courses in this category.'}
+          </p>
+        </div>
+      );
+    }
+
     return (
-      (c.name || '').toLowerCase().includes(q) ||
-      (c.section || '').toLowerCase().includes(q) ||
-      (c.descriptionHeading || '').toLowerCase().includes(q)
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {filtered.map((course) => {
+          const hidden = isCourseHidden(course);
+
+          return (
+            <div
+              key={course.id}
+              className="group relative rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 transition-all hover:border-zinc-700 hover:bg-zinc-900/70 flex flex-col justify-between"
+            >
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="rounded bg-zinc-800 px-2 py-0.5 text-[10px] font-medium text-zinc-300 font-mono">
+                    {course.section || 'ACTIVE'}
+                  </span>
+
+                  {/* Hide / Unhide Toggle */}
+                  <button
+                    onClick={(e) => toggleHideCourse(course.id, course.name, e)}
+                    title={hidden ? 'Add back to Active Semester' : 'Hide from Dashboard & Deadlines'}
+                    className={`rounded-lg p-1.5 text-xs transition-colors flex items-center gap-1 ${
+                      hidden
+                        ? 'bg-zinc-800 text-zinc-400 hover:text-white'
+                        : 'text-zinc-500 hover:text-amber-400 hover:bg-zinc-800'
+                    }`}
+                  >
+                    {hidden ? (
+                      <>
+                        <Eye className="h-3.5 w-3.5 text-emerald-400" />
+                        <span className="text-[10px] text-emerald-400">Unhide</span>
+                      </>
+                    ) : (
+                      <>
+                        <EyeOff className="h-3.5 w-3.5" />
+                        <span className="text-[10px]">Hide</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                <h3 className="text-sm sm:text-base font-bold text-white group-hover:text-zinc-200 transition-colors line-clamp-2 leading-snug">
+                  {course.name}
+                </h3>
+
+                {course.descriptionHeading && (
+                  <p className="text-xs text-zinc-400 line-clamp-1">
+                    {course.descriptionHeading}
+                  </p>
+                )}
+              </div>
+
+              <div className="pt-4 mt-2 border-t border-zinc-800/80 flex items-center justify-between">
+                <Link
+                  href={`/courses/${course.id}`}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-400 group-hover:text-indigo-300 transition-colors"
+                >
+                  <span>Open Subject Hub</span>
+                  <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
+                </Link>
+
+                {course.alternateLink && (
+                  <a
+                    href={course.alternateLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-zinc-500 hover:text-zinc-300 text-[11px]"
+                    title="Open in Google Classroom"
+                  >
+                    Classroom ↗
+                  </a>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     );
-  });
+  };
+
+  const activeCourseList = courses.filter((c) => !isCourseHidden(c));
+  const hiddenCourseList = courses.filter((c) => isCourseHidden(c));
+
+  const coursesTabs: SwipeableTabItem[] = [
+    {
+      id: 'active',
+      label: 'Active Semester',
+      badge: activeCourseList.length,
+      icon: <BookOpen className="h-3.5 w-3.5" />,
+      content: renderCourseGrid(activeCourseList, 'No Active Courses Found'),
+    },
+    {
+      id: 'hidden',
+      label: 'Past / Hidden',
+      badge: hiddenCourseList.length,
+      icon: <EyeOff className="h-3.5 w-3.5" />,
+      content: renderCourseGrid(hiddenCourseList, 'No Hidden Courses Found'),
+    },
+    {
+      id: 'archived',
+      label: 'Archived',
+      badge: archivedCourses.length,
+      icon: <Archive className="h-3.5 w-3.5" />,
+      content: renderCourseGrid(archivedCourses, 'No Archived Courses Found'),
+    },
+  ];
 
   return (
     <div className="space-y-6 max-w-5xl">
@@ -168,146 +289,12 @@ export default function CoursesPage() {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="flex items-center gap-1 border-b border-zinc-800/80 pb-2">
-        <button
-          onClick={() => setActiveTab('active')}
-          className={`rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors ${
-            activeTab === 'active'
-              ? 'bg-indigo-600 text-white font-semibold shadow-sm'
-              : 'text-zinc-400 hover:text-zinc-200'
-          }`}
-        >
-          Active Semester ({courses.filter((c) => !isCourseHidden(c)).length})
-        </button>
-
-        <button
-          onClick={() => setActiveTab('hidden')}
-          className={`rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors ${
-            activeTab === 'hidden'
-              ? 'bg-zinc-800 text-white font-semibold'
-              : 'text-zinc-400 hover:text-zinc-200'
-          }`}
-        >
-          Past / Hidden ({courses.filter((c) => isCourseHidden(c)).length})
-        </button>
-
-        <button
-          onClick={() => setActiveTab('archived')}
-          className={`rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors ${
-            activeTab === 'archived'
-              ? 'bg-zinc-800 text-white font-semibold'
-              : 'text-zinc-400 hover:text-zinc-200'
-          }`}
-        >
-          Archived ({archivedCourses.length})
-        </button>
-      </div>
-
-      {/* Grid */}
-      {loading ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div
-              key={i}
-              className="h-40 animate-pulse rounded-xl bg-zinc-900 border border-zinc-800"
-            />
-          ))}
-        </div>
-      ) : (
-        <AnimatePresence mode="wait">
-          {filteredCourses.length === 0 ? (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex min-h-[260px] flex-col items-center justify-center rounded-2xl border border-zinc-800 border-dashed bg-zinc-900/20 p-8 text-center"
-            >
-              <Archive className="mb-2 h-10 w-10 text-zinc-600" />
-              <h3 className="text-sm font-semibold text-zinc-200">
-                No {activeTab === 'active' ? 'Active' : activeTab === 'hidden' ? 'Past/Hidden' : 'Archived'} Courses Found
-              </h3>
-              <p className="text-xs text-zinc-500 mt-1 max-w-sm">
-                {searchQuery
-                  ? 'No courses matched your search query.'
-                  : `No courses in this category.`}
-              </p>
-            </motion.div>
-          ) : (
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.15 }}
-              className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
-            >
-              {filteredCourses.map((course) => {
-                const hidden = isCourseHidden(course);
-
-                return (
-                  <div
-                    key={course.id}
-                    className="group relative rounded-2xl border border-zinc-800 bg-zinc-900/40 p-5 transition-all hover:border-zinc-700 hover:bg-zinc-900/70 flex flex-col justify-between"
-                  >
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="rounded bg-zinc-800 px-2 py-0.5 text-[10px] font-medium text-zinc-300 font-mono">
-                          {course.section || 'ACTIVE'}
-                        </span>
-
-                        {/* Hide / Unhide Toggle */}
-                        <button
-                          onClick={(e) => toggleHideCourse(course.id, course.name, e)}
-                          title={hidden ? 'Add back to Active Semester' : 'Hide from Dashboard & Deadlines'}
-                          className={`rounded-lg p-1.5 text-xs transition-colors flex items-center gap-1 ${
-                            hidden
-                              ? 'bg-zinc-800 text-zinc-400 hover:text-white'
-                              : 'text-zinc-500 hover:text-amber-400 hover:bg-zinc-800'
-                          }`}
-                        >
-                          {hidden ? (
-                            <>
-                              <Eye className="h-3.5 w-3.5 text-emerald-400" />
-                              <span className="text-[10px] text-emerald-400">Unhide</span>
-                            </>
-                          ) : (
-                            <>
-                              <EyeOff className="h-3.5 w-3.5" />
-                              <span className="text-[10px]">Hide</span>
-                            </>
-                          )}
-                        </button>
-                      </div>
-
-                      <h3 className="text-sm sm:text-base font-bold text-white group-hover:text-zinc-200 transition-colors line-clamp-2 leading-snug">
-                        {course.name}
-                      </h3>
-
-                      {course.descriptionHeading && (
-                        <p className="text-xs text-zinc-400 line-clamp-1">
-                          {course.descriptionHeading}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="mt-4 pt-3 border-t border-zinc-800/60 flex items-center justify-between text-[11px] text-zinc-500">
-                      <span>{course.room ? `Room ${course.room}` : 'Classroom'}</span>
-                      <Link
-                        href={`/courses/${course.id}`}
-                        className="text-indigo-400 font-semibold hover:text-indigo-300 inline-flex items-center gap-1 transition-colors"
-                      >
-                        <span>Workspace</span>
-                        <ArrowRight className="h-3 w-3" />
-                      </Link>
-                    </div>
-                  </div>
-                );
-              })}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      )}
+      {/* Swipeable Tabs (Click + Swipe Gestures) */}
+      <SwipeableTabs
+        tabs={coursesTabs}
+        activeTabId={activeTab}
+        onTabChange={(id) => setActiveTab(id as any)}
+      />
     </div>
   );
 }
