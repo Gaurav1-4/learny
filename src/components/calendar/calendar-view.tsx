@@ -37,6 +37,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { ClassroomCourse, ClassroomCourseWork } from "@/types"
 import { WeeklyTimetable } from "@/components/calendar/weekly-timetable"
+import { SemesterCalendar } from "@/components/calendar/semester-calendar"
 import { TIMETABLE_CLASSES, ClassSlot } from "@/lib/timetable-data"
 import { BacklogResolverModal } from "@/components/backlog/backlog-resolver-modal"
 import { getBacklogStatus } from "@/lib/backlog-engine"
@@ -67,7 +68,7 @@ const COURSE_COLORS = [
 ]
 
 export function CalendarView() {
-  const [activeTab, setActiveTab] = useState<"timetable" | "month">("timetable")
+  const [activeTab, setActiveTab] = useState<"timetable" | "month" | "semester">("timetable")
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [courses, setCourses] = useState<ClassroomCourse[]>([])
   const [monthFilter, setMonthFilter] = useState<"all" | "classes" | "homework">("all")
@@ -360,6 +361,16 @@ export function CalendarView() {
               Weekly Timetable
             </button>
             <button
+              onClick={() => setActiveTab("semester")}
+              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+                activeTab === "semester"
+                  ? "bg-zinc-800 text-white font-semibold"
+                  : "text-zinc-400 hover:text-zinc-200"
+              }`}
+            >
+              Semester
+            </button>
+            <button
               onClick={() => setActiveTab("month")}
               className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
                 activeTab === "month"
@@ -459,7 +470,10 @@ export function CalendarView() {
       {/* TAB 1: WEEKLY TIMETABLE */}
       {activeTab === "timetable" && <WeeklyTimetable />}
 
-      {/* TAB 2: MONTH CALENDAR */}
+      {/* TAB 2: SEMESTER CALENDAR */}
+      {activeTab === "semester" && <SemesterCalendar />}
+
+      {/* TAB 3: MONTH CALENDAR */}
       {activeTab === "month" && (
         <div className="space-y-4 animate-in fade-in duration-200">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">

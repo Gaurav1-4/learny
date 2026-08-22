@@ -23,109 +23,6 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { TIMETABLE_CLASSES, ClassSlot } from "@/lib/timetable-data"
 
-export interface StudySlot {
-  id: string
-  title: string
-  targetCourse: string
-  reason: string
-  day: "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday"
-  timeLabel: string
-  priority: "High" | "Medium" | "Urgent"
-  completed?: boolean
-}
-
-export const AI_STUDY_SLOTS: StudySlot[] = [
-  // MONDAY
-  {
-    id: "study-mon-m3-morning",
-    title: "Math III Tuesday Test: Deep Problem Solving",
-    targetCourse: "Math III",
-    reason: "Free slot (8:30-11:00 AM) allocated to master tutorial problem sheets before Tuesday's test.",
-    day: "Monday",
-    timeLabel: "8:30 – 10:45 AM",
-    priority: "Urgent",
-  },
-  {
-    id: "study-mon-m3-afternoon",
-    title: "Math III Mock Timed Quiz & Formulas Drill",
-    targetCourse: "Math III",
-    reason: "Free slot (1:00-2:45 PM) to lock in speed & formulas so you feel zero stress on Tuesday.",
-    day: "Monday",
-    timeLabel: "1:00 – 2:45 PM",
-    priority: "Urgent",
-  },
-  {
-    id: "study-mon-os-review",
-    title: "OS Lecture 1 Notes Digest & AP Quiz Flashcards",
-    targetCourse: "Operating Systems",
-    reason: "Immediately review Mon 3 PM OS lecture concepts & run 15-min AP flashcards for Tuesday.",
-    day: "Monday",
-    timeLabel: "5:00 – 6:30 PM",
-    priority: "High",
-  },
-
-  // TUESDAY
-  {
-    id: "study-tue-os-tut-prep",
-    title: "OS Tutorial Preparation (for Wed 8:30 AM)",
-    targetCourse: "Operating Systems",
-    reason: "Prepare OS synchronization / scheduling problem sets for tomorrow morning's 8:30 AM tutorial.",
-    day: "Tuesday",
-    timeLabel: "6:30 – 8:00 PM",
-    priority: "High",
-  },
-  {
-    id: "study-tue-m3-postlog",
-    title: "Math III Lecture Notes Consolidation",
-    targetCourse: "Math III",
-    reason: "Log today's 4:30 PM lecture notes into NotebookLM to avoid post-test backlog.",
-    day: "Tuesday",
-    timeLabel: "8:30 – 9:30 PM",
-    priority: "Medium",
-  },
-
-  // WEDNESDAY
-  {
-    id: "study-wed-dpp-rmssd",
-    title: "DPP Studio Artifacts & RMSSD Lab Prep (for Thu)",
-    targetCourse: "DPP & RMSSD",
-    reason: "Free slot (10:00 AM-1:00 PM) to prep dataset for Thursday 9:30 AM RMSSD Lab (C01).",
-    day: "Wednesday",
-    timeLabel: "10:00 AM – 12:30 PM",
-    priority: "High",
-  },
-  {
-    id: "study-wed-ap-quiz-drill",
-    title: "AP Surprise Quiz Survival Drill (for Thu 3 PM)",
-    targetCourse: "Advanced Programming",
-    reason: "Solve 5 quick OOP/SOLID questions to stay 100% prepared for potential unannounced quizzes.",
-    day: "Wednesday",
-    timeLabel: "5:00 – 6:30 PM",
-    priority: "Urgent",
-  },
-
-  // THURSDAY
-  {
-    id: "study-thu-dpp-studio",
-    title: "DPP Friday Practice Studio Materials Prep",
-    targetCourse: "DPP 2026",
-    reason: "Assemble prototyping materials & critique slides for Friday 2:00 PM studio session.",
-    day: "Thursday",
-    timeLabel: "6:30 – 8:00 PM",
-    priority: "Medium",
-  },
-
-  // FRIDAY
-  {
-    id: "study-fri-weekly-sync",
-    title: "Weekly Academic Synthesis & Weekend Plan",
-    targetCourse: "All Subjects",
-    reason: "Sync all newly uploaded Google Classroom slides to NotebookLM decks.",
-    day: "Friday",
-    timeLabel: "5:00 – 6:30 PM",
-    priority: "Medium",
-  },
-]
 
 const TIME_ROWS = [
   "8:30 – 9:30 AM",
@@ -149,8 +46,7 @@ const DAYS: ("Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday")[] = [
 export function WeeklyTimetable() {
   const [selectedDay, setSelectedDay] = useState<string>("all")
   const [selectedSubject, setSelectedSubject] = useState<string>("all")
-  const [showStudySlots, setShowStudySlots] = useState<boolean>(true)
-  const [selectedSlot, setSelectedSlot] = useState<ClassSlot | StudySlot | null>(null)
+  const [selectedSlot, setSelectedSlot] = useState<ClassSlot | null>(null)
 
   // Filter classes
   const filteredClasses = TIMETABLE_CLASSES.filter((slot) => {
@@ -187,26 +83,7 @@ export function WeeklyTimetable() {
       icsContent += `END:VEVENT\n`
     })
 
-    if (showStudySlots) {
-      AI_STUDY_SLOTS.forEach((slot, idx) => {
-        const dayMap: Record<string, string> = {
-          Monday: "MO",
-          Tuesday: "TU",
-          Wednesday: "WE",
-          Thursday: "TH",
-          Friday: "FR",
-        }
-        icsContent += `BEGIN:VEVENT\n`
-        icsContent += `UID:learny-study-${slot.id}-${idx}@learny.zorx.tech\n`
-        icsContent += `SUMMARY:⚡ AI Study: ${slot.title}\n`
-        icsContent += `LOCATION:Library / Study Desk\n`
-        icsContent += `DESCRIPTION:${slot.reason}\n`
-        icsContent += `RRULE:FREQ=WEEKLY;BYDAY=${dayMap[slot.day]};COUNT=16\n`
-        icsContent += `DTSTART:20260818T090000\n`
-        icsContent += `DTEND:20260818T103000\n`
-        icsContent += `END:VEVENT\n`
-      })
-    }
+
 
     icsContent += `END:VCALENDAR`
 
@@ -272,7 +149,6 @@ export function WeeklyTimetable() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {DAYS.filter((d) => selectedDay === "all" || selectedDay === d).map((day) => {
           const dayClasses = filteredClasses.filter((c) => c.day === day)
-          const dayStudy = AI_STUDY_SLOTS.filter((s) => s.day === day)
 
           return (
             <Card
@@ -353,47 +229,7 @@ export function WeeklyTimetable() {
                   )}
                 </div>
 
-                {/* AI Study Slots Overlay */}
-                {showStudySlots && dayStudy.length > 0 && (
-                  <div className="pt-3 border-t border-zinc-800/80 space-y-2">
-                    <div className="flex items-center justify-between text-[11px]">
-                      <span className="font-bold text-emerald-400 flex items-center gap-1">
-                        <Sparkles className="h-3 w-3" /> AI Study & Prep Blocks
-                      </span>
-                      <span className="text-[10px] text-zinc-500">Auto-Scheduled</span>
-                    </div>
 
-                    {dayStudy.map((study) => (
-                      <motion.div
-                        key={study.id}
-                        whileHover={{ scale: 1.01 }}
-                        onClick={() => setSelectedSlot(study)}
-                        className="cursor-pointer rounded-xl border border-emerald-500/30 bg-emerald-950/20 p-2.5 text-xs text-emerald-200 transition-all hover:bg-emerald-950/40"
-                      >
-                        <div className="flex items-center justify-between gap-1">
-                          <span className="font-bold text-[11px] text-white line-clamp-1">
-                            {study.title}
-                          </span>
-                          <Badge
-                            className={`text-[9px] px-1.5 py-0 font-bold uppercase ${
-                              study.priority === "Urgent"
-                                ? "bg-rose-600 text-white"
-                                : "bg-emerald-700 text-emerald-100"
-                            }`}
-                          >
-                            {study.priority}
-                          </Badge>
-                        </div>
-                        <div className="mt-1 flex items-center justify-between text-[10px] text-zinc-400">
-                          <span className="text-emerald-400/90 font-medium">
-                            {study.targetCourse}
-                          </span>
-                          <span>{study.timeLabel}</span>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                )}
               </CardContent>
             </Card>
           )
@@ -412,17 +248,11 @@ export function WeeklyTimetable() {
             >
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  {"type" in selectedSlot ? (
-                    <Badge className="bg-indigo-600 text-white font-bold text-[10px]">
-                      {selectedSlot.type} • {selectedSlot.code}
-                    </Badge>
-                  ) : (
-                    <Badge className="bg-emerald-600 text-white font-bold text-[10px]">
-                      ⚡ AI Study Plan
-                    </Badge>
-                  )}
+                  <Badge className="bg-indigo-600 text-white font-bold text-[10px]">
+                    {selectedSlot.type} • {selectedSlot.code}
+                  </Badge>
                   <h3 className="text-lg font-extrabold text-white mt-1.5">
-                    {"subject" in selectedSlot ? selectedSlot.subject : selectedSlot.title}
+                    {selectedSlot.subject}
                   </h3>
                 </div>
                 <button
@@ -441,24 +271,15 @@ export function WeeklyTimetable() {
                   </span>
                 </div>
 
-                {"room" in selectedSlot && (
-                  <div className="flex items-center justify-between text-zinc-400">
-                    <span className="font-semibold">Lecture Room:</span>
-                    <span className="font-bold text-indigo-400">Room {selectedSlot.room}</span>
-                  </div>
-                )}
+                <div className="flex items-center justify-between text-zinc-400">
+                  <span className="font-semibold">Lecture Room:</span>
+                  <span className="font-bold text-indigo-400">Room {selectedSlot.room}</span>
+                </div>
 
-                {"notes" in selectedSlot && selectedSlot.notes && (
+                {selectedSlot.notes && (
                   <div className="pt-2 border-t border-zinc-800 text-zinc-300">
                     <span className="font-semibold text-zinc-400 block mb-1">Academic Notes:</span>
                     <p className="text-zinc-300 leading-relaxed">{selectedSlot.notes}</p>
-                  </div>
-                )}
-
-                {"reason" in selectedSlot && (
-                  <div className="pt-2 border-t border-zinc-800 text-emerald-300">
-                    <span className="font-semibold text-zinc-400 block mb-1">AI Prep Strategy:</span>
-                    <p className="leading-relaxed">{selectedSlot.reason}</p>
                   </div>
                 )}
               </div>
