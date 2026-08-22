@@ -80,7 +80,25 @@ export function SubjectEvaluations() {
       try {
         const parsed = JSON.parse(savedSubjects)
         if (Array.isArray(parsed) && parsed.length > 0) {
-          setSubjectEvals(parsed)
+          const updated = parsed.map((s: SubjectEvaluation) => {
+            if ((s.courseId === "iiitd-csd-dpp" || s.courseName.toLowerCase().includes("dpp") || s.courseName.toLowerCase().includes("design processes")) && s.evaluations.length < 7) {
+              return {
+                ...s,
+                courseName: "DPP (Design Processes & Perspectives)",
+                evaluations: [
+                  { id: "dpp-1", name: "Assignments (Individual) - 4 tasks @ 2.5%", maxMarks: 10, marksObtained: 9, weightPercent: 10 },
+                  { id: "dpp-2", name: "Assignments (Group) - 2 tasks @ 5%", maxMarks: 10, marksObtained: 9, weightPercent: 10 },
+                  { id: "dpp-3", name: "Mid-term Exam / Jury", maxMarks: 20, marksObtained: 17, weightPercent: 20 },
+                  { id: "dpp-4", name: "Class Participation and Attendance", maxMarks: 10, marksObtained: 10, weightPercent: 10 },
+                  { id: "dpp-5", name: "Project (Design Process & Prototype)", maxMarks: 20, marksObtained: 18, weightPercent: 20 },
+                  { id: "dpp-6", name: "Maintenance of a Journal", maxMarks: 10, marksObtained: 9, weightPercent: 10 },
+                  { id: "dpp-7", name: "End-Sem Exam / Jury", maxMarks: 20, marksObtained: 18, weightPercent: 20 },
+                ],
+              }
+            }
+            return s
+          })
+          setSubjectEvals(updated)
         } else {
           handleLoadIIITDCSDCurriculum()
         }
@@ -215,13 +233,16 @@ export function SubjectEvaluations() {
       },
       {
         courseId: "iiitd-csd-dpp",
-        courseName: "DPP 2026: Design Processes & Perspectives",
+        courseName: "DPP (Design Processes & Perspectives)",
         credits: 4,
         evaluations: [
-          { id: "dpp-1", name: "Design Critique & Presentations (A106)", maxMarks: 30, marksObtained: 28, weightPercent: 25 },
-          { id: "dpp-2", name: "Studio Assignments & Friday Practice", maxMarks: 50, marksObtained: 46, weightPercent: 25 },
-          { id: "dpp-3", name: "Midsem Review", maxMarks: 30, marksObtained: 27, weightPercent: 20 },
-          { id: "dpp-4", name: "Final Design Portfolio / Exhibition", maxMarks: 100, marksObtained: 90, weightPercent: 30 },
+          { id: "dpp-1", name: "Assignments (Individual) - 4 tasks @ 2.5%", maxMarks: 10, marksObtained: 9, weightPercent: 10 },
+          { id: "dpp-2", name: "Assignments (Group) - 2 tasks @ 5%", maxMarks: 10, marksObtained: 9, weightPercent: 10 },
+          { id: "dpp-3", name: "Mid-term Exam / Jury", maxMarks: 20, marksObtained: 17, weightPercent: 20 },
+          { id: "dpp-4", name: "Class Participation and Attendance", maxMarks: 10, marksObtained: 10, weightPercent: 10 },
+          { id: "dpp-5", name: "Project (Design Process & Prototype)", maxMarks: 20, marksObtained: 18, weightPercent: 20 },
+          { id: "dpp-6", name: "Maintenance of a Journal", maxMarks: 10, marksObtained: 9, weightPercent: 10 },
+          { id: "dpp-7", name: "End-Sem Exam / Jury", maxMarks: 20, marksObtained: 18, weightPercent: 20 },
         ],
       },
       {

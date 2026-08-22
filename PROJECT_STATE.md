@@ -1,8 +1,17 @@
 # Learny — Project State & Milestone Tracker
 
-**Current Status**: GAHA Intelligence Layer (9-Key Pool), Single-User Auth Lock, 100% Firebase Cloud Storage, Premium Dashboard & 1-to-1 Automatic NotebookLM Mapping Deployed
+**Current Status**: GAHA Chatbot Fixed & Verified (Gemini 3.5 Flash Lite + Multi-Key Failover), Single-User Auth Lock, 100% Firebase Cloud Storage, Premium Dashboard & 1-to-1 Automatic NotebookLM Mapping Deployed
 **GitHub Repository**: [https://github.com/Gaurav1-4/learny](https://github.com/Gaurav1-4/learny)
 **Live Production URL**: [https://learny.zorx.tech](https://learny.zorx.tech)
+
+---
+
+## 🛠️ Chatbot Fix & Model Upgrade (Resolved)
+- **Root Cause**: The pool was targeting `gemini-2.0-flash-lite`, which returned 404 (deprecated endpoint).
+- **Resolution**:
+  - Upgraded model target in `src/lib/gemini-pool.ts` and `src/lib/gaha-engine.ts` to active supported endpoints: `gemini-3.5-flash-lite` and `gemini-3.6-flash`.
+  - Added seamless multi-key failover handling for 403/429 status codes.
+  - Verified live with live test queries returning full KaTeX derivations and course context with 200 OK.
 
 ---
 
@@ -37,19 +46,3 @@
   6. **Google NotebookLM Dedicated Mappings**: 1-to-1 mapped notebooks (`notebookMappings`), SM-2 flashcards, and briefing docs.
   7. **User Settings & Themes**.
 - Real-time bidirectional synchronization across your **MacBook and iPhone**.
-
----
-
-## 📓 4. Automatic 1-to-1 Document-to-NotebookLM Mapping & Editor
-- Every document, lecture slide, and PDF across all courses is automatically provisioned and mapped to its own unique Google NotebookLM Notebook (`notebookId`, `notebookUrl`, `notebookTitle`).
-- Full user editing for titles, custom URLs, personal notes, and SM-2 flashcards.
-
----
-
-## ✨ 5. Ultra-Clean, High-Information Density Dashboard
-- Clean layout with live `☁️ Firebase Cloud Synced` pill and one-click sync.
-- Compact smart homework banner.
-- High-density 3-column split:
-  1. **📋 Pending Assignments** with countdowns and points.
-  2. **🔔 Recent Academic Notifications & Announcements** from professors across all courses.
-  3. **📅 Today's Live Class Timetable & Room Guide** (*A106, C201, C11, C21*).
