@@ -65,9 +65,78 @@ export function getGradeFromPercent(percent: number): { grade: string; points: n
   return { grade: "F", points: 0 }
 }
 
+export const DEFAULT_IIITD_SEM3_EVALS: SubjectEvaluation[] = [
+  {
+    courseId: "iiitd-csd-m3",
+    courseName: "Math III: Applied Mathematics (MTH201 / Thomas' Calculus)",
+    credits: 4,
+    evaluations: [
+      { id: "m3-1", name: "Weekly Tutorial Quizzes (n-2 policy: best 10 of 12 @ 3%; Tuesdays 1:30 PM)", maxMarks: 30, marksObtained: 27, weightPercent: 30 },
+      { id: "m3-2", name: "Mid-Semester Exam", maxMarks: 30, marksObtained: 26, weightPercent: 30 },
+      { id: "m3-3", name: "End-Semester Exam", maxMarks: 40, marksObtained: 35, weightPercent: 40 },
+    ],
+  },
+  {
+    courseId: "iiitd-csd-os",
+    courseName: "Operating Systems (OS / CSE231 - Section A)",
+    credits: 4,
+    evaluations: [
+      { id: "os-1", name: "Quizzes (10% with N-1 policy; lecture hours ~20 mins)", maxMarks: 10, marksObtained: 9, weightPercent: 10 },
+      { id: "os-2", name: "Take Home Assignments (No N-1 policy)", maxMarks: 35, marksObtained: 31, weightPercent: 35 },
+      { id: "os-3", name: "Mid-Semester Exam", maxMarks: 20, marksObtained: 18, weightPercent: 20 },
+      { id: "os-4", name: "End-Semester Exam", maxMarks: 35, marksObtained: 30, weightPercent: 35 },
+    ],
+  },
+  {
+    courseId: "iiitd-csd-ap",
+    courseName: "Advanced Programming (AP / CSE201)",
+    credits: 4,
+    evaluations: [
+      { id: "ap-1", name: "Assignments (Total 4 assignments @ 7.5%)", maxMarks: 30, marksObtained: 27, weightPercent: 30 },
+      { id: "ap-2", name: "Quizzes (Best 5 out of 6; 3 pre-midsem, 3 post-midsem)", maxMarks: 10, marksObtained: 9, weightPercent: 10 },
+      { id: "ap-3", name: "Midsem Exam", maxMarks: 25, marksObtained: 22, weightPercent: 25 },
+      { id: "ap-4", name: "Final Exam", maxMarks: 35, marksObtained: 30, weightPercent: 35 },
+    ],
+  },
+  {
+    courseId: "iiitd-csd-dpp",
+    courseName: "DPP (Design Processes & Perspectives)",
+    credits: 4,
+    evaluations: [
+      { id: "dpp-1", name: "Assignments (Individual) - 4 tasks @ 2.5%", maxMarks: 10, marksObtained: 9, weightPercent: 10 },
+      { id: "dpp-2", name: "Assignments (Group) - 2 tasks @ 5%", maxMarks: 10, marksObtained: 9, weightPercent: 10 },
+      { id: "dpp-3", name: "Mid-term Exam / Jury", maxMarks: 20, marksObtained: 17, weightPercent: 20 },
+      { id: "dpp-4", name: "Class Participation and Attendance", maxMarks: 10, marksObtained: 10, weightPercent: 10 },
+      { id: "dpp-5", name: "Project (Design Process & Prototype)", maxMarks: 20, marksObtained: 18, weightPercent: 20 },
+      { id: "dpp-6", name: "Maintenance of a Journal", maxMarks: 10, marksObtained: 9, weightPercent: 10 },
+      { id: "dpp-7", name: "End-Sem Exam / Jury", maxMarks: 20, marksObtained: 18, weightPercent: 20 },
+    ],
+  },
+  {
+    courseId: "iiitd-csd-rmssd-1",
+    courseName: "RMSSD Part 1: Pre-Midsem Module (SSH201)",
+    credits: 2,
+    evaluations: [
+      { id: "rmssd1-1", name: "Tutorial Exercises (As per schedule)", maxMarks: 40, marksObtained: 36, weightPercent: 40 },
+      { id: "rmssd1-2", name: "Home Assignment 1 (Deadline: 7th Sep, 11:59 PM)", maxMarks: 20, marksObtained: 18, weightPercent: 20 },
+      { id: "rmssd1-3", name: "Mid-Semester Exam", maxMarks: 40, marksObtained: 35, weightPercent: 40 },
+    ],
+  },
+  {
+    courseId: "iiitd-csd-rmssd-2",
+    courseName: "RMSSD Part 2: Post-Midsem Module (SSH201)",
+    credits: 2,
+    evaluations: [
+      { id: "rmssd2-1", name: "Tutorial Exercises & Qualitative Labs", maxMarks: 40, marksObtained: 36, weightPercent: 40 },
+      { id: "rmssd2-2", name: "Home Assignment / Fieldwork", maxMarks: 20, marksObtained: 18, weightPercent: 20 },
+      { id: "rmssd2-3", name: "End-Semester Exam / Report", maxMarks: 40, marksObtained: 35, weightPercent: 40 },
+    ],
+  },
+]
+
 export function SubjectEvaluations() {
   const [courses, setCourses] = useState<ClassroomCourse[]>([])
-  const [subjectEvals, setSubjectEvals] = useState<SubjectEvaluation[]>([])
+  const [subjectEvals, setSubjectEvals] = useState<SubjectEvaluation[]>(DEFAULT_IIITD_SEM3_EVALS)
   const [prevSemesters, setPrevSemesters] = useState<PreviousSemester[]>([])
   const [expandedSubject, setExpandedSubject] = useState<string | null>(null)
 
