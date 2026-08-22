@@ -71,9 +71,9 @@ export const DEFAULT_IIITD_SEM3_EVALS: SubjectEvaluation[] = [
     courseName: "Math III: Applied Mathematics (MTH201 / Thomas' Calculus)",
     credits: 4,
     evaluations: [
-      { id: "m3-1", name: "Weekly Tutorial Quizzes (n-2 policy: best 10 of 12 @ 3%; Tuesdays 1:30 PM)", maxMarks: 30, marksObtained: 27, weightPercent: 30 },
-      { id: "m3-2", name: "Mid-Semester Exam", maxMarks: 30, marksObtained: 26, weightPercent: 30 },
-      { id: "m3-3", name: "End-Semester Exam", maxMarks: 40, marksObtained: 35, weightPercent: 40 },
+      { id: "m3-1", name: "Weekly Tutorial Quizzes (n-2 policy: best 10 of 12 @ 3%; Tuesdays 1:30 PM)", maxMarks: 30, marksObtained: 0, weightPercent: 30 },
+      { id: "m3-2", name: "Mid-Semester Exam", maxMarks: 30, marksObtained: 0, weightPercent: 30 },
+      { id: "m3-3", name: "End-Semester Exam", maxMarks: 40, marksObtained: 0, weightPercent: 40 },
     ],
   },
   {
@@ -81,10 +81,10 @@ export const DEFAULT_IIITD_SEM3_EVALS: SubjectEvaluation[] = [
     courseName: "Operating Systems (OS / CSE231 - Section A)",
     credits: 4,
     evaluations: [
-      { id: "os-1", name: "Quizzes (10% with N-1 policy; lecture hours ~20 mins)", maxMarks: 10, marksObtained: 9, weightPercent: 10 },
-      { id: "os-2", name: "Take Home Assignments (No N-1 policy)", maxMarks: 35, marksObtained: 31, weightPercent: 35 },
-      { id: "os-3", name: "Mid-Semester Exam", maxMarks: 20, marksObtained: 18, weightPercent: 20 },
-      { id: "os-4", name: "End-Semester Exam", maxMarks: 35, marksObtained: 30, weightPercent: 35 },
+      { id: "os-1", name: "Quizzes (10% with N-1 policy; lecture hours ~20 mins)", maxMarks: 10, marksObtained: 0, weightPercent: 10 },
+      { id: "os-2", name: "Take Home Assignments (No N-1 policy)", maxMarks: 35, marksObtained: 0, weightPercent: 35 },
+      { id: "os-3", name: "Mid-Semester Exam", maxMarks: 20, marksObtained: 0, weightPercent: 20 },
+      { id: "os-4", name: "End-Semester Exam", maxMarks: 35, marksObtained: 0, weightPercent: 35 },
     ],
   },
   {
@@ -92,10 +92,10 @@ export const DEFAULT_IIITD_SEM3_EVALS: SubjectEvaluation[] = [
     courseName: "Advanced Programming (AP / CSE201)",
     credits: 4,
     evaluations: [
-      { id: "ap-1", name: "Assignments (Total 4 assignments @ 7.5%)", maxMarks: 30, marksObtained: 27, weightPercent: 30 },
-      { id: "ap-2", name: "Quizzes (Best 5 out of 6; 3 pre-midsem, 3 post-midsem)", maxMarks: 10, marksObtained: 9, weightPercent: 10 },
-      { id: "ap-3", name: "Midsem Exam", maxMarks: 25, marksObtained: 22, weightPercent: 25 },
-      { id: "ap-4", name: "Final Exam", maxMarks: 35, marksObtained: 30, weightPercent: 35 },
+      { id: "ap-1", name: "Assignments (Total 4 assignments @ 7.5%)", maxMarks: 30, marksObtained: 0, weightPercent: 30 },
+      { id: "ap-2", name: "Quizzes (Best 5 out of 6; 3 pre-midsem, 3 post-midsem)", maxMarks: 10, marksObtained: 0, weightPercent: 10 },
+      { id: "ap-3", name: "Midsem Exam", maxMarks: 25, marksObtained: 0, weightPercent: 25 },
+      { id: "ap-4", name: "Final Exam", maxMarks: 35, marksObtained: 0, weightPercent: 35 },
     ],
   },
   {
@@ -103,13 +103,13 @@ export const DEFAULT_IIITD_SEM3_EVALS: SubjectEvaluation[] = [
     courseName: "DPP (Design Processes & Perspectives)",
     credits: 4,
     evaluations: [
-      { id: "dpp-1", name: "Assignments (Individual) - 4 tasks @ 2.5%", maxMarks: 10, marksObtained: 9, weightPercent: 10 },
-      { id: "dpp-2", name: "Assignments (Group) - 2 tasks @ 5%", maxMarks: 10, marksObtained: 9, weightPercent: 10 },
-      { id: "dpp-3", name: "Mid-term Exam / Jury", maxMarks: 20, marksObtained: 17, weightPercent: 20 },
-      { id: "dpp-4", name: "Class Participation and Attendance", maxMarks: 10, marksObtained: 10, weightPercent: 10 },
-      { id: "dpp-5", name: "Project (Design Process & Prototype)", maxMarks: 20, marksObtained: 18, weightPercent: 20 },
-      { id: "dpp-6", name: "Maintenance of a Journal", maxMarks: 10, marksObtained: 9, weightPercent: 10 },
-      { id: "dpp-7", name: "End-Sem Exam / Jury", maxMarks: 20, marksObtained: 18, weightPercent: 20 },
+      { id: "dpp-1", name: "Assignments (Individual) - 4 tasks @ 2.5%", maxMarks: 10, marksObtained: 0, weightPercent: 10 },
+      { id: "dpp-2", name: "Assignments (Group) - 2 tasks @ 5%", maxMarks: 10, marksObtained: 0, weightPercent: 10 },
+      { id: "dpp-3", name: "Mid-term Exam / Jury", maxMarks: 20, marksObtained: 0, weightPercent: 20 },
+      { id: "dpp-4", name: "Class Participation and Attendance", maxMarks: 10, marksObtained: 0, weightPercent: 10 },
+      { id: "dpp-5", name: "Project (Design Process & Prototype)", maxMarks: 20, marksObtained: 0, weightPercent: 20 },
+      { id: "dpp-6", name: "Maintenance of a Journal", maxMarks: 10, marksObtained: 0, weightPercent: 10 },
+      { id: "dpp-7", name: "End-Sem Exam / Jury", maxMarks: 20, marksObtained: 0, weightPercent: 20 },
     ],
   },
   {
@@ -117,9 +117,9 @@ export const DEFAULT_IIITD_SEM3_EVALS: SubjectEvaluation[] = [
     courseName: "RMSSD Part 1: Pre-Midsem Module (SSH201)",
     credits: 2,
     evaluations: [
-      { id: "rmssd1-1", name: "Tutorial Exercises (As per schedule)", maxMarks: 40, marksObtained: 36, weightPercent: 40 },
-      { id: "rmssd1-2", name: "Home Assignment 1 (Deadline: 7th Sep, 11:59 PM)", maxMarks: 20, marksObtained: 18, weightPercent: 20 },
-      { id: "rmssd1-3", name: "Mid-Semester Exam", maxMarks: 40, marksObtained: 35, weightPercent: 40 },
+      { id: "rmssd1-1", name: "Tutorial Exercises (As per schedule)", maxMarks: 40, marksObtained: 0, weightPercent: 40 },
+      { id: "rmssd1-2", name: "Home Assignment 1 (Deadline: 7th Sep, 11:59 PM)", maxMarks: 20, marksObtained: 0, weightPercent: 20 },
+      { id: "rmssd1-3", name: "Mid-Semester Exam", maxMarks: 40, marksObtained: 0, weightPercent: 40 },
     ],
   },
   {
@@ -127,9 +127,9 @@ export const DEFAULT_IIITD_SEM3_EVALS: SubjectEvaluation[] = [
     courseName: "RMSSD Part 2: Post-Midsem Module (SSH201)",
     credits: 2,
     evaluations: [
-      { id: "rmssd2-1", name: "Tutorial Exercises & Qualitative Labs", maxMarks: 40, marksObtained: 36, weightPercent: 40 },
-      { id: "rmssd2-2", name: "Home Assignment / Fieldwork", maxMarks: 20, marksObtained: 18, weightPercent: 20 },
-      { id: "rmssd2-3", name: "End-Semester Exam / Report", maxMarks: 40, marksObtained: 35, weightPercent: 40 },
+      { id: "rmssd2-1", name: "Tutorial Exercises & Qualitative Labs", maxMarks: 40, marksObtained: 0, weightPercent: 40 },
+      { id: "rmssd2-2", name: "Home Assignment / Fieldwork", maxMarks: 20, marksObtained: 0, weightPercent: 20 },
+      { id: "rmssd2-3", name: "End-Semester Exam / Report", maxMarks: 40, marksObtained: 0, weightPercent: 40 },
     ],
   },
 ]
@@ -142,7 +142,7 @@ export function SubjectEvaluations() {
 
   // 1. Load from localStorage & Cloud
   useEffect(() => {
-    const savedSubjects = localStorage.getItem("learny_subject_evaluations")
+    const savedSubjects = localStorage.getItem("learny_subject_evals_v2")
     const savedPrevSems = localStorage.getItem("learny_prev_semesters")
 
     if (savedSubjects) {
@@ -156,13 +156,13 @@ export function SubjectEvaluations() {
                 ...s,
                 courseName: "DPP (Design Processes & Perspectives)",
                 evaluations: [
-                  { id: "dpp-1", name: "Assignments (Individual) - 4 tasks @ 2.5%", maxMarks: 10, marksObtained: 9, weightPercent: 10 },
-                  { id: "dpp-2", name: "Assignments (Group) - 2 tasks @ 5%", maxMarks: 10, marksObtained: 9, weightPercent: 10 },
-                  { id: "dpp-3", name: "Mid-term Exam / Jury", maxMarks: 20, marksObtained: 17, weightPercent: 20 },
-                  { id: "dpp-4", name: "Class Participation and Attendance", maxMarks: 10, marksObtained: 10, weightPercent: 10 },
-                  { id: "dpp-5", name: "Project (Design Process & Prototype)", maxMarks: 20, marksObtained: 18, weightPercent: 20 },
-                  { id: "dpp-6", name: "Maintenance of a Journal", maxMarks: 10, marksObtained: 9, weightPercent: 10 },
-                  { id: "dpp-7", name: "End-Sem Exam / Jury", maxMarks: 20, marksObtained: 18, weightPercent: 20 },
+                  { id: "dpp-1", name: "Assignments (Individual) - 4 tasks @ 2.5%", maxMarks: 10, marksObtained: 0, weightPercent: 10 },
+                  { id: "dpp-2", name: "Assignments (Group) - 2 tasks @ 5%", maxMarks: 10, marksObtained: 0, weightPercent: 10 },
+                  { id: "dpp-3", name: "Mid-term Exam / Jury", maxMarks: 20, marksObtained: 0, weightPercent: 20 },
+                  { id: "dpp-4", name: "Class Participation and Attendance", maxMarks: 10, marksObtained: 0, weightPercent: 10 },
+                  { id: "dpp-5", name: "Project (Design Process & Prototype)", maxMarks: 20, marksObtained: 0, weightPercent: 20 },
+                  { id: "dpp-6", name: "Maintenance of a Journal", maxMarks: 10, marksObtained: 0, weightPercent: 10 },
+                  { id: "dpp-7", name: "End-Sem Exam / Jury", maxMarks: 20, marksObtained: 0, weightPercent: 20 },
                 ],
               })
             } else if (s.courseId === "iiitd-csd-rmssd" || (s.courseName.toLowerCase().includes("rmssd") && !s.courseId.includes("-1") && !s.courseId.includes("-2"))) {
@@ -172,9 +172,9 @@ export function SubjectEvaluations() {
                   courseName: "RMSSD Part 1: Pre-Midsem Module (SSH201)",
                   credits: 2,
                   evaluations: [
-                    { id: "rmssd1-1", name: "Tutorial Exercises (As per schedule)", maxMarks: 40, marksObtained: 36, weightPercent: 40 },
-                    { id: "rmssd1-2", name: "Home Assignment 1 (Deadline: 7th Sep, 11:59 PM)", maxMarks: 20, marksObtained: 18, weightPercent: 20 },
-                    { id: "rmssd1-3", name: "Mid-Semester Exam", maxMarks: 40, marksObtained: 35, weightPercent: 40 },
+                    { id: "rmssd1-1", name: "Tutorial Exercises (As per schedule)", maxMarks: 40, marksObtained: 0, weightPercent: 40 },
+                    { id: "rmssd1-2", name: "Home Assignment 1 (Deadline: 7th Sep, 11:59 PM)", maxMarks: 20, marksObtained: 0, weightPercent: 20 },
+                    { id: "rmssd1-3", name: "Mid-Semester Exam", maxMarks: 40, marksObtained: 0, weightPercent: 40 },
                   ],
                 },
                 {
@@ -182,9 +182,9 @@ export function SubjectEvaluations() {
                   courseName: "RMSSD Part 2: Post-Midsem Module (SSH201)",
                   credits: 2,
                   evaluations: [
-                    { id: "rmssd2-1", name: "Tutorial Exercises & Qualitative Labs", maxMarks: 40, marksObtained: 36, weightPercent: 40 },
-                    { id: "rmssd2-2", name: "Home Assignment / Fieldwork", maxMarks: 20, marksObtained: 18, weightPercent: 20 },
-                    { id: "rmssd2-3", name: "End-Semester Exam / Report", maxMarks: 40, marksObtained: 35, weightPercent: 40 },
+                    { id: "rmssd2-1", name: "Tutorial Exercises & Qualitative Labs", maxMarks: 40, marksObtained: 0, weightPercent: 40 },
+                    { id: "rmssd2-2", name: "Home Assignment / Fieldwork", maxMarks: 20, marksObtained: 0, weightPercent: 20 },
+                    { id: "rmssd2-3", name: "End-Semester Exam / Report", maxMarks: 40, marksObtained: 0, weightPercent: 40 },
                   ],
                 }
               )
@@ -193,10 +193,10 @@ export function SubjectEvaluations() {
                 ...s,
                 courseName: "Advanced Programming (AP / CSE201)",
                 evaluations: [
-                  { id: "ap-1", name: "Assignments (Total 4 assignments @ 7.5%)", maxMarks: 30, marksObtained: 27, weightPercent: 30 },
-                  { id: "ap-2", name: "Quizzes (Best 5 out of 6; 3 pre-midsem, 3 post-midsem)", maxMarks: 10, marksObtained: 9, weightPercent: 10 },
-                  { id: "ap-3", name: "Midsem Exam", maxMarks: 25, marksObtained: 22, weightPercent: 25 },
-                  { id: "ap-4", name: "Final Exam", maxMarks: 35, marksObtained: 30, weightPercent: 35 },
+                  { id: "ap-1", name: "Assignments (Total 4 assignments @ 7.5%)", maxMarks: 30, marksObtained: 0, weightPercent: 30 },
+                  { id: "ap-2", name: "Quizzes (Best 5 out of 6; 3 pre-midsem, 3 post-midsem)", maxMarks: 10, marksObtained: 0, weightPercent: 10 },
+                  { id: "ap-3", name: "Midsem Exam", maxMarks: 25, marksObtained: 0, weightPercent: 25 },
+                  { id: "ap-4", name: "Final Exam", maxMarks: 35, marksObtained: 0, weightPercent: 35 },
                 ],
               })
             } else if (s.courseId === "iiitd-csd-os" || (s.courseName.toLowerCase().includes("operating systems") && s.evaluations[1]?.weightPercent !== 35)) {
@@ -204,10 +204,10 @@ export function SubjectEvaluations() {
                 ...s,
                 courseName: "Operating Systems (OS / CSE231 - Section A)",
                 evaluations: [
-                  { id: "os-1", name: "Quizzes (10% with N-1 policy; lecture hours ~20 mins)", maxMarks: 10, marksObtained: 9, weightPercent: 10 },
-                  { id: "os-2", name: "Take Home Assignments (No N-1 policy)", maxMarks: 35, marksObtained: 31, weightPercent: 35 },
-                  { id: "os-3", name: "Mid-Semester Exam", maxMarks: 20, marksObtained: 18, weightPercent: 20 },
-                  { id: "os-4", name: "End-Semester Exam", maxMarks: 35, marksObtained: 30, weightPercent: 35 },
+                  { id: "os-1", name: "Quizzes (10% with N-1 policy; lecture hours ~20 mins)", maxMarks: 10, marksObtained: 0, weightPercent: 10 },
+                  { id: "os-2", name: "Take Home Assignments (No N-1 policy)", maxMarks: 35, marksObtained: 0, weightPercent: 35 },
+                  { id: "os-3", name: "Mid-Semester Exam", maxMarks: 20, marksObtained: 0, weightPercent: 20 },
+                  { id: "os-4", name: "End-Semester Exam", maxMarks: 35, marksObtained: 0, weightPercent: 35 },
                 ],
               })
             } else if (s.courseId === "iiitd-csd-m3" || (s.courseName.toLowerCase().includes("math") && s.evaluations.length !== 3)) {
@@ -215,9 +215,9 @@ export function SubjectEvaluations() {
                 ...s,
                 courseName: "Math III: Applied Mathematics (MTH201 / Thomas' Calculus)",
                 evaluations: [
-                  { id: "m3-1", name: "Weekly Tutorial Quizzes (n-2 policy: best 10 of 12 @ 3%; Tuesdays 1:30 PM)", maxMarks: 30, marksObtained: 27, weightPercent: 30 },
-                  { id: "m3-2", name: "Mid-Semester Exam", maxMarks: 30, marksObtained: 26, weightPercent: 30 },
-                  { id: "m3-3", name: "End-Semester Exam", maxMarks: 40, marksObtained: 35, weightPercent: 40 },
+                  { id: "m3-1", name: "Weekly Tutorial Quizzes (n-2 policy: best 10 of 12 @ 3%; Tuesdays 1:30 PM)", maxMarks: 30, marksObtained: 0, weightPercent: 30 },
+                  { id: "m3-2", name: "Mid-Semester Exam", maxMarks: 30, marksObtained: 0, weightPercent: 30 },
+                  { id: "m3-3", name: "End-Semester Exam", maxMarks: 40, marksObtained: 0, weightPercent: 40 },
                 ],
               })
             } else {
@@ -258,7 +258,7 @@ export function SubjectEvaluations() {
 
   // 2. Save to localStorage & Cloud Firestore (Real-Time Cross-Device Sync)
   useEffect(() => {
-    localStorage.setItem("learny_subject_evaluations", JSON.stringify(subjectEvals))
+    localStorage.setItem("learny_subject_evals_v2", JSON.stringify(subjectEvals))
     if (subjectEvals.length > 0) {
       pushToFirestore({ subjectEvaluations: subjectEvals })
     }
@@ -291,10 +291,10 @@ export function SubjectEvaluations() {
                   courseName: course.name,
                   credits: 4,
                   evaluations: [
-                    { id: `eval-${Date.now()}-1`, name: "Quiz / Tests", maxMarks: 20, marksObtained: 18, weightPercent: 15 },
-                    { id: `eval-${Date.now()}-2`, name: "Assignments", maxMarks: 50, marksObtained: 45, weightPercent: 15 },
-                    { id: `eval-${Date.now()}-3`, name: "Midsem Exam", maxMarks: 30, marksObtained: 24, weightPercent: 30 },
-                    { id: `eval-${Date.now()}-4`, name: "Endsem Final Exam", maxMarks: 100, marksObtained: 85, weightPercent: 40 },
+                    { id: `eval-${Date.now()}-1`, name: "Quiz / Tests", maxMarks: 20, marksObtained: 0, weightPercent: 15 },
+                    { id: `eval-${Date.now()}-2`, name: "Assignments", maxMarks: 50, marksObtained: 0, weightPercent: 15 },
+                    { id: `eval-${Date.now()}-3`, name: "Midsem Exam", maxMarks: 30, marksObtained: 0, weightPercent: 30 },
+                    { id: `eval-${Date.now()}-4`, name: "Endsem Final Exam", maxMarks: 100, marksObtained: 0, weightPercent: 40 },
                   ],
                 })
               }
@@ -325,10 +325,10 @@ export function SubjectEvaluations() {
       courseName: newSubjectName.trim(),
       credits: Number(newSubjectCredits) || 4,
       evaluations: [
-        { id: `eval-${Date.now()}-1`, name: "Assignments / Homework", maxMarks: 30, marksObtained: 27, weightPercent: 20 },
-        { id: `eval-${Date.now()}-2`, name: "Quizzes & Tutorials", maxMarks: 20, marksObtained: 18, weightPercent: 15 },
-        { id: `eval-${Date.now()}-3`, name: "Midsem Exam", maxMarks: 35, marksObtained: 30, weightPercent: 25 },
-        { id: `eval-${Date.now()}-4`, name: "Endsem Exam", maxMarks: 100, marksObtained: 85, weightPercent: 40 },
+        { id: `eval-${Date.now()}-1`, name: "Assignments / Homework", maxMarks: 30, marksObtained: 0, weightPercent: 20 },
+        { id: `eval-${Date.now()}-2`, name: "Quizzes & Tutorials", maxMarks: 20, marksObtained: 0, weightPercent: 15 },
+        { id: `eval-${Date.now()}-3`, name: "Midsem Exam", maxMarks: 35, marksObtained: 0, weightPercent: 25 },
+        { id: `eval-${Date.now()}-4`, name: "Endsem Exam", maxMarks: 100, marksObtained: 0, weightPercent: 40 },
       ],
     }
     setSubjectEvals([...subjectEvals, newSub])
@@ -343,9 +343,9 @@ export function SubjectEvaluations() {
         courseName: "Math III: Applied Mathematics (MTH201 / Thomas' Calculus)",
         credits: 4,
         evaluations: [
-          { id: "m3-1", name: "Weekly Tutorial Quizzes (n-2 policy: best 10 of 12 @ 3%; Tuesdays 1:30 PM)", maxMarks: 30, marksObtained: 27, weightPercent: 30 },
-          { id: "m3-2", name: "Mid-Semester Exam", maxMarks: 30, marksObtained: 26, weightPercent: 30 },
-          { id: "m3-3", name: "End-Semester Exam", maxMarks: 40, marksObtained: 35, weightPercent: 40 },
+          { id: "m3-1", name: "Weekly Tutorial Quizzes (n-2 policy: best 10 of 12 @ 3%; Tuesdays 1:30 PM)", maxMarks: 30, marksObtained: 0, weightPercent: 30 },
+          { id: "m3-2", name: "Mid-Semester Exam", maxMarks: 30, marksObtained: 0, weightPercent: 30 },
+          { id: "m3-3", name: "End-Semester Exam", maxMarks: 40, marksObtained: 0, weightPercent: 40 },
         ],
       },
       {
@@ -353,10 +353,10 @@ export function SubjectEvaluations() {
         courseName: "Operating Systems (OS / CSE231 - Section A)",
         credits: 4,
         evaluations: [
-          { id: "os-1", name: "Quizzes (10% with N-1 policy; lecture hours ~20 mins)", maxMarks: 10, marksObtained: 9, weightPercent: 10 },
-          { id: "os-2", name: "Take Home Assignments (No N-1 policy)", maxMarks: 35, marksObtained: 31, weightPercent: 35 },
-          { id: "os-3", name: "Mid-Semester Exam", maxMarks: 20, marksObtained: 18, weightPercent: 20 },
-          { id: "os-4", name: "End-Semester Exam", maxMarks: 35, marksObtained: 30, weightPercent: 35 },
+          { id: "os-1", name: "Quizzes (10% with N-1 policy; lecture hours ~20 mins)", maxMarks: 10, marksObtained: 0, weightPercent: 10 },
+          { id: "os-2", name: "Take Home Assignments (No N-1 policy)", maxMarks: 35, marksObtained: 0, weightPercent: 35 },
+          { id: "os-3", name: "Mid-Semester Exam", maxMarks: 20, marksObtained: 0, weightPercent: 20 },
+          { id: "os-4", name: "End-Semester Exam", maxMarks: 35, marksObtained: 0, weightPercent: 35 },
         ],
       },
       {
@@ -364,10 +364,10 @@ export function SubjectEvaluations() {
         courseName: "Advanced Programming (AP / CSE201)",
         credits: 4,
         evaluations: [
-          { id: "ap-1", name: "Assignments (Total 4 assignments @ 7.5%)", maxMarks: 30, marksObtained: 27, weightPercent: 30 },
-          { id: "ap-2", name: "Quizzes (Best 5 out of 6; 3 pre-midsem, 3 post-midsem)", maxMarks: 10, marksObtained: 9, weightPercent: 10 },
-          { id: "ap-3", name: "Midsem Exam", maxMarks: 25, marksObtained: 22, weightPercent: 25 },
-          { id: "ap-4", name: "Final Exam", maxMarks: 35, marksObtained: 30, weightPercent: 35 },
+          { id: "ap-1", name: "Assignments (Total 4 assignments @ 7.5%)", maxMarks: 30, marksObtained: 0, weightPercent: 30 },
+          { id: "ap-2", name: "Quizzes (Best 5 out of 6; 3 pre-midsem, 3 post-midsem)", maxMarks: 10, marksObtained: 0, weightPercent: 10 },
+          { id: "ap-3", name: "Midsem Exam", maxMarks: 25, marksObtained: 0, weightPercent: 25 },
+          { id: "ap-4", name: "Final Exam", maxMarks: 35, marksObtained: 0, weightPercent: 35 },
         ],
       },
       {
@@ -375,13 +375,13 @@ export function SubjectEvaluations() {
         courseName: "DPP (Design Processes & Perspectives)",
         credits: 4,
         evaluations: [
-          { id: "dpp-1", name: "Assignments (Individual) - 4 tasks @ 2.5%", maxMarks: 10, marksObtained: 9, weightPercent: 10 },
-          { id: "dpp-2", name: "Assignments (Group) - 2 tasks @ 5%", maxMarks: 10, marksObtained: 9, weightPercent: 10 },
-          { id: "dpp-3", name: "Mid-term Exam / Jury", maxMarks: 20, marksObtained: 17, weightPercent: 20 },
-          { id: "dpp-4", name: "Class Participation and Attendance", maxMarks: 10, marksObtained: 10, weightPercent: 10 },
-          { id: "dpp-5", name: "Project (Design Process & Prototype)", maxMarks: 20, marksObtained: 18, weightPercent: 20 },
-          { id: "dpp-6", name: "Maintenance of a Journal", maxMarks: 10, marksObtained: 9, weightPercent: 10 },
-          { id: "dpp-7", name: "End-Sem Exam / Jury", maxMarks: 20, marksObtained: 18, weightPercent: 20 },
+          { id: "dpp-1", name: "Assignments (Individual) - 4 tasks @ 2.5%", maxMarks: 10, marksObtained: 0, weightPercent: 10 },
+          { id: "dpp-2", name: "Assignments (Group) - 2 tasks @ 5%", maxMarks: 10, marksObtained: 0, weightPercent: 10 },
+          { id: "dpp-3", name: "Mid-term Exam / Jury", maxMarks: 20, marksObtained: 0, weightPercent: 20 },
+          { id: "dpp-4", name: "Class Participation and Attendance", maxMarks: 10, marksObtained: 0, weightPercent: 10 },
+          { id: "dpp-5", name: "Project (Design Process & Prototype)", maxMarks: 20, marksObtained: 0, weightPercent: 20 },
+          { id: "dpp-6", name: "Maintenance of a Journal", maxMarks: 10, marksObtained: 0, weightPercent: 10 },
+          { id: "dpp-7", name: "End-Sem Exam / Jury", maxMarks: 20, marksObtained: 0, weightPercent: 20 },
         ],
       },
       {
@@ -389,9 +389,9 @@ export function SubjectEvaluations() {
         courseName: "RMSSD Part 1: Pre-Midsem Module (SSH201)",
         credits: 2,
         evaluations: [
-          { id: "rmssd1-1", name: "Tutorial Exercises (As per schedule)", maxMarks: 40, marksObtained: 36, weightPercent: 40 },
-          { id: "rmssd1-2", name: "Home Assignment 1 (Deadline: 7th Sep, 11:59 PM)", maxMarks: 20, marksObtained: 18, weightPercent: 20 },
-          { id: "rmssd1-3", name: "Mid-Semester Exam", maxMarks: 40, marksObtained: 35, weightPercent: 40 },
+          { id: "rmssd1-1", name: "Tutorial Exercises (As per schedule)", maxMarks: 40, marksObtained: 0, weightPercent: 40 },
+          { id: "rmssd1-2", name: "Home Assignment 1 (Deadline: 7th Sep, 11:59 PM)", maxMarks: 20, marksObtained: 0, weightPercent: 20 },
+          { id: "rmssd1-3", name: "Mid-Semester Exam", maxMarks: 40, marksObtained: 0, weightPercent: 40 },
         ],
       },
       {
@@ -399,9 +399,9 @@ export function SubjectEvaluations() {
         courseName: "RMSSD Part 2: Post-Midsem Module (SSH201)",
         credits: 2,
         evaluations: [
-          { id: "rmssd2-1", name: "Tutorial Exercises & Qualitative Labs", maxMarks: 40, marksObtained: 36, weightPercent: 40 },
-          { id: "rmssd2-2", name: "Home Assignment / Fieldwork", maxMarks: 20, marksObtained: 18, weightPercent: 20 },
-          { id: "rmssd2-3", name: "End-Semester Exam / Report", maxMarks: 40, marksObtained: 35, weightPercent: 40 },
+          { id: "rmssd2-1", name: "Tutorial Exercises & Qualitative Labs", maxMarks: 40, marksObtained: 0, weightPercent: 40 },
+          { id: "rmssd2-2", name: "Home Assignment / Fieldwork", maxMarks: 20, marksObtained: 0, weightPercent: 20 },
+          { id: "rmssd2-3", name: "End-Semester Exam / Report", maxMarks: 40, marksObtained: 0, weightPercent: 40 },
         ],
       },
     ]
@@ -454,7 +454,7 @@ export function SubjectEvaluations() {
                 id: `eval-${Date.now()}`,
                 name: "New Evaluation Component",
                 maxMarks: 100,
-                marksObtained: 80,
+                marksObtained: 0,
                 weightPercent: 10,
               },
             ],
