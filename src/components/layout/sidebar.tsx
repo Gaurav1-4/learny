@@ -18,6 +18,7 @@ import { signOut } from "next-auth/react"
 import { cn } from "@/lib/utils"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
+import { AppSwitcher } from "@/components/layout/app-switcher"
 
 interface SidebarProps {
   user?: {
@@ -74,8 +75,8 @@ export function Sidebar({ user }: SidebarProps) {
   return (
     <div className="fixed inset-y-0 left-0 z-30 hidden md:flex h-full w-60 flex-col border-r border-zinc-800 bg-zinc-950 text-zinc-300">
       {/* Brand Header */}
-      <div className="flex h-14 items-center border-b border-zinc-800 px-5">
-        <Link href="/dashboard" className="flex items-center gap-2.5 font-bold tracking-tight">
+      <div className="flex h-14 items-center justify-between border-b border-zinc-800 px-3">
+        <Link href="/dashboard" className="flex items-center gap-2.5 font-bold tracking-tight px-2">
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-zinc-100 text-zinc-950">
             <GraduationCap className="h-4 w-4" />
           </div>
@@ -88,6 +89,7 @@ export function Sidebar({ user }: SidebarProps) {
             </span>
           </div>
         </Link>
+        <AppSwitcher />
       </div>
 
       {/* Navigation Links */}

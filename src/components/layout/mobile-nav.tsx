@@ -24,6 +24,7 @@ import { signOut } from "next-auth/react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { AppSwitcher } from "@/components/layout/app-switcher"
 
 interface MobileNavProps {
   user?: {
@@ -139,6 +140,7 @@ export function MobileNav({ user }: MobileNavProps) {
         </Link>
 
         <div className="flex items-center gap-1.5">
+          <AppSwitcher />
           <Link
             href="/search"
             className="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 hover:text-white"

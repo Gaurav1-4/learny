@@ -48,6 +48,7 @@ import {
 import { RemindersView } from '@/components/gaha/reminders-view';
 import { TasksView } from '@/components/gaha/tasks-view';
 import { AnalyticsView } from '@/components/gaha/analytics-view';
+import { AppSwitcher } from '@/components/layout/app-switcher';
 import { getAcademicDateInfo, TIMETABLE_ADJUSTMENTS_2026, getUpcomingMilestones, AcademicMilestone } from '@/lib/academic-calendar-engine';
 import { format, addDays, subDays } from 'date-fns';
 
@@ -604,6 +605,9 @@ export default function GahaManagerPage() {
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white mt-1">
             Schedule Command Center
           </h1>
+        </div>
+        <div className="flex items-center gap-3">
+          <AppSwitcher />
         </div>
       </div>
 
