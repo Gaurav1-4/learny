@@ -17,7 +17,7 @@ const APPS: AppItem[] = [
   {
     name: 'Learny',
     icon: GraduationCap,
-    href: 'https://learny.zorx.tech',
+    href: 'https://learny.zorx.tech/dashboard',
     color: 'text-indigo-400',
     bgColor: 'bg-indigo-500/10',
   },
