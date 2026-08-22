@@ -130,6 +130,27 @@ export function SubjectEvaluations() {
                   { id: "ap-4", name: "Final Exam", maxMarks: 35, marksObtained: 30, weightPercent: 35 },
                 ],
               })
+            } else if (s.courseId === "iiitd-csd-os" || (s.courseName.toLowerCase().includes("operating systems") && s.evaluations[1]?.weightPercent !== 35)) {
+              updated.push({
+                ...s,
+                courseName: "Operating Systems (OS / CSE231 - Section A)",
+                evaluations: [
+                  { id: "os-1", name: "Quizzes (10% with N-1 policy; lecture hours ~20 mins)", maxMarks: 10, marksObtained: 9, weightPercent: 10 },
+                  { id: "os-2", name: "Take Home Assignments (No N-1 policy)", maxMarks: 35, marksObtained: 31, weightPercent: 35 },
+                  { id: "os-3", name: "Mid-Semester Exam", maxMarks: 20, marksObtained: 18, weightPercent: 20 },
+                  { id: "os-4", name: "End-Semester Exam", maxMarks: 35, marksObtained: 30, weightPercent: 35 },
+                ],
+              })
+            } else if (s.courseId === "iiitd-csd-m3" || (s.courseName.toLowerCase().includes("math") && s.evaluations.length !== 3)) {
+              updated.push({
+                ...s,
+                courseName: "Math III: Applied Mathematics (MTH201 / Thomas' Calculus)",
+                evaluations: [
+                  { id: "m3-1", name: "Weekly Tutorial Quizzes (n-2 policy: best 10 of 12 @ 3%; Tuesdays 1:30 PM)", maxMarks: 30, marksObtained: 27, weightPercent: 30 },
+                  { id: "m3-2", name: "Mid-Semester Exam", maxMarks: 30, marksObtained: 26, weightPercent: 30 },
+                  { id: "m3-3", name: "End-Semester Exam", maxMarks: 40, marksObtained: 35, weightPercent: 40 },
+                ],
+              })
             } else {
               updated.push(s)
             }
@@ -215,16 +236,22 @@ export function SubjectEvaluations() {
     loadCourses()
   }, [])
 
-  // Add Custom Subject Evaluation
-  const handleAddCustomSubject = () => {
-    const newId = `custom-subject-${Date.now()}`
+  // Add Subject Modal state
+  const [newSubjectName, setNewSubjectName] = useState("")
+  const [newSubjectCredits, setNewSubjectCredits] = useState(4)
+
+  const handleAddSubject = () => {
+    if (!newSubjectName.trim()) return
+    const newId = `sub-${Date.now()}`
     const newSub: SubjectEvaluation = {
       courseId: newId,
-      courseName: `New Subject ${subjectEvals.length + 1}`,
-      credits: 4,
+      courseName: newSubjectName.trim(),
+      credits: Number(newSubjectCredits) || 4,
       evaluations: [
-        { id: `eval-${Date.now()}-1`, name: "Continuous Assessment", maxMarks: 50, marksObtained: 40, weightPercent: 40 },
-        { id: `eval-${Date.now()}-2`, name: "Endsem Exam", maxMarks: 100, marksObtained: 80, weightPercent: 60 },
+        { id: `eval-${Date.now()}-1`, name: "Assignments / Homework", maxMarks: 30, marksObtained: 27, weightPercent: 20 },
+        { id: `eval-${Date.now()}-2`, name: "Quizzes & Tutorials", maxMarks: 20, marksObtained: 18, weightPercent: 15 },
+        { id: `eval-${Date.now()}-3`, name: "Midsem Exam", maxMarks: 35, marksObtained: 30, weightPercent: 25 },
+        { id: `eval-${Date.now()}-4`, name: "Endsem Exam", maxMarks: 100, marksObtained: 85, weightPercent: 40 },
       ],
     }
     setSubjectEvals([...subjectEvals, newSub])
@@ -236,24 +263,23 @@ export function SubjectEvaluations() {
     const iiitdSem3: SubjectEvaluation[] = [
       {
         courseId: "iiitd-csd-m3",
-        courseName: "Math III (Applied Mathematics III)",
+        courseName: "Math III: Applied Mathematics (MTH201 / Thomas' Calculus)",
         credits: 4,
         evaluations: [
-          { id: "m3-1", name: "Weekly Tutorial Graded Tests (Tuesday 1:30 PM)", maxMarks: 20, marksObtained: 18, weightPercent: 20 },
-          { id: "m3-2", name: "Homework & Quizzes", maxMarks: 30, marksObtained: 28, weightPercent: 15 },
-          { id: "m3-3", name: "Midsem Exam", maxMarks: 40, marksObtained: 34, weightPercent: 25 },
-          { id: "m3-4", name: "Endsem Final Exam", maxMarks: 100, marksObtained: 85, weightPercent: 40 },
+          { id: "m3-1", name: "Weekly Tutorial Quizzes (n-2 policy: best 10 of 12 @ 3%; Tuesdays 1:30 PM)", maxMarks: 30, marksObtained: 27, weightPercent: 30 },
+          { id: "m3-2", name: "Mid-Semester Exam", maxMarks: 30, marksObtained: 26, weightPercent: 30 },
+          { id: "m3-3", name: "End-Semester Exam", maxMarks: 40, marksObtained: 35, weightPercent: 40 },
         ],
       },
       {
         courseId: "iiitd-csd-os",
-        courseName: "Operating Systems (OS)",
+        courseName: "Operating Systems (OS / CSE231 - Section A)",
         credits: 4,
         evaluations: [
-          { id: "os-1", name: "Programming Labs (Linux/C/xv6)", maxMarks: 30, marksObtained: 27, weightPercent: 20 },
-          { id: "os-2", name: "Tutorial Tests & Quizzes", maxMarks: 20, marksObtained: 18, weightPercent: 15 },
-          { id: "os-3", name: "Midsem Exam", maxMarks: 35, marksObtained: 30, weightPercent: 25 },
-          { id: "os-4", name: "Endsem Final Exam", maxMarks: 100, marksObtained: 84, weightPercent: 40 },
+          { id: "os-1", name: "Quizzes (10% with N-1 policy; lecture hours ~20 mins)", maxMarks: 10, marksObtained: 9, weightPercent: 10 },
+          { id: "os-2", name: "Take Home Assignments (No N-1 policy)", maxMarks: 35, marksObtained: 31, weightPercent: 35 },
+          { id: "os-3", name: "Mid-Semester Exam", maxMarks: 20, marksObtained: 18, weightPercent: 20 },
+          { id: "os-4", name: "End-Semester Exam", maxMarks: 35, marksObtained: 30, weightPercent: 35 },
         ],
       },
       {
@@ -520,7 +546,7 @@ export function SubjectEvaluations() {
             </Button>
             <Button
               size="sm"
-              onClick={handleAddCustomSubject}
+              onClick={handleAddSubject}
               className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs"
             >
               <Plus className="h-4 w-4 mr-1" /> Add Subject

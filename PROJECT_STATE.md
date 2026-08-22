@@ -1,8 +1,21 @@
 # Learny — Project State & Milestone Tracker
 
-**Current Status**: RMSSD 2+2 Credit Evaluation Modules & DPP Updated, GAHA Chatbot Online, Single-User Auth Lock, 100% Firebase Cloud Storage, Premium Dashboard & 1-to-1 Automatic NotebookLM Mapping Deployed
+**Current Status**: AP, RMSSD & DPP Official Evaluation Schemes Deployed, GAHA Chatbot Online, Single-User Auth Lock, 100% Firebase Cloud Storage, Premium Dashboard & 1-to-1 Automatic NotebookLM Mapping Deployed
 **GitHub Repository**: [https://github.com/Gaurav1-4/learny](https://github.com/Gaurav1-4/learny)
 **Live Production URL**: [https://learny.zorx.tech](https://learny.zorx.tech)
+
+---
+
+## 💻 Advanced Programming (AP / CSE201) Evaluation Scheme
+Updated with the exact official breakdown from your slide:
+
+| S.No | Evaluation Category | Weight (%) | Quantity / Details |
+| :---: | :--- | :---: | :--- |
+| 1 | **Assignments** | **30%** | 4 assignments total ($7.5\%$ each) |
+| 2 | **Quizzes** | **10%** | Best 5 out of 6 (3 pre-midsem, 3 post-midsem — $2\%$ each) |
+| 3 | **Midsem Exam** | **25%** | 1 exam |
+| 4 | **Final Exam** | **35%** | 1 comprehensive endsem exam |
+| **Total** | | **100%** | |
 
 ---
 
