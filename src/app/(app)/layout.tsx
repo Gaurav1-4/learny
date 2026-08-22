@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { Sidebar } from '@/components/layout/sidebar';
 import { MobileNav } from '@/components/layout/mobile-nav';
-import { GahaManagerBar } from '@/components/gaha/gaha-manager-bar';
+
 import { auth } from '@/lib/auth';
 
 export default async function AppLayout({
@@ -32,8 +32,6 @@ export default async function AppLayout({
         </div>
       </main>
 
-      {/* GAHA Intelligence Manager Floating Copilot (9 Gemini Engines) */}
-      <GahaManagerBar />
     </div>
   );
 }
