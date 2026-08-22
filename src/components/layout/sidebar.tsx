@@ -13,6 +13,7 @@ import {
   Settings,
   Brain,
   LogOut,
+  Bell,
 } from "lucide-react"
 import { signOut } from "next-auth/react"
 import { cn } from "@/lib/utils"
@@ -46,6 +47,11 @@ export function Sidebar({ user }: SidebarProps) {
       label: "Schedule",
       icon: Calendar,
       href: "/calendar",
+    },
+    {
+      label: "Notifications",
+      icon: Bell,
+      href: "/notifications",
     },
   ]
 

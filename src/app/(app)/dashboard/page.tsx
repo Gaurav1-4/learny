@@ -310,13 +310,13 @@ export default function DashboardPage() {
 
       {/* 4. High-Density Main Dashboard Grid */}
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-pulse">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-pulse">
           <div className="h-64 rounded-2xl bg-zinc-900/60 border border-zinc-800" />
           <div className="h-64 rounded-2xl bg-zinc-900/60 border border-zinc-800" />
           <div className="h-64 rounded-2xl bg-zinc-900/60 border border-zinc-800" />
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
           {/* COLUMN 1: Pending Assignments & Action Items (High Priority) */}
           <div className="lg:col-span-1 space-y-3">
             <div className="flex items-center justify-between">
@@ -393,65 +393,7 @@ export default function DashboardPage() {
             )}
           </div>
 
-          {/* COLUMN 2: Recent Academic Notifications & Announcements */}
-          <div className="lg:col-span-1 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Bell className="h-4 w-4 text-purple-400" />
-                <h2 className="text-xs font-bold uppercase tracking-wider text-zinc-400">
-                  Recent Notifications ({announcements.length})
-                </h2>
-              </div>
-            </div>
-
-            {announcements.length === 0 ? (
-              <div className="rounded-2xl border border-zinc-800 bg-zinc-900/30 p-6 text-center space-y-2">
-                <Bell className="h-8 w-8 text-zinc-600 mx-auto" />
-                <h4 className="text-xs font-semibold text-white">No recent announcements</h4>
-                <p className="text-[11px] text-zinc-500">Classroom notices will appear here in real time.</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {announcements.map((ann) => (
-                  <div
-                    key={ann.id}
-                    className="rounded-xl border border-zinc-800/90 bg-zinc-900/50 hover:border-zinc-700 p-3.5 space-y-1.5 transition-all"
-                  >
-                    <div className="flex items-center justify-between text-[10px]">
-                      <Badge variant="outline" className="text-[9px] font-mono border-zinc-700 bg-zinc-950 text-purple-300">
-                        {ann.courseCode}
-                      </Badge>
-                      {ann.creationTime && (
-                        <span className="text-zinc-500">
-                          {formatDistanceToNow(new Date(ann.creationTime), { addSuffix: true })}
-                        </span>
-                      )}
-                    </div>
-
-                    <p className="text-xs text-zinc-300 line-clamp-3 leading-relaxed">
-                      {ann.text}
-                    </p>
-
-                    {ann.alternateLink && (
-                      <div className="pt-1 flex justify-end">
-                        <a
-                          href={ann.alternateLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-[10px] text-purple-400 hover:text-purple-300 inline-flex items-center gap-1 font-medium"
-                        >
-                          <span>View Notice</span>
-                          <ExternalLink className="h-2.5 w-2.5" />
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* COLUMN 3: Today's Schedule & Academic Hub */}
+          {/* COLUMN 2: Today's Schedule & Academic Hub */}
           <div className="lg:col-span-1 space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">

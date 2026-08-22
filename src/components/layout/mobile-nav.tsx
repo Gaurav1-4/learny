@@ -17,6 +17,7 @@ import {
   Timer,
   Sparkles,
   Search,
+  Bell,
   LogOut,
   ChevronRight,
 } from "lucide-react"
@@ -90,6 +91,11 @@ export function MobileNav({ user }: MobileNavProps) {
       href: "/courses",
     },
     {
+      label: "Notifications",
+      icon: Bell,
+      href: "/notifications",
+    },
+    {
       label: "NotebookLM Hub",
       icon: Brain,
       href: "/notebooklm",
@@ -117,6 +123,7 @@ export function MobileNav({ user }: MobileNavProps) {
     {
       label: "Search",
       icon: Search,
+  Bell,
       href: "/search",
     },
     {
